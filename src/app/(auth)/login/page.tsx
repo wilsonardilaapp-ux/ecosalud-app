@@ -50,6 +50,7 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
+    // Solo redirigir si la carga ha terminado y hay un usuario.
     if (!isUserLoading && user) {
       if (user.email === SUPER_ADMIN_EMAIL) {
         router.push("/superadmin");
@@ -72,8 +73,8 @@ export default function LoginPage() {
     }
   }
 
-  // No renderizar el formulario si el usuario ya está logueado y se está redirigiendo
-  if (isUserLoading || user) {
+  // Muestra "Cargando..." solo mientras se determina el estado de autenticación inicial.
+  if (isUserLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
@@ -83,6 +84,13 @@ export default function LoginPage() {
     );
   }
 
+  // Si ya hay un usuario logueado, no renderiza el formulario para evitar parpadeos durante la redirección.
+  // El useEffect se encargará de la redirección.
+  if (user) {
+    return null;
+  }
+  
+  // Si no hay usuario y la carga ha terminado, muestra el formulario.
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
