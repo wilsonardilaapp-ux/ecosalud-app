@@ -31,6 +31,10 @@ const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
+  confirmPassword: z.string().min(6, { message: "La confirmación de contraseña debe tener al menos 6 caracteres." })
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden.",
+  path: ["confirmPassword"],
 });
 
 export default function RegisterPage() {
@@ -45,6 +49,7 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -120,6 +125,19 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contraseña</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirmar Contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
