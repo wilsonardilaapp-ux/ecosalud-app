@@ -45,8 +45,8 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
                     <AvatarFallback>SA</AvatarFallback>
                   </Avatar>
                   <div className="text-left">
-                    <p className="text-sm font-medium">Super Admin</p>
-                    <p className="text-xs text-muted-foreground">admin@ecosalud.co</p>
+                    <p className="text-sm font-medium">Allseo Soporte</p>
+                    <p className="text-xs text-muted-foreground">.allseosoporte@gmail.com</p>
                   </div>
                 </div>
               </Button>
@@ -54,9 +54,9 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
             <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Super Admin</p>
+                  <p className="text-sm font-medium leading-none">Allseo Soporte</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    admin@ecosalud.co
+                    .allseosoporte@gmail.com
                   </p>
                 </div>
               </DropdownMenuLabel>
