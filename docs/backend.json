@@ -84,6 +84,46 @@
         "lastUpdate"
       ]
     },
+    "Module": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Module",
+      "type": "object",
+      "description": "Represents a functional module within the EcoSalud platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the module entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the module."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the module's functionality."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the module (e.g., active, inactive).",
+          "enum": [
+            "active",
+            "inactive"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time when the module was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "status",
+        "createdAt"
+      ]
+    },
     "GlobalConfig": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GlobalConfig",
@@ -416,6 +456,22 @@
             {
               "name": "serviceId",
               "description": "The unique identifier for the system service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/modules/{moduleId}",
+        "definition": {
+          "entityName": "Module",
+          "schema": {
+            "$ref": "#/backend/entities/Module"
+          },
+          "description": "Stores platform modules. Allows super admins to manage module status.",
+          "params": [
+            {
+              "name": "moduleId",
+              "description": "The unique identifier for the module."
             }
           ]
         }

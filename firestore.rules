@@ -70,6 +70,21 @@
     allow update: if isSuperAdmin();
     allow delete: if isSuperAdmin();
   }
+
+  /**
+  * @description Defines the security rules for platform modules. Only super admins can manage these modules.
+  * @path /modules/{moduleId}
+  * @allow (get, list, create, update, delete) The super admin can manage platform modules.
+  * @deny Non-admin users cannot manage modules.
+  * @principle Restricts access to platform modules to authorized personnel.
+  */
+  match /modules/{moduleId} {
+    allow get: if isSuperAdmin();
+    allow list: if isSuperAdmin();
+    allow create: if isSuperAdmin();
+    allow update: if isSuperAdmin();
+    allow delete: if isSuperAdmin();
+  }
  
 
   /**
