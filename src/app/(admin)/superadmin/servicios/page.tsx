@@ -1,7 +1,7 @@
 "use client";
 
 import { useCollection, useFirestore, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, writeBatch } from 'firebase/firestore';
 import {
   Card,
   CardHeader,
@@ -14,6 +14,59 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import type { SystemService } from '@/models/system-service';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+
+// Datos de ejemplo para los servicios
+const sampleServices: Omit<SystemService, 'id' | 'lastUpdate'>[] = [
+  { name: 'Gestión de Landing Pages', status: 'active', limit: 500 },
+  { name: 'Catálogo de Productos', status: 'active', limit: 800 },
+  { name: 'Formularios de Contacto', status: 'inactive', limit: 200 },
+  { name: 'Analíticas de Google', status: 'active', limit: 1000 },
+  { name: 'Integración con Cloudinary', status: 'inactive', limit: 300 },
+];
+
+// Componente para sembrar datos si la colección está vacía
+function SeedServices() {
+  const firestore = useFirestore();
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeed = async () => {
+    if (!firestore) return;
+    setIsSeeding(true);
+    try {
+      const batch = writeBatch(firestore);
+      const servicesCollection = collection(firestore, 'systemServices');
+      
+      sampleServices.forEach((serviceData) => {
+        const serviceRef = doc(servicesCollection); // Crea un nuevo documento con ID automático
+        batch.set(serviceRef, {
+          ...serviceData,
+          id: serviceRef.id,
+          lastUpdate: new Date().toISOString(),
+        });
+      });
+
+      await batch.commit();
+    } catch (error) {
+      console.error("Error seeding services:", error);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  return (
+    <Card className="col-span-full">
+        <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+           <p className="text-center text-muted-foreground">No hay servicios para mostrar. ¿Quieres añadir datos de ejemplo?</p>
+           <Button onClick={handleSeed} disabled={isSeeding}>
+                {isSeeding ? 'Añadiendo datos...' : 'Añadir Datos de Ejemplo'}
+            </Button>
+       </CardContent>
+   </Card>
+  );
+}
+
 
 export default function ServicesPage() {
   const firestore = useFirestore();
@@ -107,11 +160,7 @@ export default function ServicesPage() {
             </Card>
             ))
         ) : (
-            <Card className="col-span-full">
-                 <CardContent className="p-6">
-                    <p className="text-center text-muted-foreground">No hay servicios para mostrar.</p>
-                </CardContent>
-            </Card>
+           <SeedServices />
         )}
         </div>
     </div>
