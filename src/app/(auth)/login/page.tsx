@@ -71,12 +71,13 @@ export default function LoginPage() {
       });
     }
   }
-  
+
+  // No renderizar el formulario si el usuario ya está logueado y se está redirigiendo
   if (isUserLoading || user) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <p>Redirigiendo...</p>
+          <p>Cargando...</p>
         </div>
       </div>
     );
