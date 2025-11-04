@@ -27,14 +27,21 @@ import { Logo } from "@/components/icons";
 import { SuperAdminNav } from "@/components/layout/super-admin-nav";
 import { useAuth, useUser } from "@/firebase";
 
+const SUPER_ADMIN_EMAIL = "allseosoporte@gmail.com";
+
 export default function SuperAdminLayout({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push("/login");
+    if (isUserLoading) {
+      return; // Espera a que termine de cargar el usuario
+    }
+    if (!user) {
+      router.push("/login"); // Si no hay usuario, redirige a login
+    } else if (user.email !== SUPER_ADMIN_EMAIL) {
+      router.push("/"); // Si el usuario no es super admin, redirige a la página principal
     }
   }, [user, isUserLoading, router]);
 
@@ -47,11 +54,12 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
     }
   };
 
-  if (isUserLoading || !user) {
+  // Muestra un estado de carga mientras se verifica el usuario
+  if (isUserLoading || !user || user.email !== SUPER_ADMIN_EMAIL) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <p>Cargando...</p>
+          <p>Cargando y verificando acceso...</p>
         </div>
       </div>
     );
