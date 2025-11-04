@@ -3,7 +3,7 @@
   * Core Philosophy: This ruleset enforces a strict user-ownership model for user-specific data and a business-ownership model for business-related data. Global configurations and system services are restricted to super admins.
   * Data Structure: The data is organized hierarchically, with user data nested under `/users/{userId}`, business data under `/businesses/{businessId}`, and global configurations stored in `/globalConfig/system`. Subcollections under businesses (e.g., landingPages, contactForms) inherit the business ownership.
   * Key Security Decisions:
-  *   - User listing is disallowed for privacy.
+  *   - User listing is disallowed for privacy, except for the super admin.
   *   - Business ownership is enforced for all resources within a business (landing pages, contact forms, etc.).
   *   - Global configuration and system service management are limited to super admins.
   *   - Public read access is not granted to any collection in this prototype.
@@ -17,67 +17,74 @@
  
 
   function isSignedIn() {
-  return request.auth != null;
+    return request.auth != null;
   }
  
 
   function isOwner(userId) {
-  return isSignedIn() && request.auth.uid == userId;
+    return isSignedIn() && request.auth.uid == userId;
   }
  
 
   function isExistingOwner(userId) {
-  return isOwner(userId) && resource != null;
+    return isOwner(userId) && resource != null;
+  }
+ 
+
+  function isSuperAdmin() {
+    return request.auth.token.email == "allseosoporte@gmail.com";
   }
  
 
   /**
-  * @description Defines the security rules for user profiles. Only the user themselves can read or modify their profile.
+  * @description Defines the security rules for user profiles. Only the user themselves can read or modify their profile. The super admin can list all users.
   * @path /users/{userId}
   * @allow (create) User with ID 'user_abc' can create their own profile if request.auth.uid == 'user_abc'.
   * @allow (get, update, delete) User with ID 'user_abc' can read, update, or delete their profile if request.auth.uid == 'user_abc'.
+  * @allow (list) The super admin can list all users.
   * @deny (create) User with ID 'user_xyz' cannot create a profile with ID 'user_abc'.
   * @deny (get, update, delete) User with ID 'user_xyz' cannot read, update, or delete the profile with ID 'user_abc'.
-  * @principle Enforces document ownership for all operations.
+  * @deny (list) Non-super-admin users cannot list all users.
+  * @principle Enforces document ownership for all operations, with an exception for the super admin to list users.
   */
   match /users/{userId} {
-  allow get: if isOwner(userId);
-  allow list: if false;
-  allow create: if isOwner(userId) && request.resource.data.id == userId;
-  allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-  allow delete: if isExistingOwner(userId);
+    allow get: if isOwner(userId) || isSuperAdmin();
+    allow list: if isSuperAdmin();
+    allow create: if isOwner(userId) && request.resource.data.id == userId;
+    allow update: if isExistingOwner(userId) || isSuperAdmin();
+    allow delete: if isExistingOwner(userId) || isSuperAdmin();
   }
  
 
   /**
   * @description Defines the security rules for system service configurations. Only super admins can manage these configurations.
   * @path /systemServices/{serviceId}
-  * @allow TODO: Add super admin role check.
+  * @allow (get, list, create, update, delete) The super admin can manage system services.
   * @deny Non-admin users cannot manage system services.
   * @principle Restricts access to system service configurations to authorized personnel.
   */
   match /systemServices/{serviceId} {
-  allow get: if true;
-  allow list: if true;
-  allow create: if false; // TODO: Add super admin role check.
-  allow update: if false; // TODO: Add super admin role check.
-  allow delete: if false; // TODO: Add super admin role check.
+    allow get: if isSuperAdmin();
+    allow list: if isSuperAdmin();
+    allow create: if isSuperAdmin();
+    allow update: if isSuperAdmin();
+    allow delete: if isSuperAdmin();
   }
  
 
   /**
   * @description Defines the security rules for global configuration settings. Only super admins can manage these settings.
   * @path /globalConfig/system
-  * @allow TODO: Add super admin role check.
+  * @allow (get, create, update, delete) The super admin can manage global configurations.
   * @deny Non-admin users cannot manage global configurations.
   * @principle Restricts access to global configuration settings to authorized personnel.
   */
   match /globalConfig/system {
-  allow get: if true;
-  allow list: if false;
-  allow create: if false; // TODO: Add super admin role check.
-  allow update: if false; // TODO: Add super admin role check.
-  allow delete: if false; // TODO: Add super admin role check.
+    allow get: if isSuperAdmin();
+    allow list: if false;
+    allow create: if isSuperAdmin();
+    allow update: if isSuperAdmin();
+    allow delete: if isSuperAdmin();
   }
  
 
