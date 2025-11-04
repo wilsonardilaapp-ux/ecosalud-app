@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -75,7 +76,7 @@ export default function LoginPage() {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <p>Cargando...</p>
+          <p>Redirigiendo...</p>
         </div>
       </div>
     );
