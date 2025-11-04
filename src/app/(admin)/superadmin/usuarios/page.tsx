@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useState } from 'react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import {
   Table,
@@ -36,14 +36,14 @@ export default function UsersPage() {
   const firestore = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const usersQuery = useMemo(() => {
+  const usersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'users');
   }, [firestore]);
 
   const { data: users, isLoading } = useCollection<User>(usersQuery);
 
-  const filteredUsers = useMemo(() => {
+  const filteredUsers = useMemoFirebase(() => {
     return users?.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
