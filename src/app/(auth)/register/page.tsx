@@ -24,8 +24,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, initiateEmailSignUp } from "@/firebase";
+import { useAuth, useUser } from "@/firebase";
 import { useEffect } from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -55,14 +56,19 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      router.push("/superadmin");
+      router.push("/");
     }
   }, [user, isUserLoading, router]);
 
   async function onSubmit(values: z.infer<typeof registerSchema>) {
+    if (!auth) return;
     try {
-      initiateEmailSignUp(auth, values.email, values.password);
-      // Here you might want to also save the user's name to Firestore
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Cuenta Creada",
+        description: "Tu cuenta ha sido creada con éxito. Ahora puedes iniciar sesión.",
+      });
+      router.push("/login");
     } catch (error: any) {
       toast({
         variant: "destructive",

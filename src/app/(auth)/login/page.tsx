@@ -15,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -33,6 +32,8 @@ const loginSchema = z.object({
   password: z.string().min(1, { message: "Por favor, introduce tu contraseña." }),
 });
 
+const SUPER_ADMIN_EMAIL = "allseosoporte@gmail.com";
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -48,14 +49,19 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    if (user && !isUserLoading) {
-      router.push("/superadmin");
+    if (!isUserLoading && user) {
+      if (user.email === SUPER_ADMIN_EMAIL) {
+        router.push("/superadmin");
+      } else {
+        router.push("/");
+      }
     }
   }, [user, isUserLoading, router]);
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
+    if (!auth) return;
     try {
-      initiateEmailSignIn(auth, values.email, values.password);
+      await initiateEmailSignIn(auth, values.email, values.password);
     } catch (error: any) {
       toast({
         variant: "destructive",
