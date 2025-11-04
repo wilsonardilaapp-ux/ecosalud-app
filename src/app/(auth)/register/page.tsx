@@ -24,9 +24,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc } from 'firebase/firestore';
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -42,6 +43,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
   const form = useForm<z.infer<typeof registerSchema>>({
@@ -55,37 +57,51 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    if (user && !isUserLoading) {
-      router.push("/");
+    if (!isUserLoading && user) {
+        router.push("/");
     }
   }, [user, isUserLoading, router]);
 
   async function onSubmit(values: z.infer<typeof registerSchema>) {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const newUser = userCredential.user;
+
+      // Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', newUser.uid);
+      const userData = {
+        id: newUser.uid,
+        name: values.name,
+        email: values.email,
+        role: 'cliente_admin',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      
+      setDocumentNonBlocking(userDocRef, userData, {});
+
       toast({
         title: "Cuenta Creada",
-        description: "Tu cuenta ha sido creada con éxito. Ahora puedes iniciar sesión.",
+        description: "Tu cuenta ha sido creada con éxito. Redirigiendo al inicio de sesión.",
       });
+      
       router.push("/login");
+
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error al registrarse",
-        description: error.message || "Ha ocurrido un error inesperado.",
+        description: error.code === 'auth/email-already-in-use' 
+            ? 'Este correo electrónico ya está en uso.' 
+            : error.message || "Ha ocurrido un error inesperado.",
       });
     }
   }
 
   if (isUserLoading || user) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <p>Cargando...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
