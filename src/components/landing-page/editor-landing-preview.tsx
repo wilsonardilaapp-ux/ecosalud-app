@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavLink, NavigationSection } from '@/models/landing-page';
+import type { LandingPageData, NavLink, NavigationSection, ContentSection } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
 
@@ -64,9 +64,31 @@ const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
   );
 };
 
+const PreviewContentSection = ({ section }: { section: ContentSection }) => {
+  const sectionStyle: CSSProperties = {
+    backgroundColor: section.backgroundColor,
+    color: section.textColor,
+  };
+  
+  return (
+    <section style={sectionStyle} className="py-12 px-4">
+      <div className="container mx-auto text-center">
+        <h2 className="text-3xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
+        <p className="text-lg mt-2 mb-6" style={{ color: section.textColor }}>{section.subtitle}</p>
+        <div
+            className="prose prose-sm max-w-none mx-auto prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
+            style={{ '--prose-color': section.textColor } as React.CSSProperties}
+            dangerouslySetInnerHTML={{ __html: section.content }}
+        />
+        {/* Placeholder for subsections */}
+      </div>
+    </section>
+  );
+};
+
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
-  const { hero, navigation } = data;
+  const { hero, navigation, sections } = data;
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -125,6 +147,12 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                         )}
                     </div>
                   </div>
+
+                  {/* Render Content Sections */}
+                  {sections.map(section => (
+                    <PreviewContentSection key={section.id} section={section} />
+                  ))}
+
                 </div>
             </div>
         </CardContent>

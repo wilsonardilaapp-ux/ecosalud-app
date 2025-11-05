@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlignCenter, AlignLeft, AlignRight, GripVertical, Trash2, X } from "lucide-react";
-import type { LandingPageData, NavLink } from "@/models/landing-page";
+import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X } from "lucide-react";
+import type { LandingPageData, NavLink, ContentSection } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 
@@ -60,6 +60,30 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
     
     const removeKeyword = (keywordToRemove: string) => {
         handleInputChange('seo', 'keywords', data.seo.keywords.filter(keyword => keyword !== keywordToRemove));
+    };
+
+    const addContentSection = () => {
+        const newSection: ContentSection = {
+            id: uuidv4(),
+            title: 'Nuevo Título de Sección',
+            subtitle: 'Un subtítulo interesante para tu nueva sección.',
+            content: '<p>Este es el contenido inicial de tu sección. ¡Edítalo!</p>',
+            subsections: [],
+            backgroundColor: '#FFFFFF',
+            textColor: '#000000',
+        };
+        setData({ ...data, sections: [...data.sections, newSection] });
+    };
+
+    const updateContentSection = (id: string, field: keyof ContentSection, value: any) => {
+        const updatedSections = data.sections.map(section =>
+            section.id === id ? { ...section, [field]: value } : section
+        );
+        setData({ ...data, sections: updatedSections });
+    };
+
+    const removeContentSection = (id: string) => {
+        setData({ ...data, sections: data.sections.filter(section => section.id !== id) });
     };
 
 
@@ -245,6 +269,74 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                         </AccordionItem>
                     </Accordion>
                 </TabsContent>
+                
+                {/* SECTIONS TAB */}
+                <TabsContent value="sections">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">Secciones de Contenido</CardTitle>
+                            <Button onClick={addContentSection} size="sm">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Agregar Sección
+                            </Button>
+                        </div>
+                        {data.sections.length > 0 ? (
+                            <Accordion type="multiple" className="w-full space-y-4">
+                                {data.sections.map((section, index) => (
+                                    <AccordionItem key={section.id} value={`item-${index}`} className="border rounded-lg bg-background">
+                                        <AccordionTrigger className="p-4 text-base font-semibold hover:no-underline">
+                                            <div className="flex items-center gap-2 flex-1 truncate">
+                                                <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                                                <span className="truncate">{section.title}</span>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="p-4 pt-0 space-y-4">
+                                            <div className="flex justify-end">
+                                                <Button variant="destructive" size="sm" onClick={() => removeContentSection(section.id)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Eliminar Sección
+                                                </Button>
+                                            </div>
+                                            <div>
+                                                <Label>Título</Label>
+                                                <Input value={section.title} onChange={(e) => updateContentSection(section.id, 'title', e.target.value)} />
+                                            </div>
+                                            <div>
+                                                <Label>Subtítulo</Label>
+                                                <Input value={section.subtitle} onChange={(e) => updateContentSection(section.id, 'subtitle', e.target.value)} />
+                                            </div>
+                                            <div>
+                                                <Label>Contenido</Label>
+                                                <RichTextEditor value={section.content} onChange={(content) => updateContentSection(section.id, 'content', content)} />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label>Color de Fondo</Label>
+                                                    <Input type="color" value={section.backgroundColor} onChange={(e) => updateContentSection(section.id, 'backgroundColor', e.target.value)} className="p-1 h-10" />
+                                                </div>
+                                                <div>
+                                                    <Label>Color de Texto</Label>
+                                                    <Input type="color" value={section.textColor} onChange={(e) => updateContentSection(section.id, 'textColor', e.target.value)} className="p-1 h-10" />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 border rounded-md mt-4">
+                                                <h4 className="font-medium mb-2">Subsecciones (Tarjetas/Columnas)</h4>
+                                                <div className="flex flex-col items-center justify-center text-center p-6 h-40 bg-muted/50 rounded-md">
+                                                    <p className="text-sm text-muted-foreground">Funcionalidad en desarrollo.</p>
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md bg-muted/20">
+                                <p className="text-muted-foreground">Aún no has agregado ninguna sección de contenido.</p>
+                                <p className="text-sm text-muted-foreground">¡Haz clic en "Agregar Sección" para comenzar!</p>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
 
                 {/* SEO TAB */}
                 <TabsContent value="seo">
@@ -284,11 +376,6 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                 </TabsContent>
                 
                 {/* OTHER TABS - PLACEHOLDER */}
-                <TabsContent value="sections">
-                     <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
-                        <p className="text-muted-foreground">Gestor de secciones en desarrollo.</p>
-                    </div>
-                </TabsContent>
                 <TabsContent value="testimonials">
                      <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
                         <p className="text-muted-foreground">Gestor de testimonios en desarrollo.</p>
