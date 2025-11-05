@@ -52,14 +52,12 @@ const initialLandingPageData: LandingPageData = {
     keywords: ['innovación', 'tecnología', 'negocio'],
   },
   form: {
-    positiveReviewUrl: '',
-    internalNotificationEmail: '',
-    initialTitle: '¿Cómo fue tu experiencia?',
-    initialSubtitle: 'Tus comentarios nos ayudan a mejorar.',
-    negativeFeedbackTitle: 'Lamentamos tu experiencia',
-    negativeFeedbackSubtitle: 'Por favor, déjanos tus comentarios para poder mejorar.',
-    thankYouTitle: '¡Gracias por tus comentarios!',
-    thankYouSubtitle: 'Valoramos mucho tu opinión.',
+    fields: [
+        { id: uuidv4(), label: 'Nombre Completo', type: 'text', placeholder: 'ej. Juan Pérez', required: true },
+        { id: uuidv4(), label: 'Correo Electrónico', type: 'email', placeholder: 'ej. juan.perez@correo.com', required: true },
+        { id: uuidv4(), label: 'Mensaje', type: 'textarea', placeholder: 'Escribe tu consulta aquí...', required: true },
+    ],
+    destinationEmail: '',
   },
 };
 

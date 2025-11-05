@@ -76,13 +76,15 @@ export type SEOSection = {
   keywords: string[];
 };
 
+export type FormField = {
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'textarea' | 'tel' | 'number';
+  placeholder: string;
+  required: boolean;
+};
+
 export type FormSection = {
-    positiveReviewUrl: string;
-    internalNotificationEmail: string;
-    initialTitle: string;
-    initialSubtitle: string;
-    negativeFeedbackTitle: string;
-    negativeFeedbackSubtitle: string;
-    thankYouTitle: string;
-    thankYouSubtitle: string;
+  fields: FormField[];
+  destinationEmail: string;
 };

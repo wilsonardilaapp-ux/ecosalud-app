@@ -2,13 +2,17 @@
 'use client';
 
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection } from '@/models/landing-page';
+import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Copy, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditorLandingPreviewProps {
   data: LandingPageData;
@@ -138,9 +142,44 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
     );
 };
 
+const PreviewForm = ({ fields }: { fields: FormField[] }) => {
+  return (
+    <section className="py-12 px-4 bg-gray-100">
+      <div className="container mx-auto max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Formulario de Contacto</CardTitle>
+            <CardDescription>Ponte en contacto con nosotros.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {fields.map(field => {
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.id} className="space-y-2">
+                    <Label htmlFor={`preview-${field.id}`}>{field.label}{field.required && ' *'}</Label>
+                    <Textarea id={`preview-${field.id}`} placeholder={field.placeholder} required={field.required} disabled />
+                  </div>
+                );
+              }
+              return (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={`preview-${field.id}`}>{field.label}{field.required && ' *'}</Label>
+                  <Input id={`preview-${field.id}`} type={field.type} placeholder={field.placeholder} required={field.required} disabled />
+                </div>
+              );
+            })}
+            <Button disabled className="w-full">Enviar Mensaje</Button>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  );
+};
+
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
-  const { hero, navigation, sections, testimonials } = data;
+  const { hero, navigation, sections, testimonials, form } = data;
+  const { toast } = useToast();
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -151,66 +190,110 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     backgroundColor: hero.buttonColor,
     color: hero.backgroundColor, // A simple contrast logic
   };
+  
+  // Dummy user ID for the example URL
+  const userId = "12345";
+  const publicUrl = `${window.location.origin}/contact/${userId}`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(publicUrl);
+    toast({
+        title: "Enlace copiado",
+        description: "El enlace público del formulario ha sido copiado al portapapeles.",
+    });
+  };
 
   return (
-    <Card className="sticky top-6">
+    <div className="space-y-6">
+      <Card>
         <CardHeader>
-            <CardTitle>Vista Previa en Tiempo Real</CardTitle>
+            <CardTitle>Acciones del Formulario</CardTitle>
         </CardHeader>
-        <CardContent>
-            <div className="border rounded-lg overflow-hidden w-full bg-slate-50">
-                {/* Mock Browser Header */}
-                <div className="h-8 bg-gray-200 flex items-center px-2 gap-1">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-
-                {/* Live Preview Content */}
-                <div className="bg-white">
-                  <PreviewNavigation navConfig={navigation} />
-
-                  <div style={heroStyle}>
-                    <div className="text-center py-10 px-4">
-                        <h1 className="text-3xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
-                        <p className="text-md mt-2" style={{ color: hero.textColor }}>{hero.subtitle}</p>
-                        
-                        <div 
-                            className="mt-4 text-sm prose prose-sm max-w-none prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
-                            style={{ '--prose-color': hero.textColor } as React.CSSProperties}
-                            dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
-                        />
-
-                        {hero.imageUrl && (
-                            <div className="mt-6 relative aspect-video w-full max-w-lg mx-auto rounded-md overflow-hidden">
-                                <Image
-                                    src={hero.imageUrl}
-                                    alt={hero.title}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                        )}
-                        
-                        {hero.ctaButtonText && hero.ctaButtonUrl && (
-                            <Button asChild className="mt-6" style={buttonStyle}>
-                                <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
-                            </Button>
-                        )}
+        <CardContent className="space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Enlace Público</CardTitle>
+                    <CardDescription className="text-xs">Comparte este enlace para que te contacten.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center space-x-2">
+                        <Input value={publicUrl} readOnly />
+                        <Button variant="outline" size="icon" onClick={copyToClipboard}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
                     </div>
+                    <Button asChild variant="secondary" className="w-full mt-2">
+                       <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                           <ExternalLink className="mr-2 h-4 w-4" />
+                           Vista Previa Pública
+                       </a>
+                    </Button>
+                </CardContent>
+            </Card>
+        </CardContent>
+      </Card>
+      <Card className="sticky top-6">
+          <CardHeader>
+              <CardTitle>Vista Previa en Tiempo Real</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <div className="border rounded-lg overflow-hidden w-full bg-slate-50">
+                  {/* Mock Browser Header */}
+                  <div className="h-8 bg-gray-200 flex items-center px-2 gap-1">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
 
-                  {/* Render Content Sections */}
-                  {sections.map(section => (
-                    <PreviewContentSection key={section.id} section={section} />
-                  ))}
+                  {/* Live Preview Content */}
+                  <div className="bg-white max-h-[80vh] overflow-y-auto">
+                    <PreviewNavigation navConfig={navigation} />
 
-                  {/* Render Testimonials */}
-                  <PreviewTestimonials testimonials={testimonials} />
+                    <div style={heroStyle}>
+                      <div className="text-center py-10 px-4">
+                          <h1 className="text-3xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
+                          <p className="text-md mt-2" style={{ color: hero.textColor }}>{hero.subtitle}</p>
+                          
+                          <div 
+                              className="mt-4 text-sm prose prose-sm max-w-none prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
+                              style={{ '--prose-color': hero.textColor } as React.CSSProperties}
+                              dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
+                          />
 
-                </div>
-            </div>
-        </CardContent>
-    </Card>
+                          {hero.imageUrl && (
+                              <div className="mt-6 relative aspect-video w-full max-w-lg mx-auto rounded-md overflow-hidden">
+                                  <Image
+                                      src={hero.imageUrl}
+                                      alt={hero.title}
+                                      fill
+                                      className="object-cover"
+                                  />
+                              </div>
+                          )}
+                          
+                          {hero.ctaButtonText && hero.ctaButtonUrl && (
+                              <Button asChild className="mt-6" style={buttonStyle}>
+                                  <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
+                              </Button>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Render Content Sections */}
+                    {sections.map(section => (
+                      <PreviewContentSection key={section.id} section={section} />
+                    ))}
+
+                    {/* Render Testimonials */}
+                    <PreviewTestimonials testimonials={testimonials} />
+                    
+                    {/* Render Form Preview */}
+                    <PreviewForm fields={form.fields} />
+
+                  </div>
+              </div>
+          </CardContent>
+      </Card>
+    </div>
   );
 }

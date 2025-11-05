@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X, Star } from "lucide-react";
-import type { LandingPageData, NavLink, ContentSection, TestimonialSection } from "@/models/landing-page";
+import type { LandingPageData, NavLink, ContentSection, TestimonialSection, FormField } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,29 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
 
     const removeTestimonial = (id: string) => {
         setData({ ...data, testimonials: data.testimonials.filter(testimonial => testimonial.id !== id) });
+    };
+
+    const addFormField = () => {
+        const newField: FormField = {
+            id: uuidv4(),
+            label: 'Nuevo Campo',
+            type: 'text',
+            placeholder: 'Escribe aquí...',
+            required: false,
+        };
+        handleInputChange('form', 'fields', [...data.form.fields, newField]);
+    };
+
+    const updateFormField = (id: string, field: keyof FormField, value: any) => {
+        const updatedFields = data.form.fields.map(f =>
+            f.id === id ? { ...f, [field]: value } : f
+        );
+        handleInputChange('form', 'fields', updatedFields);
+    };
+
+    const removeFormField = (id: string) => {
+        const updatedFields = data.form.fields.filter(f => f.id !== id);
+        handleInputChange('form', 'fields', updatedFields);
     };
 
 
@@ -467,9 +491,76 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                     </div>
                 </TabsContent>
                 
+                {/* FORM TAB */}
                 <TabsContent value="form">
-                    <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
-                        <p className="text-muted-foreground">Opciones del formulario de reseñas en desarrollo.</p>
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Editor Visual de Formulario</CardTitle>
+                                <p className="text-sm text-muted-foreground">Arrastra y edita los campos de tu formulario.</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {data.form.fields.map((field, index) => (
+                                    <Card key={field.id} className="p-4 bg-muted/50">
+                                        <div className="flex items-start gap-4">
+                                            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab mt-2.5" />
+                                            <div className="flex-1 space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <Label htmlFor={`label-${field.id}`}>Etiqueta</Label>
+                                                        <Input id={`label-${field.id}`} value={field.label} onChange={(e) => updateFormField(field.id, 'label', e.target.value)} />
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor={`type-${field.id}`}>Tipo de Campo</Label>
+                                                        <Select value={field.type} onValueChange={(value) => updateFormField(field.id, 'type', value)}>
+                                                            <SelectTrigger id={`type-${field.id}`}>
+                                                                <SelectValue placeholder="Seleccionar tipo" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="text">Texto</SelectItem>
+                                                                <SelectItem value="email">Email</SelectItem>
+                                                                <SelectItem value="textarea">Área de texto</SelectItem>
+                                                                <SelectItem value="tel">Teléfono</SelectItem>
+                                                                <SelectItem value="number">Número</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor={`placeholder-${field.id}`}>Placeholder</Label>
+                                                    <Input id={`placeholder-${field.id}`} value={field.placeholder} onChange={(e) => updateFormField(field.id, 'placeholder', e.target.value)} />
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Switch id={`required-${field.id}`} checked={field.required} onCheckedChange={(checked) => updateFormField(field.id, 'required', checked)} />
+                                                        <Label htmlFor={`required-${field.id}`}>Requerido</Label>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" onClick={() => removeFormField(field.id)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                                <Button onClick={addFormField} variant="outline" className="w-full">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Agregar Campo
+                                </Button>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Configuración del Correo</CardTitle>
+                                <p className="text-sm text-muted-foreground">Define a dónde llegarán los mensajes.</p>
+                            </CardHeader>
+                            <CardContent>
+                                <div>
+                                    <Label htmlFor="form-email">Correo de Destino</Label>
+                                    <Input id="form-email" type="email" value={data.form.destinationEmail} onChange={(e) => handleInputChange('form', 'destinationEmail', e.target.value)} placeholder="tu-correo@ejemplo.com" />
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </TabsContent>
             </Tabs>
