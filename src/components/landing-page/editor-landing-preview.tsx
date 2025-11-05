@@ -4,9 +4,11 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavLink, NavigationSection, ContentSection } from '@/models/landing-page';
+import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
+import { Star } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface EditorLandingPreviewProps {
   data: LandingPageData;
@@ -87,8 +89,58 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
 };
 
 
+const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSection[] }) => {
+    if (testimonials.length === 0) {
+        return null;
+    }
+    
+    return (
+        <section className="bg-slate-50 py-12 px-4">
+            <div className="container mx-auto">
+                <h2 className="text-3xl font-bold text-center mb-8">Lo que dicen nuestros clientes</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {testimonials.map(testimonial => (
+                        <Card key={testimonial.id} className="bg-white flex flex-col">
+                            <CardContent className="p-6 flex-grow">
+                                 <div className="flex items-center mb-4">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                        key={i}
+                                        className={cn(
+                                            "h-5 w-5",
+                                            i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                        )}
+                                        />
+                                    ))}
+                                </div>
+                                <div 
+                                    className="text-gray-600 prose prose-sm max-w-none mb-4"
+                                    dangerouslySetInnerHTML={{ __html: testimonial.text }}
+                                />
+                            </CardContent>
+                             <div className="bg-slate-50 p-6 mt-auto">
+                                <div className="flex items-center">
+                                    <Avatar className="h-12 w-12 mr-4">
+                                        <AvatarImage src={testimonial.avatarUrl} alt={testimonial.authorName} />
+                                        <AvatarFallback>{testimonial.authorName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{testimonial.authorName}</p>
+                                        <p className="text-sm text-gray-500">{testimonial.authorRole}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
-  const { hero, navigation, sections } = data;
+  const { hero, navigation, sections, testimonials } = data;
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -152,6 +204,9 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                   {sections.map(section => (
                     <PreviewContentSection key={section.id} section={section} />
                   ))}
+
+                  {/* Render Testimonials */}
+                  <PreviewTestimonials testimonials={testimonials} />
 
                 </div>
             </div>

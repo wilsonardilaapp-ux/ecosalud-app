@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X } from "lucide-react";
-import type { LandingPageData, NavLink, ContentSection } from "@/models/landing-page";
+import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X, Star } from "lucide-react";
+import type { LandingPageData, NavLink, ContentSection, TestimonialSection } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
+import { cn } from "@/lib/utils";
 
 interface EditorLandingFormProps {
   data: LandingPageData;
@@ -84,6 +85,29 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
 
     const removeContentSection = (id: string) => {
         setData({ ...data, sections: data.sections.filter(section => section.id !== id) });
+    };
+
+    const addTestimonial = () => {
+        const newTestimonial: TestimonialSection = {
+            id: uuidv4(),
+            authorName: 'Nombre del Cliente',
+            authorRole: 'Cargo del Cliente',
+            text: '<p>Un testimonio increíble sobre mi producto o servicio.</p>',
+            avatarUrl: `https://i.pravatar.cc/100?u=${uuidv4()}`,
+            rating: 5,
+        };
+        setData({ ...data, testimonials: [...data.testimonials, newTestimonial] });
+    };
+
+    const updateTestimonial = (id: string, field: keyof TestimonialSection, value: any) => {
+        const updatedTestimonials = data.testimonials.map(testimonial =>
+            testimonial.id === id ? { ...testimonial, [field]: value } : testimonial
+        );
+        setData({ ...data, testimonials: updatedTestimonials });
+    };
+
+    const removeTestimonial = (id: string) => {
+        setData({ ...data, testimonials: data.testimonials.filter(testimonial => testimonial.id !== id) });
     };
 
 
@@ -337,6 +361,74 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                         )}
                     </div>
                 </TabsContent>
+                
+                {/* TESTIMONIALS TAB */}
+                <TabsContent value="testimonials">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">Testimonios de Clientes</CardTitle>
+                            <Button onClick={addTestimonial} size="sm">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Agregar Testimonio
+                            </Button>
+                        </div>
+                        {data.testimonials.length > 0 ? (
+                            <Accordion type="multiple" className="w-full space-y-4">
+                                {data.testimonials.map((testimonial, index) => (
+                                    <AccordionItem key={testimonial.id} value={`testimonial-${index}`} className="border rounded-lg bg-background">
+                                        <AccordionTrigger className="p-4 text-base font-semibold hover:no-underline">
+                                            <div className="flex items-center gap-2 flex-1 truncate">
+                                                <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                                                <span className="truncate">{testimonial.authorName}</span>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="p-4 pt-0 space-y-4">
+                                            <div className="flex justify-end">
+                                                <Button variant="destructive" size="sm" onClick={() => removeTestimonial(testimonial.id)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Eliminar Testimonio
+                                                </Button>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label>Nombre del Autor</Label>
+                                                    <Input value={testimonial.authorName} onChange={(e) => updateTestimonial(testimonial.id, 'authorName', e.target.value)} />
+                                                </div>
+                                                <div>
+                                                    <Label>Cargo del Autor</Label>
+                                                    <Input value={testimonial.authorRole} onChange={(e) => updateTestimonial(testimonial.id, 'authorRole', e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Label>URL del Avatar</Label>
+                                                <Input value={testimonial.avatarUrl} onChange={(e) => updateTestimonial(testimonial.id, 'avatarUrl', e.target.value)} />
+                                            </div>
+                                            <div>
+                                                <Label>Testimonio</Label>
+                                                <RichTextEditor value={testimonial.text} onChange={(content) => updateTestimonial(testimonial.id, 'text', content)} />
+                                            </div>
+                                            <div>
+                                                <Label>Calificación (1-5 estrellas)</Label>
+                                                <div className="flex items-center gap-1 mt-2">
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <Button key={star} variant="ghost" size="icon" onClick={() => updateTestimonial(testimonial.id, 'rating', star)}>
+                                                            <Star className={cn("h-5 w-5", testimonial.rating >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md bg-muted/20">
+                                <p className="text-muted-foreground">Aún no has agregado ningún testimonio.</p>
+                                <p className="text-sm text-muted-foreground">¡Haz clic en "Agregar Testimonio" para empezar!</p>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
 
                 {/* SEO TAB */}
                 <TabsContent value="seo">
@@ -375,12 +467,6 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                     </div>
                 </TabsContent>
                 
-                {/* OTHER TABS - PLACEHOLDER */}
-                <TabsContent value="testimonials">
-                     <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
-                        <p className="text-muted-foreground">Gestor de testimonios en desarrollo.</p>
-                    </div>
-                </TabsContent>
                 <TabsContent value="form">
                     <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
                         <p className="text-muted-foreground">Opciones del formulario de reseñas en desarrollo.</p>
