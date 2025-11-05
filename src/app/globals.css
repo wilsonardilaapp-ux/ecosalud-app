@@ -1,9 +1,9 @@
+/* Importar el tema 'snow' de Quill */
+@import 'quill/dist/quill.snow.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Importar el tema 'snow' de Quill */
-@import 'quill/dist/quill.snow.css';
 
 body {
   font-family: 'PT Sans', sans-serif;
