@@ -35,6 +35,12 @@ const initialSettings: PaymentSettings = {
     accountNumber: "",
     holderName: "",
   },
+  daviplata: {
+    enabled: false,
+    qrImageUrl: null,
+    accountNumber: "",
+    holderName: "",
+  },
 };
 
 export default function PagosPage() {
@@ -55,13 +61,15 @@ export default function PagosPage() {
 
   useEffect(() => {
     if (savedSettings) {
-      setSettings(savedSettings);
+      // Ensure all payment methods are present in the loaded settings
+      const completeSettings = { ...initialSettings, ...savedSettings, id: savedSettings.id, userId: savedSettings.userId };
+      setSettings(completeSettings);
     } else if(user) {
       setSettings(prev => ({...prev, id: user.uid, userId: user.uid }));
     }
   }, [savedSettings, user]);
 
-  const handleEnabledChange = (method: "nequi" | "bancolombia", enabled: boolean) => {
+  const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata", enabled: boolean) => {
     setSettings((prev) => ({
       ...prev,
       [method]: { ...prev[method], enabled },
@@ -102,7 +110,7 @@ export default function PagosPage() {
         </CardHeader>
       </Card>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1">
           <Card>
             <CardHeader>
@@ -145,14 +153,18 @@ export default function PagosPage() {
                   />
                 </Label>
 
-                 {/* Daviplata (disabled) */}
-                 <Label className="flex items-center justify-between rounded-lg border p-4 opacity-50 cursor-not-allowed">
+                 {/* Daviplata */}
+                 <Label htmlFor="daviplata" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
                    <div className="flex items-center gap-3">
-                    <RadioGroupItem value="daviplata" id="daviplata" disabled />
+                    <RadioGroupItem value="daviplata" id="daviplata" />
                      <Image src="https://seeklogo.com/images/D/daviplata-logo-538C40C431-seeklogo.com.png" alt="Daviplata" width={24} height={24} />
                     <span className="font-medium">Paga con Daviplata</span>
                   </div>
-                  <Switch disabled />
+                  <Switch
+                    checked={settings.daviplata.enabled}
+                    onCheckedChange={(checked) => handleEnabledChange("daviplata", checked)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </Label>
               </RadioGroup>
             </CardContent>
@@ -174,6 +186,14 @@ export default function PagosPage() {
                     data={settings.bancolombia}
                     setData={(formData) => setSettings(prev => ({...prev, bancolombia: formData}))}
                     accountLabel="Número de Cuenta"
+                />
+            )}
+            {selectedMethod === 'daviplata' && (
+                <QRForm
+                    methodName="Daviplata"
+                    data={settings.daviplata}
+                    setData={(formData) => setSettings(prev => ({...prev, daviplata: formData}))}
+                    accountLabel="Número de Teléfono"
                 />
             )}
         </div>

@@ -11,5 +11,5 @@ export type PaymentSettings = {
   userId: string;
   nequi: QRFormData;
   bancolombia: QRFormData;
-  // daviplata: QRFormData; // Future implementation
+  daviplata: QRFormData;
 };
