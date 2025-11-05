@@ -129,7 +129,7 @@ export default function PagosPage() {
                 <Label htmlFor="nequi" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
                   <div className="flex items-center gap-3">
                     <RadioGroupItem value="nequi" id="nequi" />
-                    <Image src="https://assets.stickpng.com/images/62de8f59a363481a539468e3.png" alt="Nequi" width={24} height={24} className="object-contain" />
+                    <Image src="/iconos/nequi.png" alt="Nequi" width={24} height={24} className="object-contain" />
                     <span className="font-medium">Paga con Nequi</span>
                   </div>
                   <Switch
@@ -143,7 +143,7 @@ export default function PagosPage() {
                 <Label htmlFor="bancolombia" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
                    <div className="flex items-center gap-3">
                     <RadioGroupItem value="bancolombia" id="bancolombia" />
-                     <Image src="https://assets.stickpng.com/images/62de8f1ca363481a539468db.png" alt="Bancolombia" width={24} height={24} className="object-contain" />
+                     <Image src="/iconos/bancolombia.png" alt="Bancolombia" width={24} height={24} className="object-contain" />
                     <span className="font-medium">Paga con Bancolombia</span>
                   </div>
                   <Switch
@@ -157,7 +157,7 @@ export default function PagosPage() {
                  <Label htmlFor="daviplata" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
                    <div className="flex items-center gap-3">
                     <RadioGroupItem value="daviplata" id="daviplata" />
-                     <Image src="https://seeklogo.com/images/D/daviplata-logo-538C40C431-seeklogo.com.png" alt="Daviplata" width={24} height={24} className="object-contain"/>
+                     <Image src="/iconos/daviplata.png" alt="Daviplata" width={24} height={24} className="object-contain"/>
                     <span className="font-medium">Paga con Daviplata</span>
                   </div>
                   <Switch
