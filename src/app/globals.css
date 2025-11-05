@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar el tema 'snow' de Quill */
+@import 'quill/dist/quill.snow.css';
+
 body {
   font-family: 'PT Sans', sans-serif;
 }
@@ -87,8 +90,6 @@ body {
   }
 }
 
-/* Importar el tema 'snow' de Quill */
-@import 'quill/dist/quill.snow.css';
 
 /* Estilos personalizados para el contenedor del editor */
 .rich-editor-wrapper {
