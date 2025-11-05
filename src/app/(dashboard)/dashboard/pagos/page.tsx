@@ -143,7 +143,7 @@ export default function PagosPage() {
                 <Label htmlFor="bancolombia" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
                    <div className="flex items-center gap-3">
                     <RadioGroupItem value="bancolombia" id="bancolombia" />
-                     <Image src="https://seeklogo.com/images/B/bancolombia-logo-62E3619584-seeklogo.com.png" alt="Bancolombia" width={24} height={24} className="object-contain" />
+                     <Image src="/iconos/bancolombia.png" alt="Bancolombia" width={24} height={24} className="object-contain" />
                     <span className="font-medium">Paga con Bancolombia</span>
                   </div>
                   <Switch
