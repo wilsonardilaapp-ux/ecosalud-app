@@ -8,6 +8,7 @@ import { Save } from 'lucide-react';
 import type { LandingPageData } from '@/models/landing-page';
 import EditorLandingForm from '@/components/landing-page/editor-landing-form';
 import EditorLandingPreview from '@/components/landing-page/editor-landing-preview';
+import { v4 as uuidv4 } from 'uuid';
 
 // Initial state for a new landing page
 const initialLandingPageData: LandingPageData = {
@@ -23,21 +24,25 @@ const initialLandingPageData: LandingPageData = {
     buttonColor: '#4CAF50',
   },
   navigation: {
+    enabled: true,
     logoUrl: '',
     businessName: 'Mi Negocio',
+    logoAlt: 'Logo de Mi Negocio',
+    logoWidth: 120,
+    logoAlignment: 'left',
     links: [
-      { text: 'Inicio', url: '#', openInNewTab: false },
-      { text: 'Servicios', url: '#', openInNewTab: false },
-      { text: 'Contacto', url: '#', openInNewTab: false },
-      { text: 'Catálogo', url: '#', openInNewTab: false },
-      { text: 'Blog', url: '#', openInNewTab: false },
+      { id: uuidv4(), text: 'Inicio', url: '#', openInNewTab: false },
+      { id: uuidv4(), text: 'Servicios', url: '#', openInNewTab: false },
+      { id: uuidv4(), text: 'Contacto', url: '#', openInNewTab: false },
+      { id: uuidv4(), text: 'Catálogo', url: '#', openInNewTab: false },
+      { id: uuidv4(), text: 'Blog', url: '#', openInNewTab: false },
     ],
     backgroundColor: '#FFFFFF',
     textColor: '#000000',
     hoverColor: '#4CAF50',
-    fontSise: 16,
+    fontSize: 16,
     spacing: 4,
-    logoAlignment: 'left',
+    useShadow: true,
   },
   sections: [],
   testimonials: [],

@@ -1,15 +1,19 @@
 
 'use client';
 
+import { useState } from "react";
+import { v4 as uuidv4 } from 'uuid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import type { LandingPageData } from "@/models/landing-page";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AlignCenter, AlignLeft, AlignRight, GripVertical, Trash2, X } from "lucide-react";
+import type { LandingPageData, NavLink } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
-import { useState } from "react";
 import RichTextEditor from "../editor/RichTextEditor";
 
 interface EditorLandingFormProps {
@@ -20,14 +24,31 @@ interface EditorLandingFormProps {
 export default function EditorLandingForm({ data, setData }: EditorLandingFormProps) {
     const [newKeyword, setNewKeyword] = useState('');
 
-    const handleInputChange = (tab: keyof LandingPageData, field: string, value: any) => {
+    const handleInputChange = (section: keyof LandingPageData, field: string, value: any) => {
         setData({
             ...data,
-            [tab]: {
-                ...(data[tab] as object),
+            [section]: {
+                ...(data[section] as object),
                 [field]: value
             }
         });
+    };
+
+    const handleNavLinkChange = (id: string, field: keyof NavLink, value: any) => {
+        const updatedLinks = data.navigation.links.map(link =>
+            link.id === id ? { ...link, [field]: value } : link
+        );
+        handleInputChange('navigation', 'links', updatedLinks);
+    };
+
+    const addNavLink = () => {
+        const newLink: NavLink = { id: uuidv4(), text: 'Nuevo Enlace', url: '#', openInNewTab: false };
+        handleInputChange('navigation', 'links', [...data.navigation.links, newLink]);
+    };
+
+    const removeNavLink = (id: string) => {
+        const updatedLinks = data.navigation.links.filter(link => link.id !== id);
+        handleInputChange('navigation', 'links', updatedLinks);
     };
     
     const addKeyword = () => {
@@ -48,7 +69,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
             <CardTitle>Panel de Edición</CardTitle>
         </CardHeader>
         <CardContent>
-            <Tabs defaultValue="hero">
+            <Tabs defaultValue="hero" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-4">
                     <TabsTrigger value="hero">Principal</TabsTrigger>
                     <TabsTrigger value="navigation">Navegación</TabsTrigger>
@@ -72,7 +93,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                         </div>
                         <div>
                             <Label>Contenido Adicional</Label>
-                            <RichTextEditor
+                             <RichTextEditor
                                 value={data.hero.additionalContent}
                                 onChange={(content) => handleInputChange('hero', 'additionalContent', content)}
                                 placeholder="Escribe aquí..."
@@ -107,6 +128,122 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                             </div>
                         </div>
                     </div>
+                </TabsContent>
+
+                {/* NAVIGATION TAB */}
+                <TabsContent value="navigation">
+                    <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
+                        <AccordionItem value="item-1">
+                            <AccordionTrigger className="text-lg font-semibold">Barra Superior (Header)</AccordionTrigger>
+                            <AccordionContent className="space-y-6 pt-4">
+                                <div className="flex items-center justify-between rounded-lg border p-4">
+                                    <Label htmlFor="nav-enabled" className="flex flex-col space-y-1">
+                                        <span>Habilitar Barra Superior</span>
+                                        <span className="font-normal leading-snug text-muted-foreground">
+                                        Controla la visibilidad de toda la barra de navegación.
+                                        </span>
+                                    </Label>
+                                    <Switch
+                                        id="nav-enabled"
+                                        checked={data.navigation.enabled}
+                                        onCheckedChange={(checked) => handleInputChange('navigation', 'enabled', checked)}
+                                    />
+                                </div>
+                                
+                                <div className="space-y-4 p-4 border rounded-lg">
+                                    <h3 className="font-medium">Sección de Logo</h3>
+                                    <div>
+                                        <Label htmlFor="nav-logo-url">URL del Logo</Label>
+                                        <Input id="nav-logo-url" placeholder="https://ejemplo.com/logo.png" value={data.navigation.logoUrl} onChange={(e) => handleInputChange('navigation', 'logoUrl', e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="nav-logo-alt">Texto Alternativo (si no hay logo)</Label>
+                                        <Input id="nav-logo-alt" value={data.navigation.logoAlt} onChange={(e) => handleInputChange('navigation', 'logoAlt', e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <Label>Ancho del Logo: {data.navigation.logoWidth}px</Label>
+                                        <Slider
+                                            value={[data.navigation.logoWidth]}
+                                            onValueChange={(value) => handleInputChange('navigation', 'logoWidth', value[0])}
+                                            min={20}
+                                            max={300}
+                                            step={5}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Alineación del Logo</Label>
+                                        <div className="flex gap-2 mt-2">
+                                            <Button variant={data.navigation.logoAlignment === 'left' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleInputChange('navigation', 'logoAlignment', 'left')}><AlignLeft/></Button>
+                                            <Button variant={data.navigation.logoAlignment === 'center' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleInputChange('navigation', 'logoAlignment', 'center')}><AlignCenter/></Button>
+                                            <Button variant={data.navigation.logoAlignment === 'right' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleInputChange('navigation', 'logoAlignment', 'right')}><AlignRight/></Button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 p-4 border rounded-lg">
+                                    <h3 className="font-medium">Enlaces de Navegación</h3>
+                                    <div className="space-y-3">
+                                        {data.navigation.links.map((link) => (
+                                            <div key={link.id} className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+                                                <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                                                <div className="grid grid-cols-2 gap-2 flex-1">
+                                                    <Input placeholder="Texto del enlace" value={link.text} onChange={(e) => handleNavLinkChange(link.id, 'text', e.target.value)} />
+                                                    <Input placeholder="URL" value={link.url} onChange={(e) => handleNavLinkChange(link.id, 'url', e.target.value)} />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Label htmlFor={`new-tab-${link.id}`} className="text-xs">Nueva Pestaña</Label>
+                                                    <Switch id={`new-tab-${link.id}`} checked={link.openInNewTab} onCheckedChange={(checked) => handleNavLinkChange(link.id, 'openInNewTab', checked)} />
+                                                </div>
+                                                <Button variant="ghost" size="icon" onClick={() => removeNavLink(link.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button onClick={addNavLink}>Añadir Enlace</Button>
+                                </div>
+
+                                <div className="space-y-4 p-4 border rounded-lg">
+                                    <h3 className="font-medium">Estilos</h3>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <Label htmlFor="nav-bg-color">Color de Fondo</Label>
+                                            <Input id="nav-bg-color" type="color" value={data.navigation.backgroundColor} onChange={(e) => handleInputChange('navigation', 'backgroundColor', e.target.value)} className="p-1 h-10"/>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="nav-text-color">Color de Texto</Label>
+                                            <Input id="nav-text-color" type="color" value={data.navigation.textColor} onChange={(e) => handleInputChange('navigation', 'textColor', e.target.value)} className="p-1 h-10"/>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="nav-hover-color">Color de Hover</Label>
+                                            <Input id="nav-hover-color" type="color" value={data.navigation.hoverColor} onChange={(e) => handleInputChange('navigation', 'hoverColor', e.target.value)} className="p-1 h-10"/>
+                                        </div>
+                                    </div>
+                                     <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>Tamaño de Fuente: {data.navigation.fontSize}px</Label>
+                                            <Slider
+                                                value={[data.navigation.fontSize]}
+                                                onValueChange={(value) => handleInputChange('navigation', 'fontSize', value[0])}
+                                                min={12} max={24} step={1}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Espaciado entre enlaces: {data.navigation.spacing}</Label>
+                                            <Slider
+                                                value={[data.navigation.spacing]}
+                                                onValueChange={(value) => handleInputChange('navigation', 'spacing', value[0])}
+                                                min={1} max={10} step={1}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Switch id="nav-shadow" checked={data.navigation.useShadow} onCheckedChange={(checked) => handleInputChange('navigation', 'useShadow', checked)} />
+                                        <Label htmlFor="nav-shadow">Añadir Sombra</Label>
+                                    </div>
+                                </div>
+
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </TabsContent>
 
                 {/* SEO TAB */}
@@ -147,11 +284,6 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                 </TabsContent>
                 
                 {/* OTHER TABS - PLACEHOLDER */}
-                <TabsContent value="navigation">
-                    <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
-                        <p className="text-muted-foreground">Opciones de navegación en desarrollo.</p>
-                    </div>
-                </TabsContent>
                 <TabsContent value="sections">
                      <div className="flex flex-col items-center justify-center text-center p-10 h-64 border rounded-md">
                         <p className="text-muted-foreground">Gestor de secciones en desarrollo.</p>

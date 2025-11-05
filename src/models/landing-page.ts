@@ -1,4 +1,5 @@
 
+
 export type LandingPageData = {
   hero: HeroSection;
   navigation: NavigationSection;
@@ -21,18 +22,23 @@ export type HeroSection = {
 };
 
 export type NavigationSection = {
+  enabled: boolean;
   logoUrl: string;
+  logoAlt: string;
+  logoWidth: number;
+  logoAlignment: 'left' | 'center' | 'right';
   businessName: string;
   links: NavLink[];
   backgroundColor: string;
   textColor: string;
   hoverColor: string;
-  fontSise: number;
+  fontSize: number;
   spacing: number;
-  logoAlignment: 'left' | 'center' | 'right';
+  useShadow: boolean;
 };
 
 export type NavLink = {
+  id: string;
   text: string;
   url: string;
   openInNewTab: boolean;
