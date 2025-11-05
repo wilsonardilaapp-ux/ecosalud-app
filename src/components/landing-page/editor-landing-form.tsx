@@ -142,7 +142,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="hero" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-4">
+                <TabsList className="h-auto p-2 mb-4 bg-muted rounded-lg flex flex-wrap gap-2">
                     <TabsTrigger value="hero">Principal</TabsTrigger>
                     <TabsTrigger value="navigation">Navegación</TabsTrigger>
                     <TabsTrigger value="sections">Secciones</TabsTrigger>
