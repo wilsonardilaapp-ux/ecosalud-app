@@ -1,0 +1,105 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import 'quill/dist/quill.snow.css';
+
+interface RichTextEditorProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}
+
+const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
+  const [isMounted, setIsMounted] = useState(false)
+  const quillRef = useRef<any>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const onChangeRef = useRef(onChange);
+
+  // Mantener onChangeRef actualizado con la última función onChange
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isMounted || !editorRef.current || quillRef.current) {
+      // Si no está montado, no hay ref del editor, o quill ya está inicializado, no hacer nada.
+      return;
+    }
+
+    const loadQuill = async () => {
+      const Quill = (await import('quill')).default;
+      
+      const toolbarOptions = [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [false, 'center', 'right', 'justify'] }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        ['link', 'image', 'video', 'blockquote', 'code-block'],
+        ['clean']
+      ];
+
+      quillRef.current = new Quill(editorRef.current!, {
+        theme: 'snow',
+        placeholder: placeholder || '',
+        modules: {
+          toolbar: toolbarOptions
+        }
+      });
+
+      // Establecer valor inicial
+      if (value) {
+        quillRef.current.root.innerHTML = value;
+      }
+
+      // Añadir listener para los cambios
+      quillRef.current.on('text-change', (delta: any, oldDelta: any, source: string) => {
+        if (source === 'user') {
+          onChangeRef.current(quillRef.current.root.innerHTML);
+        }
+      });
+    };
+
+    loadQuill();
+
+    // Función de limpieza
+    return () => {
+      if (quillRef.current) {
+        quillRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted]); // Este efecto se ejecuta solo UNA VEZ cuando isMounted se vuelve true.
+
+  // Efecto para actualizar el contenido cuando la prop `value` cambia desde fuera
+  useEffect(() => {
+    if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+      const selection = quillRef.current.getSelection()
+      quillRef.current.root.innerHTML = value
+      if (selection) {
+        // Intenta restaurar la selección
+        quillRef.current.setSelection(selection.index, selection.length)
+      }
+    }
+  }, [value])
+
+  if (!isMounted) {
+    // Muestra un esqueleto de carga mientras el editor se monta en el cliente
+    return <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
+  }
+
+  return (
+    <div className="rich-editor-wrapper">
+      <div ref={editorRef} />
+    </div>
+  )
+}
+
+export default RichTextEditor;

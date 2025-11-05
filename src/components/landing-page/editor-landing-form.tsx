@@ -2,16 +2,15 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { PlusCircle, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { LandingPageData } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import { useState } from "react";
+import RichTextEditor from "../editor/RichTextEditor";
 
 interface EditorLandingFormProps {
   data: LandingPageData;
@@ -25,7 +24,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         setData({
             ...data,
             [tab]: {
-                ...data[tab],
+                ...(data[tab] as object),
                 [field]: value
             }
         });
@@ -72,9 +71,12 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                             <Input id="hero-subtitle" value={data.hero.subtitle} onChange={(e) => handleInputChange('hero', 'subtitle', e.target.value)} />
                         </div>
                         <div>
-                            <Label>Contenido Adicional (HTML)</Label>
-                            <Textarea value={data.hero.additionalContent} onChange={(e) => handleInputChange('hero', 'additionalContent', e.target.value)} rows={5}/>
-                            <p className="text-xs text-muted-foreground mt-1">Puedes usar etiquetas HTML como &lt;strong&gt; para negrita.</p>
+                            <Label>Contenido Adicional</Label>
+                            <RichTextEditor
+                                value={data.hero.additionalContent}
+                                onChange={(content) => handleInputChange('hero', 'additionalContent', content)}
+                                placeholder="Escribe aquí..."
+                            />
                         </div>
                         <div>
                             <Label htmlFor="hero-image">URL de Imagen del Hero</Label>
@@ -117,7 +119,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                         </div>
                         <div>
                             <Label htmlFor="seo-description">Descripción SEO</Label>
-                            <Textarea id="seo-description" value={data.seo.description} onChange={(e) => handleInputChange('seo', 'description', e.target.value)} />
+                             <Input id="seo-description" value={data.seo.description} onChange={(e) => handleInputChange('seo', 'description', e.target.value)} />
                         </div>
                         <div>
                             <Label htmlFor="seo-keywords">Palabras Clave</Label>
