@@ -175,43 +175,49 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <Label className="text-lg font-semibold">Imágenes del Carrusel</Label>
             <p className="text-sm text-muted-foreground">Sube aquí las imágenes que se mostrarán en el carrusel de tu catálogo (máximo 3).</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {data.carouselItems.map((item, index) => (
-                    <Card key={item.id} className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="text-base">Elemento {index + 1}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 flex-grow">
-                            <MediaUploader
-                                mediaUrl={item.mediaUrl}
-                                mediaType={item.mediaType}
-                                onUpload={(file) => handleCarouselUpload(item.id, file)}
-                                onRemove={() => removeCarouselItemMedia(item.id)}
-                                aspectRatio="aspect-video"
-                                uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2 invisible">Subir</Button>}
-                            />
-                            <div>
-                                <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
-                                <Input id={`slogan-${item.id}`} value={item.slogan} onChange={e => handleCarouselItemChange(item.id, 'slogan', e.target.value)} />
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex gap-2">
-                             <MediaUploader 
-                                mediaUrl={null}
-                                mediaType={null}
-                                onUpload={(file) => handleCarouselUpload(item.id, file)}
-                                onRemove={() => {}}
-                                uploadTrigger={
-                                <Button variant="outline" size="sm" className="w-full">
+                {data.carouselItems.map((item, index) => {
+                    const replaceInputRef = useRef<HTMLInputElement>(null);
+                    return (
+                        <Card key={item.id} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="text-base">Elemento {index + 1}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4 flex-grow">
+                                <MediaUploader
+                                    mediaUrl={item.mediaUrl}
+                                    mediaType={item.mediaType}
+                                    onUpload={(file) => handleCarouselUpload(item.id, file)}
+                                    onRemove={() => removeCarouselItemMedia(item.id)}
+                                    aspectRatio="aspect-video"
+                                    uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2 invisible">Subir</Button>}
+                                />
+                                <div>
+                                    <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
+                                    <Input id={`slogan-${item.id}`} value={item.slogan} onChange={e => handleCarouselItemChange(item.id, 'slogan', e.target.value)} />
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex gap-2">
+                                <input
+                                    type="file"
+                                    ref={replaceInputRef}
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            handleCarouselUpload(item.id, e.target.files[0])
+                                        }
+                                    }}
+                                    className="hidden"
+                                    accept="image/*,video/*"
+                                />
+                                <Button variant="outline" size="sm" className="w-full" onClick={() => replaceInputRef.current?.click()}>
                                     <Pencil className="mr-2 h-4 w-4" /> Reemplazar
                                 </Button>
-                                }
-                             />
-                            <Button variant="destructive" size="sm" className="w-full" onClick={() => removeCarouselItemMedia(item.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+                                <Button variant="destructive" size="sm" className="w-full" onClick={() => removeCarouselItemMedia(item.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )
+                })}
             </div>
         </div>
         
