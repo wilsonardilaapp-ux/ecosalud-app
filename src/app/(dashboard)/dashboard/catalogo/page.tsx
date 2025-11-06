@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -9,6 +10,10 @@ import ProductForm from '@/components/catalogo/product-form';
 import ProductCard from '@/components/catalogo/product-card';
 import ShareCatalog from '@/components/catalogo/share-catalog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
+import type { LandingHeaderConfigData } from '@/models/landing-page';
+import { v4 as uuidv4 } from 'uuid';
+
 
 // Datos de ejemplo
 const sampleProducts: Product[] = [
@@ -38,11 +43,37 @@ const sampleProducts: Product[] = [
     },
 ];
 
+const initialHeaderConfig: LandingHeaderConfigData = {
+    banner: {
+      mediaUrl: null,
+      mediaType: null,
+    },
+    businessInfo: {
+      name: 'Tu Negocio',
+      address: 'Calle Falsa 123',
+      phone: '+57 300 123 4567',
+      email: 'info@tunegocio.com',
+    },
+    socialLinks: {
+      tiktok: '',
+      instagram: '',
+      facebook: '',
+      whatsapp: '',
+      twitter: '',
+    },
+    carouselItems: [
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+    ],
+};
+
 
 export default function CatalogoPage() {
     const [products, setProducts] = useState<Product[]>(sampleProducts);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [headerConfig, setHeaderConfig] = useState<LandingHeaderConfigData>(initialHeaderConfig);
 
     const handleSaveProduct = (product: Product) => {
         if (editingProduct) {
@@ -72,10 +103,11 @@ export default function CatalogoPage() {
 
     return (
         <div className="flex flex-col gap-6">
+            <CatalogHeaderForm data={headerConfig} setData={setHeaderConfig} />
             <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
                     <div>
-                        <CardTitle>Catálogo de Productos</CardTitle>
+                        <CardTitle>Tus Productos</CardTitle>
                         <CardDescription>
                             Añade, edita y gestiona los productos de tu negocio.
                         </CardDescription>
@@ -137,3 +169,4 @@ export default function CatalogoPage() {
         </div>
     );
 }
+
