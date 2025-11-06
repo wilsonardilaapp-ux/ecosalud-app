@@ -7,6 +7,7 @@ import { PlusCircle, ShoppingBag, Edit, Trash2 } from 'lucide-react';
 import type { Product } from '@/models/product';
 import ProductForm from '@/components/catalogo/product-form';
 import ProductCard from '@/components/catalogo/product-card';
+import ShareCatalog from '@/components/catalogo/share-catalog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 
 // Datos de ejemplo
@@ -102,6 +103,8 @@ export default function CatalogoPage() {
                     </Dialog>
                 </CardHeader>
             </Card>
+
+            <ShareCatalog />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.length > 0 ? (
