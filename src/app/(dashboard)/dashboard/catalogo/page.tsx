@@ -136,8 +136,6 @@ export default function CatalogoPage() {
                 </CardHeader>
             </Card>
 
-            <ShareCatalog />
-
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.length > 0 ? (
                     products.map(product => (
@@ -166,7 +164,8 @@ export default function CatalogoPage() {
                     </Card>
                 )}
             </div>
+            
+            <ShareCatalog />
         </div>
     );
 }
-
