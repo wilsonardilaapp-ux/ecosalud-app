@@ -7,6 +7,7 @@ export type LandingPageData = {
   testimonials: TestimonialSection[];
   seo: SEOSection;
   form: FormSection;
+  header: LandingHeaderConfigData; // New section
 };
 
 export type HeroSection = {
@@ -87,4 +88,33 @@ export type FormField = {
 export type FormSection = {
   fields: FormField[];
   destinationEmail: string;
+};
+
+// New Types for Header Configuration
+export type LandingHeaderConfigData = {
+    banner: {
+        mediaUrl: string | null;
+        mediaType: 'image' | 'video' | null;
+    };
+    businessInfo: {
+        name: string;
+        address: string;
+        phone: string;
+        email?: string;
+    };
+    socialLinks: {
+        tiktok: string;
+        instagram: string;
+        facebook: string;
+        whatsapp: string;
+        twitter: string;
+    };
+    carouselItems: CarouselItem[];
+};
+
+export type CarouselItem = {
+    id: string;
+    mediaUrl: string | null;
+    mediaType: 'image' | 'video' | null;
+    slogan: string;
 };

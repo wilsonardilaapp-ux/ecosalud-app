@@ -17,6 +17,7 @@ import type { LandingPageData, NavLink, ContentSection, TestimonialSection, Form
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 import { cn } from "@/lib/utils";
+import EditorHeaderConfigForm from "./editor-header-config-form";
 
 interface EditorLandingFormProps {
   data: LandingPageData;
@@ -145,6 +146,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                 <TabsList className="h-auto p-2 mb-4 bg-muted rounded-lg flex flex-wrap gap-2">
                     <TabsTrigger value="hero">Principal</TabsTrigger>
                     <TabsTrigger value="navigation">Navegación</TabsTrigger>
+                    <TabsTrigger value="carousel">Carrusel</TabsTrigger>
                     <TabsTrigger value="sections">Secciones</TabsTrigger>
                     <TabsTrigger value="testimonials">Testimonios</TabsTrigger>
                     <TabsTrigger value="seo">SEO</TabsTrigger>
@@ -316,6 +318,11 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
+                </TabsContent>
+
+                {/* CAROUSEL TAB */}
+                <TabsContent value="carousel">
+                    <EditorHeaderConfigForm data={data.header} setData={(headerData) => setData({ ...data, header: headerData })} />
                 </TabsContent>
                 
                 {/* SECTIONS TAB */}

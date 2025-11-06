@@ -59,6 +59,30 @@ const initialLandingPageData: LandingPageData = {
     ],
     destinationEmail: '',
   },
+  header: {
+    banner: {
+      mediaUrl: null,
+      mediaType: null,
+    },
+    businessInfo: {
+      name: 'Tu Negocio',
+      address: 'Calle Falsa 123',
+      phone: '+57 300 123 4567',
+      email: 'info@tunegocio.com',
+    },
+    socialLinks: {
+      tiktok: '',
+      instagram: '',
+      facebook: '',
+      whatsapp: '',
+      twitter: '',
+    },
+    carouselItems: [
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+      { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
+    ],
+  }
 };
 
 
