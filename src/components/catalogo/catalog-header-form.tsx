@@ -3,7 +3,7 @@
 
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {mediaUrl ? null : uploadTrigger}
+        {React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
       </div>
     );
   };
@@ -130,7 +130,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   };
   
   const removeCarouselItemMedia = (id: string) => {
-     const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl: null, mediaType: null} : item);
+     const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl: null, mediaType: null, slogan: ''} : item);
      setData({ ...data, carouselItems: updatedItems });
   };
 
@@ -176,24 +176,40 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <p className="text-sm text-muted-foreground">Sube aquí las imágenes que se mostrarán en el carrusel de tu catálogo (máximo 3).</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {data.carouselItems.map((item, index) => (
-                    <Card key={item.id}>
+                    <Card key={item.id} className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="text-base">Elemento {index + 1}</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-4 flex-grow">
                             <MediaUploader
                                 mediaUrl={item.mediaUrl}
                                 mediaType={item.mediaType}
                                 onUpload={(file) => handleCarouselUpload(item.id, file)}
                                 onRemove={() => removeCarouselItemMedia(item.id)}
                                 aspectRatio="aspect-video"
-                                uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2">Subir</Button>}
+                                uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2 invisible">Subir</Button>}
                             />
                             <div>
                                 <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
                                 <Input id={`slogan-${item.id}`} value={item.slogan} onChange={e => handleCarouselItemChange(item.id, 'slogan', e.target.value)} />
                             </div>
                         </CardContent>
+                        <CardFooter className="flex gap-2">
+                             <MediaUploader 
+                                mediaUrl={null}
+                                mediaType={null}
+                                onUpload={(file) => handleCarouselUpload(item.id, file)}
+                                onRemove={() => {}}
+                                uploadTrigger={
+                                <Button variant="outline" size="sm" className="w-full">
+                                    <Pencil className="mr-2 h-4 w-4" /> Reemplazar
+                                </Button>
+                                }
+                             />
+                            <Button variant="destructive" size="sm" className="w-full" onClick={() => removeCarouselItemMedia(item.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                            </Button>
+                        </CardFooter>
                     </Card>
                 ))}
             </div>
