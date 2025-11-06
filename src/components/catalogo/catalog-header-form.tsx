@@ -9,18 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
-import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
+import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil, FacebookIcon, InstagramIcon, MessageCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { TikTokIcon, WhatsAppIcon, XIcon } from '@/components/icons';
+
 
 interface CatalogHeaderFormProps {
   data: LandingHeaderConfigData;
   setData: (data: LandingHeaderConfigData) => void;
-}
-
-const SocialIcon = ({ network }: { network: string }) => {
-    // A real implementation would have better icons
-    const initials = network.charAt(0).toUpperCase();
-    return <div className="h-6 w-6 flex items-center justify-center bg-gray-200 rounded-full text-xs">{initials}</div>
 }
 
 export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormProps) {
@@ -36,12 +32,17 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
       }
     });
   };
+  
+    const handleSocialLinkChange = (network: keyof LandingHeaderConfigData['socialLinks'], value: string) => {
+        const updatedSocialLinks = { ...data.socialLinks, [network]: value };
+        setData({ ...data, socialLinks: updatedSocialLinks });
+    };
 
   const handleCarouselItemChange = (id: string, field: keyof CarouselItem, value: any) => {
     const updatedItems = data.carouselItems.map(item =>
       item.id === id ? { ...item, [field]: value } : item
     );
-    handleInputChange('carouselItems', '', updatedItems);
+    setData({ ...data, carouselItems: updatedItems });
   };
   
   const handleReset = () => {
@@ -133,6 +134,14 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
      setData({ ...data, carouselItems: updatedItems });
   };
 
+  const socialIcons: { [key: string]: React.ReactNode } = {
+    tiktok: <TikTokIcon />,
+    instagram: <InstagramIcon />,
+    facebook: <FacebookIcon />,
+    whatsapp: <WhatsAppIcon />,
+    twitter: <XIcon />,
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -186,6 +195,48 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                             </div>
                         </CardContent>
                     </Card>
+                ))}
+            </div>
+        </div>
+        
+        {/* Business Info Section */}
+        <div className="space-y-4">
+            <Label className="text-lg font-semibold">Información del Negocio</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="business-name">Nombre del Negocio</Label>
+                    <Input id="business-name" value={data.businessInfo.name} onChange={e => handleInputChange('businessInfo', 'name', e.target.value)} />
+                </div>
+                 <div>
+                    <Label htmlFor="business-phone">Teléfono / WhatsApp</Label>
+                    <Input id="business-phone" value={data.businessInfo.phone} onChange={e => handleInputChange('businessInfo', 'phone', e.target.value)} />
+                </div>
+                <div>
+                    <Label htmlFor="business-address">Dirección</Label>
+                    <Input id="business-address" value={data.businessInfo.address} onChange={e => handleInputChange('businessInfo', 'address', e.target.value)} />
+                </div>
+                 <div>
+                    <Label htmlFor="business-email">Correo Electrónico (opcional)</Label>
+                    <Input id="business-email" type="email" value={data.businessInfo.email} onChange={e => handleInputChange('businessInfo', 'email', e.target.value)} />
+                </div>
+            </div>
+        </div>
+
+        {/* Social Media Section */}
+        <div className="space-y-4">
+            <Label className="text-lg font-semibold">Redes Sociales</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.keys(data.socialLinks).map((key) => (
+                    <div key={key} className="flex items-center gap-2">
+                        <div className="h-9 w-9 flex items-center justify-center bg-muted rounded-md text-muted-foreground">
+                            {socialIcons[key as keyof typeof socialIcons]}
+                        </div>
+                        <Input 
+                            placeholder={`URL de ${key.charAt(0).toUpperCase() + key.slice(1)}`}
+                            value={data.socialLinks[key as keyof typeof data.socialLinks]}
+                            onChange={(e) => handleSocialLinkChange(key as keyof typeof data.socialLinks, e.target.value)}
+                        />
+                    </div>
                 ))}
             </div>
         </div>
