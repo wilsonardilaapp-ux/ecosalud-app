@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,10 +8,9 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import RichTextEditor from '@/components/editor/RichTextEditor';
 import type { Product } from '@/models/product';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud, X, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 const productSchema = z.object({
@@ -39,6 +39,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     });
 
     const [images, setImages] = useState<string[]>([]);
+    const [mainImage, setMainImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (product) {
@@ -49,7 +50,8 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 category: product.category,
                 description: product.description,
             });
-            setImages(product.images);
+            setImages(product.images.slice(1));
+            setMainImage(product.images[0] || null);
         } else {
             reset({
                 name: '',
@@ -59,15 +61,17 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 description: '',
             });
             setImages([]);
+            setMainImage(null);
         }
     }, [product, reset]);
     
     const onSubmit = (data: z.infer<typeof productSchema>) => {
+        const allImages = mainImage ? [mainImage, ...images] : images;
         const productData: Product = {
             id: product?.id || '',
             businessId: product?.businessId || '',
             ...data,
-            images,
+            images: allImages,
             rating: product?.rating || 0,
             ratingCount: product?.ratingCount || 0,
         };
@@ -75,27 +79,114 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
+        if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImages([...images, reader.result as string]);
+                const newImage = reader.result as string;
+                if (!mainImage) {
+                    setMainImage(newImage);
+                } else if (images.length < 4) {
+                    setImages([...images, newImage]);
+                }
             };
             reader.readAsDataURL(file);
         }
     };
+    
+    const removeMainImage = () => {
+        setMainImage(null);
+    }
 
     const removeImage = (index: number) => {
         setImages(images.filter((_, i) => i !== index));
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1 max-h-[70vh] overflow-y-auto">
-            {/* Columna Izquierda */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1 max-h-[80vh] overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Columna Izquierda: Imágenes */}
+                <div className="space-y-4">
+                    <Label>Imágenes del Producto</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                        <div className="col-span-1 flex flex-col gap-2">
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} className="relative aspect-square w-full">
+                                    {images[i] ? (
+                                        <div className="group relative w-full h-full">
+                                            <Image src={images[i]} alt={`Thumbnail ${i + 1}`} layout="fill" className="rounded-md object-cover" />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100"
+                                                onClick={() => removeImage(i)}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
+                                            <Plus className="h-6 w-6 text-muted-foreground" />
+                                            <Input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
+                                        </label>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="col-span-4">
+                             <div className="relative aspect-square w-full">
+                                {mainImage ? (
+                                     <div className="group relative w-full h-full">
+                                        <Image src={mainImage} alt="Imagen principal" layout="fill" className="rounded-md object-cover" />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                                            onClick={removeMainImage}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
+                                        <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                        <span className="mt-2 text-sm text-muted-foreground">Selecciona o sube una imagen</span>
+                                        <Input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
+                                    </label>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Columna Derecha: Categoría y Descripción */}
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="category">Categoría</Label>
+                        <Input id="category" {...register("category")} placeholder="Ej: Bebidas Calientes" />
+                        {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                    </div>
+                    <div>
+                        <Label>Descripción (Contenido Adicional)</Label>
+                        <Controller
+                            name="description"
+                            control={control}
+                            render={({ field }) => (
+                                <RichTextEditor value={field.value} onChange={field.onChange} />
+                            )}
+                        />
+                        {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+                    </div>
+                </div>
+            </div>
+
+            {/* Fila Inferior: Nombre, Precio, Stock */}
             <div className="space-y-4">
-                <div>
+                 <div>
                     <Label htmlFor="name">Nombre del Producto</Label>
-                    <Input id="name" {...register("name")} />
+                    <Input id="name" {...register("name")} placeholder="Ej: Café Orgánico de Altura" />
                     {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -110,55 +201,16 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                         {errors.stock && <p className="text-sm text-destructive">{errors.stock.message}</p>}
                     </div>
                 </div>
-                 <div>
-                    <Label htmlFor="category">Categoría</Label>
-                    <Input id="category" {...register("category")} />
-                    {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
-                </div>
-                 <div>
-                    <Label>Descripción</Label>
-                    <Controller
-                        name="description"
-                        control={control}
-                        render={({ field }) => (
-                            <RichTextEditor value={field.value} onChange={field.onChange} />
-                        )}
-                    />
-                     {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
-                </div>
-            </div>
-
-            {/* Columna Derecha */}
-            <div className="space-y-4">
-                <Label>Imágenes del Producto</Label>
-                <div className="grid grid-cols-2 gap-4">
-                    {images.map((image, index) => (
-                        <div key={index} className="relative group">
-                            <Image src={image} alt={`producto ${index + 1}`} width={200} height={150} className="rounded-md object-cover w-full aspect-[4/3]" />
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                onClick={() => removeImage(index)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                     <label className="flex flex-col items-center justify-center w-full aspect-[4/3] border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
-                        <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                        <span className="mt-2 text-sm text-muted-foreground">Añadir imagen</span>
-                        <Input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
-                    </label>
-                </div>
             </div>
 
             {/* Footer */}
-            <div className="md:col-span-2 flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
                 <Button type="submit">Guardar Producto</Button>
             </div>
         </form>
     );
 }
+
+
+    
