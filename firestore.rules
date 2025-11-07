@@ -81,11 +81,11 @@ service cloud.firestore {
 
     /**
     * @description Defines security rules for the root products collection.
-    * This allows public listing/reading and owner-only writes.
+    * This allows public reading of individual documents, authenticated listing, and owner-only writes.
     */
     match /products/{productId} {
-      allow get: if true;
-      allow list: if isSignedIn();
+      allow get: if true; // Allows public catalog to get single products
+      allow list: if isSignedIn(); // Allows authenticated users (dashboard) to query the collection
       allow create: if isProductOwner();
       allow update, delete: if isExistingProductOwner();
     }
