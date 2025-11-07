@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, where, updateDoc } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
-import { notFound, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) => {
     if (!config) {
@@ -232,24 +232,14 @@ export default function CatalogPage() {
     const params = useParams();
     const businessId = params.businessId as string;
 
-    const productsQuery = useMemoFirebase(() => {
+    const publicDataRef = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return collection(firestore, `businesses/${businessId}/products`);
+        return doc(firestore, `businesses/${businessId}/publicData`, 'catalog');
     }, [firestore, businessId]);
 
-    const headerConfigRef = useMemoFirebase(() => {
-        if (!firestore || !businessId) return null;
-        return doc(firestore, 'businesses', businessId, 'landingConfig', 'header');
-    }, [firestore, businessId]);
+    const { data: publicData, isLoading } = useDoc<{ products: Product[], headerConfig: LandingHeaderConfigData }>(publicDataRef);
 
-    const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
-    const { data: headerConfig, isLoading: isLoadingConfig, error: headerError } = useDoc<LandingHeaderConfigData>(headerConfigRef);
-
-    if (headerError) {
-        console.error('Error loading header config:', headerError);
-    }
-    
-    if (isLoadingProducts || isLoadingConfig) {
+    if (isLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -257,6 +247,8 @@ export default function CatalogPage() {
         );
     }
     
+    const products = publicData?.products || [];
+    const headerConfig = publicData?.headerConfig || null;
     const isCatalogEmpty = !products || products.length === 0;
     
     const handleOpenModal = (product: Product) => {

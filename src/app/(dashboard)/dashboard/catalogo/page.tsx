@@ -14,8 +14,8 @@ import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import type { Business } from '@/models/business';
 import { v4 as uuidv4 } from 'uuid';
-import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, query, where, getDoc, setDoc } from 'firebase/firestore';
+import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
+import { doc, collection, getDoc, setDoc, writeBatch } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -52,6 +52,13 @@ export default function CatalogoPage() {
     const [businessDocExists, setBusinessDocExists] = useState(false);
     const [checkingBusinessDoc, setCheckingBusinessDoc] = useState(true);
 
+    // This function updates the denormalized public data document
+    const updatePublicCatalog = async (updatedProducts: Product[], updatedConfig: LandingHeaderConfigData) => {
+        if (!firestore || !user) return;
+        const publicCatalogRef = doc(firestore, 'businesses', user.uid, 'publicData', 'catalog');
+        await setDoc(publicCatalogRef, { products: updatedProducts, headerConfig: updatedConfig }, { merge: true });
+    };
+
     useEffect(() => {
         const checkBusinessDocument = async () => {
             if (firestore && user) {
@@ -66,12 +73,9 @@ export default function CatalogoPage() {
                         logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
                         description: 'Bienvenido a mi negocio en EcoSalud.',
                     };
-                    // Use setDoc directly here to ensure completion before proceeding
                     await setDoc(businessRef, businessData);
-                    setBusinessDocExists(true);
-                } else {
-                    setBusinessDocExists(true);
                 }
+                setBusinessDocExists(true);
                 setCheckingBusinessDoc(false);
             } else if (!user) {
                 setCheckingBusinessDoc(false);
@@ -96,18 +100,31 @@ export default function CatalogoPage() {
     
     const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
+    // When products or headerConfig change, update the public catalog
+    useEffect(() => {
+        if (products && headerConfig) {
+            updatePublicCatalog(products, headerConfig);
+        }
+    }, [products, headerConfig]);
+
+
     const handleSaveProduct = async (productData: Omit<Product, 'id' | 'businessId'>) => {
         if (!firestore || !user) return;
         
         const dataToSave = { ...productData, businessId: user.uid };
+        const batch = writeBatch(firestore);
 
         if (editingProduct && editingProduct.id) {
             const productDocRef = doc(firestore, 'businesses', user.uid, 'products', editingProduct.id);
-            setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
+            batch.set(productDocRef, dataToSave, { merge: true });
         } else {
-            const productsCollectionRef = collection(firestore, 'businesses', user.uid, 'products');
-            addDocumentNonBlocking(productsCollectionRef, dataToSave);
+            const newProductRef = doc(collection(firestore, 'businesses', user.uid, 'products'));
+            batch.set(newProductRef, dataToSave);
         }
+
+        // We commit the batch non-blockingly, errors will be caught by the global handler
+        batch.commit();
+
         setIsFormOpen(false);
         setEditingProduct(null);
     };
