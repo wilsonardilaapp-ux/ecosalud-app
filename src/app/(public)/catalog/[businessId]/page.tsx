@@ -228,7 +228,7 @@ export default function CatalogPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return query(collection(firestore, 'products'), where('businessId', '==', businessId));
+        return collection(firestore, `businesses/${businessId}/products`);
     }, [firestore, businessId]);
 
     const headerConfigRef = useMemoFirebase(() => {

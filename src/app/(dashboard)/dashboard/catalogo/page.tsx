@@ -80,7 +80,7 @@ export default function CatalogoPage() {
 
     const productsCollectionRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return collection(firestore, 'products');
+        return collection(firestore, `businesses/${user.uid}/products`);
     }, [firestore, user]);
 
     const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsCollectionRef);
@@ -95,22 +95,11 @@ export default function CatalogoPage() {
     useEffect(() => {
         if (loadedHeaderConfig) {
             setHeaderConfig(loadedHeaderConfig);
+        } else if (!isConfigLoading && !error && headerConfigDocRef) {
+            // Document doesn't exist, so create it
+            setDoc(headerConfigDocRef, initialHeaderConfig, { merge: true });
         }
-    }, [loadedHeaderConfig]);
-
-    useEffect(() => {
-        const initializeConfig = async () => {
-            if (headerConfigDocRef && !isConfigLoading && !loadedHeaderConfig) {
-                const docSnap = await getDoc(headerConfigDocRef);
-                if (!docSnap.exists()) {
-                    await setDoc(headerConfigDocRef, initialHeaderConfig);
-                    setHeaderConfig(initialHeaderConfig);
-                }
-            }
-        };
-
-        initializeConfig();
-    }, [headerConfigDocRef, isConfigLoading, loadedHeaderConfig]);
+    }, [loadedHeaderConfig, isConfigLoading, error, headerConfigDocRef]);
 
     const handleSaveProduct = async (productData: Product) => {
         if (!productsCollectionRef || !user) return;
@@ -118,7 +107,7 @@ export default function CatalogoPage() {
         const dataToSave = { ...productData, businessId: user.uid };
 
         if (editingProduct && editingProduct.id) {
-            const productDocRef = doc(firestore, 'products', editingProduct.id);
+            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, editingProduct.id);
             setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
         } else {
             addDocumentNonBlocking(productsCollectionRef, dataToSave);
@@ -142,7 +131,7 @@ export default function CatalogoPage() {
     const handleDelete = (productId: string) => {
         if (!user || !firestore) return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            const productDocRef = doc(firestore, 'products', productId);
+            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, productId);
             deleteDocumentNonBlocking(productDocRef);
         }
     };
