@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Copy } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { FacebookIcon, InstagramIcon, MessageCircle } from 'lucide-react';
+import { FacebookIcon, InstagramIcon } from 'lucide-react';
 import { TikTokIcon, WhatsAppIcon, XIcon } from '@/components/icons';
 
 
