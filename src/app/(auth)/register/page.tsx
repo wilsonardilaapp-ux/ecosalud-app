@@ -28,6 +28,7 @@ import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/fireba
 import { useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc } from 'firebase/firestore';
+import type { Business } from '@/models/business';
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -58,7 +59,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-        router.push("/");
+        router.push("/dashboard");
     }
   }, [user, isUserLoading, router]);
 
@@ -68,7 +69,7 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const newUser = userCredential.user;
 
-      // Create user document in Firestore
+      // 1. Create user document in /users collection
       const userDocRef = doc(firestore, 'users', newUser.uid);
       const userData = {
         id: newUser.uid,
@@ -81,12 +82,22 @@ export default function RegisterPage() {
       };
       setDocumentNonBlocking(userDocRef, userData, {});
       
+      // 2. CRITICAL: Create corresponding business document in /businesses collection
+      const businessDocRef = doc(firestore, 'businesses', newUser.uid);
+      const businessData: Business = {
+          id: newUser.uid,
+          name: `${values.name}'s Business`,
+          logoURL: '',
+          description: 'Bienvenido a mi negocio en EcoSalud.',
+      };
+      setDocumentNonBlocking(businessDocRef, businessData, {});
+
       toast({
         title: "Cuenta Creada",
-        description: "Tu cuenta ha sido creada con éxito. Redirigiendo al inicio de sesión.",
+        description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
       });
       
-      router.push("/login");
+      router.push("/dashboard");
 
     } catch (error: any) {
       toast({

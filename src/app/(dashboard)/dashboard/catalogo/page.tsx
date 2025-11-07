@@ -14,7 +14,7 @@ import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, setDoc, collection, query, where, deleteDoc } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -44,8 +44,7 @@ const initialHeaderConfig: LandingHeaderConfigData = {
 export default function CatalogoPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    const [headerConfig, setHeaderConfig] = useState<LandingHeaderConfigData>(initialHeaderConfig);
-
+    
     const { user } = useUser();
     const firestore = useFirestore();
 
@@ -64,15 +63,7 @@ export default function CatalogoPage() {
         return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
     }, [firestore, user]);
     
-    const { data: loadedHeaderConfig, isLoading: isConfigLoading, error } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
-
-    useEffect(() => {
-        if (loadedHeaderConfig) {
-            setHeaderConfig(loadedHeaderConfig);
-        } else if (!isConfigLoading && !error && headerConfigDocRef) {
-            setDoc(headerConfigDocRef, initialHeaderConfig, { merge: true });
-        }
-    }, [loadedHeaderConfig, isConfigLoading, error, headerConfigDocRef]);
+    const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
     const handleSaveProduct = async (productData: Product) => {
         if (!firestore || !user) return;
@@ -94,7 +85,6 @@ export default function CatalogoPage() {
         if (headerConfigDocRef) {
             setDocumentNonBlocking(headerConfigDocRef, config, { merge: true });
         }
-        setHeaderConfig(config);
     };
 
     const handleEdit = (product: Product) => {
@@ -121,7 +111,7 @@ export default function CatalogoPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <CatalogHeaderForm data={headerConfig} setData={handleSaveHeader} />
+            <CatalogHeaderForm data={headerConfig ?? initialHeaderConfig} setData={handleSaveHeader} />
             <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
                     <div>
