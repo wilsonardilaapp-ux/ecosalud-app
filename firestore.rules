@@ -133,4 +133,21 @@
   allow update: if false; // TODO: Add business owner role check.
   allow delete: if false; // TODO: Add business owner role check.
   }
+
+  /**
+  * @description Defines security rules for landing page configurations.
+  * @path /businesses/{businessId}/landingConfig/{configId}
+  * @allow (get) Public read access for catalog header.
+  * @allow (write) Only business owner can write.
+  * @principle Allows public viewing of catalog headers while restricting modifications.
+  */
+  match /businesses/{businessId}/landingConfig/{configId} {
+    allow get: if true;
+    allow list: if true; // Allow listing for potential future use
+    allow create: if isOwner(businessId);
+    allow update: if isOwner(businessId);
+    allow delete: if isOwner(businessId);
+  }
  
+ }
+}
