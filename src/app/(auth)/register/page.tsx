@@ -1,7 +1,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +26,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { useEffect } from "react";
-import { createUserWithEmailAndPassword, signInAnonymously, linkWithCredential, EmailAuthProvider } from "firebase/auth";
+import { signInAnonymously } from "firebase/auth";
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
 import type { User as AppUser } from "@/models/user";
@@ -35,11 +34,6 @@ import type { User as AppUser } from "@/models/user";
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
-  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
-  confirmPassword: z.string().min(6, { message: "La confirmación de contraseña debe tener al menos 6 caracteres." })
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Las contraseñas no coinciden.",
-  path: ["confirmPassword"],
 });
 
 export default function RegisterPage() {
@@ -54,13 +48,13 @@ export default function RegisterPage() {
     defaultValues: {
       name: "",
       email: "",
-      password: "",
-      confirmPassword: "",
     },
   });
 
   useEffect(() => {
-    if (!isUserLoading && user && user.email) { // Check if user has an email
+    // If the user is already logged in (even anonymously) and has an email,
+    // they have likely completed registration. Redirect them.
+    if (!isUserLoading && user && user.email) { 
         router.push("/dashboard");
     }
   }, [user, isUserLoading, router]);
@@ -69,20 +63,13 @@ export default function RegisterPage() {
     if (!auth || !firestore) return;
     
     try {
-        // Step 1: Sign in anonymously to get a temporary user
-        const anonymousUserCredential = await signInAnonymously(auth);
-        const tempUser = anonymousUserCredential.user;
-
-        // Step 2: Create an email/password credential
-        const credential = EmailAuthProvider.credential(values.email, values.password);
-
-        // Step 3: Link the new credential to the anonymous account
-        const userCredential = await linkWithCredential(tempUser, credential);
+        // Step 1: Ensure user is signed in anonymously.
+        // If already signed in, it uses the existing session.
+        const userCredential = await signInAnonymously(auth);
         const newUser = userCredential.user;
 
-        // The setDocumentNonBlocking function now handles its own permission errors
-        // by emitting a contextual error. We no longer need a try/catch block around these.
-
+        // Step 2: Save user and business data to Firestore using the anonymous UID.
+        // The user's identity is now tied to the Firestore documents.
         const userDocRef = doc(firestore, 'users', newUser.uid);
         const userData: AppUser = {
           id: newUser.uid,
@@ -93,6 +80,7 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
+        // This is a non-blocking call, error handling is done globally.
         setDocumentNonBlocking(userDocRef, userData);
         
         const businessDocRef = doc(firestore, 'businesses', newUser.uid);
@@ -106,45 +94,22 @@ export default function RegisterPage() {
         
         toast({
           title: "Cuenta Creada",
-          description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
+          description: "Tus datos han sido guardados con éxito. Redirigiendo...",
         });
         
-        // The user is optimistically navigated, auth state change will finalize the session.
+        // The user is already in an anonymous session, so we just need to navigate.
         router.push("/dashboard");
 
     } catch (error: any) {
-        // This catch block now primarily handles AUTHENTICATION errors.
-        // Firestore permission errors are handled by the global error listener.
-        let errorMessage = "Ha ocurrido un error inesperado.";
-        switch (error.code) {
-            case 'auth/email-already-in-use':
-                errorMessage = 'Este correo electrónico ya está en uso por otra cuenta.';
-                break;
-            case 'auth/invalid-email':
-                errorMessage = 'El formato del correo electrónico no es válido.';
-                break;
-            case 'auth/operation-not-allowed':
-                errorMessage = 'El inicio de sesión por contraseña no está habilitado.';
-                break;
-            case 'auth/weak-password':
-                errorMessage = 'La contraseña es demasiado débil.';
-                break;
-            case 'auth/credential-already-in-use':
-                errorMessage = 'Este correo ya está vinculado a otra cuenta.';
-                break;
-            default:
-                errorMessage = error.message || errorMessage;
-                break;
-        }
         toast({
             variant: "destructive",
-            title: "Error al registrarse",
-            description: errorMessage,
+            title: "Error al Registrarse",
+            description: error.message || "No se pudo completar el registro. Inténtalo de nuevo.",
         });
     }
   }
 
-  if (isUserLoading || (user && user.email)) {
+  if (isUserLoading) {
     return (
         <div className="flex justify-center items-center h-screen">
             <div className="text-center">
@@ -157,9 +122,9 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-headline">Crear una Cuenta</CardTitle>
+        <CardTitle className="text-2xl font-headline">Registrar tus Datos</CardTitle>
         <CardDescription>
-          Ingresa tus datos para registrarte en la plataforma.
+          Ingresa tus datos para crear el perfil de tu negocio.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -183,35 +148,9 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email de Contacto</FormLabel>
                   <FormControl>
                     <Input placeholder="nombre@ejemplo.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -220,17 +159,8 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Creando cuenta..." : "Crear Cuenta"}
+              {form.formState.isSubmitting ? "Guardando..." : "Guardar y Acceder"}
             </Button>
-            <div className="text-sm text-muted-foreground">
-              ¿Ya tienes una cuenta?{" "}
-              <Link
-                href="/login"
-                className="underline text-primary hover:text-primary/80"
-              >
-                Inicia Sesión
-              </Link>
-            </div>
           </CardFooter>
         </form>
       </Form>

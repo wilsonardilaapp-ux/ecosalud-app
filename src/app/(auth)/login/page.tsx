@@ -1,11 +1,7 @@
 
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,24 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUser } from "@/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useEffect } from "react";
-
-const loginSchema = z.object({
-  email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
-  password: z.string().min(1, { message: "Por favor, introduce tu contraseña." }),
-});
+import { signInAnonymously } from "firebase/auth";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const SUPER_ADMIN_EMAIL = "allseosoporte@gmail.com";
 
@@ -41,61 +24,44 @@ export default function LoginPage() {
   const { toast } = useToast();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && user) {
+      setIsRedirecting(true);
+      // Allow redirection to happen based on user role
       if (user.email === SUPER_ADMIN_EMAIL) {
         router.push("/superadmin");
       } else {
+        // For any other user (including anonymous), go to dashboard
         router.push("/dashboard");
       }
     }
   }, [user, isUserLoading, router]);
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  const handleAnonymousLogin = async () => {
     if (!auth) return;
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      // Let the useEffect handle redirection
+        await signInAnonymously(auth);
+        // The useEffect will handle redirection once the user state changes.
+        toast({
+            title: "Accediendo...",
+            description: "Serás redirigido a tu panel.",
+        });
     } catch (error: any) {
-      let errorMessage = "Ha ocurrido un error inesperado.";
-      switch (error.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential':
-          errorMessage = 'Correo electrónico o contraseña incorrectos.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'El formato del correo electrónico no es válido.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Demasiados intentos de inicio de sesión. Inténtalo más tarde.';
-          break;
-        default:
-          errorMessage = error.message || errorMessage;
-          break;
-      }
-      toast({
-        variant: "destructive",
-        title: "Error al iniciar sesión",
-        description: errorMessage,
-      });
+        toast({
+            variant: "destructive",
+            title: "Error de Autenticación",
+            description: "No se pudo iniciar sesión anónimamente. Por favor, intenta de nuevo.",
+        });
     }
   }
 
-  if (isUserLoading || user) {
+  if (isUserLoading || isRedirecting) {
     return (
         <div className="flex justify-center items-center h-screen">
             <div className="text-center">
-            <p>Cargando...</p>
+            <p>Cargando y verificando sesión...</p>
             </div>
         </div>
     );
@@ -104,61 +70,34 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-headline">Iniciar Sesión</CardTitle>
+        <CardTitle className="text-2xl font-headline">Acceder o Registrarse</CardTitle>
         <CardDescription>
-          Ingresa tu correo electrónico para acceder a tu panel.
+          Crea una nueva sesión o continúa con la existente.
         </CardDescription>
       </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="nombre@ejemplo.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={form.formState.isSubmitting}
+      <CardContent>
+          <p className="text-sm text-center text-muted-foreground">
+              Al hacer clic en "Acceder", se creará una sesión segura para que puedas gestionar tu negocio. Si ya tienes una, continuarás donde lo dejaste.
+          </p>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-4">
+        <Button
+          className="w-full"
+          onClick={handleAnonymousLogin}
+        >
+          Acceder a mi Panel
+        </Button>
+         <div className="text-sm text-muted-foreground">
+            O bien, puedes{" "}
+            <Link
+            href="/register"
+            className="underline text-primary hover:text-primary/80"
             >
-              {form.formState.isSubmitting ? "Accediendo..." : "Acceder"}
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              ¿No tienes una cuenta?{" "}
-              <Link
-                href="/register"
-                className="underline text-primary hover:text-primary/80"
-              >
-                Regístrate
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Form>
+            registrar tus datos
+            </Link>
+            .
+        </div>
+      </CardFooter>
     </Card>
   );
 }
