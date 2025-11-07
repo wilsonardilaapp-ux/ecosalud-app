@@ -69,10 +69,11 @@ service cloud.firestore {
 
     /**
     * @description Defines security rules for business documents and their subcollections.
-    * This grants public read access and owner-only write access.
+    * This grants public `get` access, owner-only `list` access, and owner-only `write` access.
     */
     match /businesses/{businessId}/{allPaths=**} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if isBusinessOwner(businessId);
       allow write: if isBusinessOwner(businessId);
     }
   }
