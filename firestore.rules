@@ -96,7 +96,8 @@ service cloud.firestore {
     */
     match /businesses/{businessId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isBusinessOwner(businessId);
+      allow create: if isBusinessOwner(businessId);
+      allow update, delete: if isBusinessOwner(businessId);
     }
   }
 }
