@@ -80,7 +80,7 @@ export default function CatalogoPage() {
 
     const productsCollectionRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return collection(firestore, `businesses/${user.uid}/products`);
+        return collection(firestore, 'products');
     }, [firestore, user]);
 
     const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsCollectionRef);
@@ -117,7 +117,7 @@ export default function CatalogoPage() {
         const dataToSave = { ...productData, businessId: user.uid };
 
         if (editingProduct && editingProduct.id) {
-            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, editingProduct.id);
+            const productDocRef = doc(firestore, 'products', editingProduct.id);
             setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
         } else {
             addDocumentNonBlocking(productsCollectionRef, dataToSave);
@@ -141,7 +141,7 @@ export default function CatalogoPage() {
     const handleDelete = (productId: string) => {
         if (!user || !firestore) return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, productId);
+            const productDocRef = doc(firestore, 'products', productId);
             deleteDocumentNonBlocking(productDocRef);
         }
     };
@@ -223,4 +223,3 @@ export default function CatalogoPage() {
         </div>
     );
 }
-
