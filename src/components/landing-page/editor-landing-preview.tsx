@@ -13,6 +13,7 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
 
 interface EditorLandingPreviewProps {
   data: LandingPageData;
@@ -179,6 +180,7 @@ const PreviewForm = ({ fields }: { fields: FormField[] }) => {
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
   const { hero, navigation, sections, testimonials, form } = data;
+  const { user } = useUser();
   const { toast } = useToast();
 
   const heroStyle: CSSProperties = {
@@ -191,15 +193,14 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  // Dummy user ID for the example URL
-  const userId = "12345";
-  const publicUrl = `${window.location.origin}/contact/${userId}`;
+  const publicUrl = user ? `${window.location.origin}/catalog/${user.uid}` : '';
 
   const copyToClipboard = () => {
+    if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl);
     toast({
         title: "Enlace copiado",
-        description: "El enlace público del formulario ha sido copiado al portapapeles.",
+        description: "El enlace público de tu catálogo ha sido copiado al portapapeles.",
     });
   };
 
@@ -207,22 +208,22 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     <div className="space-y-6">
       <Card>
         <CardHeader>
-            <CardTitle>Acciones del Formulario</CardTitle>
+            <CardTitle>Acciones del Catálogo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Enlace Público</CardTitle>
-                    <CardDescription className="text-xs">Comparte este enlace para que te contacten.</CardDescription>
+                    <CardDescription className="text-xs">Comparte este enlace para mostrar tu catálogo.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center space-x-2">
                         <Input value={publicUrl} readOnly />
-                        <Button variant="outline" size="icon" onClick={copyToClipboard}>
+                        <Button variant="outline" size="icon" onClick={copyToClipboard} disabled={!publicUrl}>
                             <Copy className="h-4 w-4" />
                         </Button>
                     </div>
-                    <Button asChild variant="secondary" className="w-full mt-2">
+                    <Button asChild variant="secondary" className="w-full mt-2" disabled={!publicUrl}>
                        <a href={publicUrl} target="_blank" rel="noopener noreferrer">
                            <ExternalLink className="mr-2 h-4 w-4" />
                            Vista Previa Pública
