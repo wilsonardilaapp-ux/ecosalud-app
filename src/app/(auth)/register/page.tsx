@@ -69,11 +69,12 @@ export default function RegisterPage() {
     if (!auth || !firestore) return;
     
     try {
-        // STEP 1: Await user creation in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
         const newUser = userCredential.user;
 
-        // STEP 2: If auth is successful, create user and business documents in Firestore
+        // The setDocumentNonBlocking function now handles its own permission errors
+        // by emitting a contextual error. We no longer need a try/catch block around these.
+
         const userDocRef = doc(firestore, 'users', newUser.uid);
         const userData: AppUser = {
           id: newUser.uid,
@@ -84,7 +85,6 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
-        // The non-blocking call will emit a contextual error on permission failure
         setDocumentNonBlocking(userDocRef, userData, { merge: false });
         
         const businessDocRef = doc(firestore, 'businesses', newUser.uid);
@@ -94,19 +94,19 @@ export default function RegisterPage() {
             logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
             description: 'Bienvenido a mi negocio en EcoSalud.',
         };
-        // This non-blocking call will also emit a contextual error on permission failure
         setDocumentNonBlocking(businessDocRef, businessData, { merge: false });
         
-        // STEP 3: Navigate user to dashboard after all operations are initiated
         toast({
           title: "Cuenta Creada",
           description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
         });
         
+        // The user is optimistically navigated, auth state change will finalize the session.
         router.push("/dashboard");
 
     } catch (error: any) {
-        // This catch block will now properly handle auth errors
+        // This catch block primarily handles AUTHENTICATION errors now.
+        // Firestore permission errors are handled by the global error listener.
         toast({
             variant: "destructive",
             title: "Error al registrarse",
