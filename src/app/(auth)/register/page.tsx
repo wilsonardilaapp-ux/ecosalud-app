@@ -25,12 +25,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, useFirestore, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
-import type { User } from "@/models/user";
+import type { User as AppUser } from "@/models/user";
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
         // 1. Create user document in /users collection
         const userDocRef = doc(firestore, 'users', newUser.uid);
-        const userData: User = {
+        const userData: AppUser = {
           id: newUser.uid,
           name: values.name,
           email: values.email,
@@ -83,7 +83,7 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
-        // This will now properly throw a contextual error on failure
+        // This non-blocking call will emit a contextual error on failure
         setDocumentNonBlocking(userDocRef, userData, { merge: false });
         
         // 2. CRITICAL: Create corresponding business document in /businesses collection
@@ -94,9 +94,11 @@ export default function RegisterPage() {
             logoURL: '',
             description: 'Bienvenido a mi negocio en EcoSalud.',
         };
-        // This will also throw a contextual error on failure
+        // This non-blocking call will also emit a contextual error on failure
         setDocumentNonBlocking(businessDocRef, businessData, { merge: false });
 
+        // Since the writes are non-blocking, we show success and navigate immediately.
+        // If a permission error occurs, the global listener will catch and display it.
         toast({
           title: "Cuenta Creada",
           description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
@@ -105,26 +107,15 @@ export default function RegisterPage() {
         router.push("/dashboard");
 
     } catch (error: any) {
-        // This will catch auth errors (like email-already-in-use)
-        if (error.code && error.code.startsWith('auth/')) {
-            toast({
-                variant: "destructive",
-                title: "Error al registrarse",
-                description: error.code === 'auth/email-already-in-use' 
-                    ? 'Este correo electrónico ya está en uso.' 
-                    : error.message || "Ha ocurrido un error inesperado.",
-            });
-        } else {
-             // This branch is now less likely to be hit for Firestore errors,
-             // but is kept as a fallback. The FirestorePermissionError will be
-             // thrown and caught by the global error handler.
-            console.error("An unexpected error occurred during registration:", error);
-            toast({
-                variant: "destructive",
-                title: "Error inesperado",
-                description: "Ocurrió un problema durante el registro. Por favor, inténtalo de nuevo.",
-            });
-        }
+        // This will catch auth errors (like email-already-in-use) or other unexpected issues.
+        // Firestore permission errors are now handled by the non-blocking calls and the global emitter.
+        toast({
+            variant: "destructive",
+            title: "Error al registrarse",
+            description: error.code === 'auth/email-already-in-use' 
+                ? 'Este correo electrónico ya está en uso.' 
+                : error.message || "Ha ocurrido un error inesperado.",
+        });
     }
   }
 
@@ -215,3 +206,4 @@ export default function RegisterPage() {
     </Card>
   );
 }
+
