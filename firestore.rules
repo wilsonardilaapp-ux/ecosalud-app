@@ -117,14 +117,14 @@
 
   /**
   * @description Defines security rules for business profiles and all their subcollections.
+  * This rule grants public read access to all business data for catalogs and landing pages.
   * @path /businesses/{businessId}
-  * @allow (read) Public read access to all business data and sub-collections (landing pages, configs, etc.).
-  * @allow (write) Any authenticated user can manage business data and its sub-collections.
-  * @principle Open access for non-SaaS application, allowing public catalog viewing and authenticated management.
+  * @allow (read) Public read access for all business sub-collections.
+  * @principle Open read access for public-facing content.
   */
   match /businesses/{businessId}/{allPaths=**} {
     allow read: if true;
-    allow write: if isSignedIn();
+    allow write: if isOwner(businessId);
   }
  
  }
