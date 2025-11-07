@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -81,7 +82,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
-      setDocumentNonBlocking(userDocRef, userData, {});
+      await setDocumentNonBlocking(userDocRef, userData, {});
       
       // 2. CRITICAL: Create corresponding business document in /businesses collection
       const businessDocRef = doc(firestore, 'businesses', newUser.uid);
@@ -91,7 +92,7 @@ export default function RegisterPage() {
           logoURL: '',
           description: 'Bienvenido a mi negocio en EcoSalud.',
       };
-      setDocumentNonBlocking(businessDocRef, businessData, {});
+      await setDocumentNonBlocking(businessDocRef, businessData, {});
 
       toast({
         title: "Cuenta Creada",
