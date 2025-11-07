@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 
 const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) => {
     if (!config) {
@@ -220,11 +220,11 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone }: { pr
     )
 }
 
-export default function CatalogPage({ params }: { params: { businessId: string } }) {
+export default function CatalogPage() {
     const firestore = useFirestore();
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-    const businessId = params.businessId;
+    const params = useParams();
+    const businessId = params.businessId as string;
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
@@ -285,7 +285,7 @@ export default function CatalogPage({ params }: { params: { businessId: string }
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:col-cols-4 gap-6">
                         {products?.map(product => (
                             <PublicProductCard key={product.id} product={product} onOpenModal={handleOpenModal} />
                         ))}
