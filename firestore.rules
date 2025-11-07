@@ -36,10 +36,9 @@
   }
 
   function isBusinessOwner(businessId) {
-    let business = get(/databases/$(database)/documents/businesses/$(businessId)).data;
     return isSignedIn() &&
            exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-           business.ownerId == request.auth.uid;
+           get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid;
   }
  
 
@@ -113,40 +112,40 @@
   /**
   * @description Defines the security rules for business profiles.
   * @path /businesses/{businessId}
-  * @allow TODO: Add business owner role check.
-  * @deny Non-business owners cannot manage business profiles.
-  * @principle Restricts access to business profiles to authorized business owners.
+  * @allow (get, list) Public read access.
+  * @allow (create, update, delete) Any authenticated user can manage businesses.
+  * @principle Open access for non-SaaS application.
   */
   match /businesses/{businessId} {
-  allow get: if true;
-  allow list: if true;
-  allow create: if isSignedIn();
-  allow update: if isSignedIn();
-  allow delete: if isSignedIn();
+    allow get: if true;
+    allow list: if true;
+    allow create: if isSignedIn();
+    allow update: if isSignedIn();
+    allow delete: if isSignedIn();
   }
  
 
   /**
   * @description Defines the security rules for landing pages created by businesses.
   * @path /businesses/{businessId}/landingPages/{pageId}
-  * @allow TODO: Add business owner role check.
-  * @deny Non-business owners cannot manage landing pages.
-  * @principle Restricts access to landing pages to authorized business owners.
+  * @allow (get, list) Public read access.
+  * @allow (create, update, delete) Any authenticated user can manage landing pages.
+  * @principle Open access for non-SaaS application.
   */
   match /businesses/{businessId}/landingPages/{pageId} {
-  allow get: if true;
-  allow list: if true;
-  allow create: if isSignedIn();
-  allow update: if isSignedIn();
-  allow delete: if isSignedIn();
+    allow get: if true;
+    allow list: if true;
+    allow create: if isSignedIn();
+    allow update: if isSignedIn();
+    allow delete: if isSignedIn();
   }
 
   /**
   * @description Defines security rules for landing page configurations.
   * @path /businesses/{businessId}/landingConfig/{configId}
-  * @allow (get) Public read access for catalog header.
-  * @allow (write) Only business owner can write.
-  * @principle Allows public viewing of catalog headers while restricting modifications.
+  * @allow (get, list) Public read access for catalog header.
+  * @allow (create, update, delete) Any authenticated user can manage configurations.
+  * @principle Open access for non-SaaS application.
   */
   match /businesses/{businessId}/landingConfig/{configId} {
     allow get: if true;
