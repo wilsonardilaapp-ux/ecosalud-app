@@ -14,7 +14,7 @@ import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, setDoc, writeBatch } from 'firebase/firestore';
+import { doc, collection, writeBatch } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -45,18 +45,21 @@ export default function CatalogoPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
 
     // This function updates the denormalized public data document
     const updatePublicCatalog = async (updatedProducts: Product[], updatedConfig: LandingHeaderConfigData) => {
         if (!firestore || !user) return;
         const publicCatalogRef = doc(firestore, 'businesses', user.uid, 'publicData', 'catalog');
-        await setDoc(publicCatalogRef, { products: updatedProducts, headerConfig: updatedConfig }, { merge: true });
+        
+        // Non-blocking write to update the public catalog
+        setDocumentNonBlocking(publicCatalogRef, { products: updatedProducts, headerConfig: updatedConfig }, { merge: true });
     };
 
+    // CRITICAL FIX: Ensure user and firestore are available before creating the query.
     const productsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null; // Wait for user and firestore
+        if (!firestore || !user) return null;
         return collection(firestore, 'businesses', user.uid, 'products');
     }, [firestore, user]);
 
@@ -71,10 +74,11 @@ export default function CatalogoPage() {
 
     // When products or headerConfig change, update the public catalog
     useEffect(() => {
-        if (products && headerConfig) {
+        // This effect should only run when there's actual data to process.
+        if (products && headerConfig && user) {
             updatePublicCatalog(products, headerConfig);
         }
-    }, [products, headerConfig]);
+    }, [products, headerConfig, user]); // Added user dependency
 
 
     const handleSaveProduct = async (productData: Omit<Product, 'id' | 'businessId'>) => {
@@ -122,8 +126,9 @@ export default function CatalogoPage() {
         setIsFormOpen(true);
     }
     
-    if (isConfigLoading || isProductsLoading) {
-        return <div>Cargando configuración del catálogo...</div>
+    // Improved loading state to wait for auth and data
+    if (isUserLoading || isConfigLoading || isProductsLoading) {
+        return <div>Cargando tu catálogo...</div>
     }
 
     return (
