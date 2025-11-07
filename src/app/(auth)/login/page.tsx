@@ -25,7 +25,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, initiateEmailSignIn } from "@/firebase";
+import { useAuth, useUser } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect } from "react";
 
 const loginSchema = z.object({
@@ -62,12 +63,30 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     if (!auth) return;
     try {
-      await initiateEmailSignIn(auth, values.email, values.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // Let the useEffect handle redirection
     } catch (error: any) {
+      let errorMessage = "Ha ocurrido un error inesperado.";
+      switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          errorMessage = 'Correo electrónico o contraseña incorrectos.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'El formato del correo electrónico no es válido.';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Demasiados intentos de inicio de sesión. Inténtalo más tarde.';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+          break;
+      }
       toast({
         variant: "destructive",
         title: "Error al iniciar sesión",
-        description: error.message || "Ha ocurrido un error inesperado.",
+        description: errorMessage,
       });
     }
   }

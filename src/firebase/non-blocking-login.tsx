@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Auth, // Import Auth type for type hinting
@@ -14,16 +15,14 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
   // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
-  createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+/** Initiate email/password sign-up. This function NOW returns a promise. */
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string) {
+  // This now returns the promise so the calling code can await it.
+  return createUserWithEmailAndPassword(authInstance, email, password);
 }
 
-/** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
-  signInWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+/** Initiate email/password sign-in. This function NOW returns a promise. */
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string) {
+  // This now returns the promise so the calling code can await it.
+  return signInWithEmailAndPassword(authInstance, email, password);
 }

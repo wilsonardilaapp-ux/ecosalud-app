@@ -27,7 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { useEffect } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInAnonymously, linkWithCredential, EmailAuthProvider } from "firebase/auth";
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
 import type { User as AppUser } from "@/models/user";
@@ -60,7 +60,7 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (!isUserLoading && user && user.email) { // Check if user has an email
         router.push("/dashboard");
     }
   }, [user, isUserLoading, router]);
@@ -69,7 +69,15 @@ export default function RegisterPage() {
     if (!auth || !firestore) return;
     
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+        // Step 1: Sign in anonymously to get a temporary user
+        const anonymousUserCredential = await signInAnonymously(auth);
+        const tempUser = anonymousUserCredential.user;
+
+        // Step 2: Create an email/password credential
+        const credential = EmailAuthProvider.credential(values.email, values.password);
+
+        // Step 3: Link the new credential to the anonymous account
+        const userCredential = await linkWithCredential(tempUser, credential);
         const newUser = userCredential.user;
 
         // The setDocumentNonBlocking function now handles its own permission errors
@@ -107,18 +115,43 @@ export default function RegisterPage() {
     } catch (error: any) {
         // This catch block now primarily handles AUTHENTICATION errors.
         // Firestore permission errors are handled by the global error listener.
+        let errorMessage = "Ha ocurrido un error inesperado.";
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                errorMessage = 'Este correo electrónico ya está en uso por otra cuenta.';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'El formato del correo electrónico no es válido.';
+                break;
+            case 'auth/operation-not-allowed':
+                errorMessage = 'El inicio de sesión por contraseña no está habilitado.';
+                break;
+            case 'auth/weak-password':
+                errorMessage = 'La contraseña es demasiado débil.';
+                break;
+            case 'auth/credential-already-in-use':
+                errorMessage = 'Este correo ya está vinculado a otra cuenta.';
+                break;
+            default:
+                errorMessage = error.message || errorMessage;
+                break;
+        }
         toast({
             variant: "destructive",
             title: "Error al registrarse",
-            description: error.code === 'auth/email-already-in-use' 
-                ? 'Este correo electrónico ya está en uso.' 
-                : error.message || "Ha ocurrido un error inesperado.",
+            description: errorMessage,
         });
     }
   }
 
-  if (isUserLoading || user) {
-    return null;
+  if (isUserLoading || (user && user.email)) {
+    return (
+        <div className="flex justify-center items-center h-screen">
+            <div className="text-center">
+                <p>Cargando...</p>
+            </div>
+        </div>
+    );
   }
 
   return (
