@@ -1,13 +1,12 @@
 /**
   * @fileOverview
   * Core Philosophy: This ruleset enforces a strict user-ownership model for user-specific data and a business-ownership model for business-related data. Global configurations and system services are restricted to super admins.
-  * Data Structure: The data is organized hierarchically, with user data nested under `/users/{userId}`, business data under `/businesses/{businessId}`, and global configurations stored in `/globalConfig/system`. Products are stored in a root-level collection `/products`.
+  * Data Structure: The data is organized hierarchically, with user data nested under `/users/{userId}` and business data under `/businesses/{businessId}`. Subcollections like products and landing configurations are nested under their respective business.
   * Key Security Decisions:
   *   - User listing is disallowed for privacy, except for the super admin.
-  *   - Business ownership is enforced for write operations (businessId must match userId).
+  *   - Business ownership is enforced for write operations on all business-related data, including nested subcollections.
   *   - Global configuration and system service management are limited to super admins.
-  *   - Public read access is granted to products and business-related public data.
-  * Denormalization for Authorization: The `Product` collection includes a `businessId` field. This allows security rules to validate write access based on ownership without needing extra `get()` calls.
+  *   - Public read access is granted to business-related public data, including products in their catalog.
   */
  
 rules_version = '2';
@@ -33,17 +32,6 @@ service cloud.firestore {
     function isBusinessOwner(businessId) {
       return isSignedIn() && request.auth.uid == businessId;
     }
-
-    function isProductOwner() {
-        let businessId = request.resource.data.businessId;
-        return isSignedIn() && request.auth.uid == businessId;
-    }
-
-    function isExistingProductOwner() {
-        let businessId = resource.data.businessId;
-        return isSignedIn() && request.auth.uid == businessId;
-    }
-
 
     /**
     * @description Defines the security rules for user profiles.
@@ -80,24 +68,12 @@ service cloud.firestore {
     }
 
     /**
-    * @description Defines security rules for the root products collection.
-    * This allows public 'get' for individual product pages and authenticated 'list' for dashboard queries.
-    */
-    match /products/{productId} {
-      allow get: if true;
-      allow list: if isSignedIn();
-      allow create: if isProductOwner();
-      allow update, delete: if isExistingProductOwner();
-    }
-
-    /**
     * @description Defines security rules for business documents and their subcollections.
     * This grants public read access and owner-only write access.
     */
     match /businesses/{businessId}/{allPaths=**} {
       allow read: if true;
-      allow create: if isBusinessOwner(businessId);
-      allow update, delete: if isBusinessOwner(businessId);
+      allow write: if isBusinessOwner(businessId);
     }
   }
 }

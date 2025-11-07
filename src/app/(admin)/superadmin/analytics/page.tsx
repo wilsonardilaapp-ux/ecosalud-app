@@ -16,7 +16,10 @@ export default function AnalyticsPage() {
 
   const usersQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'users'), [firestore]);
   const businessesQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'businesses'), [firestore]);
-  const productsQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'products'), [firestore]);
+  // Note: We can't query all products across all businesses efficiently for analytics without a root collection or aggregation.
+  // This value will be 0 or inaccurate until a better analytics strategy is in place.
+  const productsQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'products_placeholder_for_analytics'), [firestore]);
+
 
   const { data: users } = useCollection(usersQuery);
   const { data: businesses } = useCollection(businessesQuery);
@@ -70,3 +73,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, where, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
@@ -151,7 +151,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         setIsRating(true);
         setUserRating(rating);
 
-        const productRef = doc(firestore, `products`, product.id);
+        const productRef = doc(firestore, 'businesses', businessId, 'products', product.id);
         const newRatingCount = product.ratingCount + 1;
         const newTotalRating = (product.rating * product.ratingCount) + rating;
         const newAverage = newTotalRating / newRatingCount;
@@ -234,7 +234,7 @@ export default function CatalogPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return query(collection(firestore, `products`), where('businessId', '==', businessId));
+        return collection(firestore, `businesses/${businessId}/products`);
     }, [firestore, businessId]);
 
     const headerConfigRef = useMemoFirebase(() => {
@@ -319,3 +319,4 @@ export default function CatalogPage() {
         </div>
     );
 }
+

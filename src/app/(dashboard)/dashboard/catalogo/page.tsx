@@ -15,7 +15,7 @@ import type { LandingHeaderConfigData } from '@/models/landing-page';
 import type { Business } from '@/models/business';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, query, where, getDoc } from 'firebase/firestore';
+import { doc, collection, query, where, getDoc, setDoc } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -49,11 +49,9 @@ export default function CatalogoPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    // Estado para verificar si el documento del negocio existe
     const [businessDocExists, setBusinessDocExists] = useState(false);
-    const [checkingBusinessDoc, setCheckingBusinessDoc] = useState(true); // Nuevo estado de carga
+    const [checkingBusinessDoc, setCheckingBusinessDoc] = useState(true);
 
-    // Verificar si el documento del negocio existe al cargar la página
     useEffect(() => {
         const checkBusinessDocument = async () => {
             if (firestore && user) {
@@ -62,20 +60,18 @@ export default function CatalogoPage() {
                 const businessSnap = await getDoc(businessRef);
                 
                 if (!businessSnap.exists()) {
-                    // Si no existe, crearlo aquí para usuarios antiguos
                     const businessData: Business = {
                         id: user.uid,
                         name: user.displayName || `${user.email?.split('@')[0]}'s Business` || 'Mi Negocio',
                         logoURL: '',
                         description: 'Bienvenido a mi negocio en EcoSalud.',
                     };
-                    // Usamos setDoc aquí para asegurarnos de que se complete antes de continuar
                     await setDoc(businessRef, businessData);
-                    setBusinessDocExists(true); // Ahora existe
+                    setBusinessDocExists(true);
                 } else {
                     setBusinessDocExists(true);
                 }
-                setCheckingBusinessDoc(false); // Terminó la verificación
+                setCheckingBusinessDoc(false);
             } else {
                 setCheckingBusinessDoc(false);
             }
@@ -87,21 +83,16 @@ export default function CatalogoPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return query(
-            collection(firestore, 'products'),
-            where('businessId', '==', user.uid)
-        );
+        return collection(firestore, 'businesses', user.uid, 'products');
     }, [firestore, user]);
 
     const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
     const headerConfigDocRef = useMemoFirebase(() => {
-        // Solo construye la referencia si el documento del negocio existe
         if (!firestore || !user || !businessDocExists) return null; 
         return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
     }, [firestore, user, businessDocExists]);
     
-    // Solo carga la configuración si la referencia es válida
     const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
     const handleSaveProduct = async (productData: Product) => {
@@ -110,10 +101,10 @@ export default function CatalogoPage() {
         const dataToSave = { ...productData, businessId: user.uid };
 
         if (editingProduct && editingProduct.id) {
-            const productDocRef = doc(firestore, 'products', editingProduct.id);
+            const productDocRef = doc(firestore, 'businesses', user.uid, 'products', editingProduct.id);
             setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
         } else {
-            const productsCollectionRef = collection(firestore, 'products');
+            const productsCollectionRef = collection(firestore, 'businesses', user.uid, 'products');
             addDocumentNonBlocking(productsCollectionRef, dataToSave);
         }
         setIsFormOpen(false);
@@ -132,9 +123,9 @@ export default function CatalogoPage() {
     };
 
     const handleDelete = (productId: string) => {
-        if (!firestore) return;
+        if (!firestore || !user) return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            const productDocRef = doc(firestore, 'products', productId);
+            const productDocRef = doc(firestore, 'businesses', user.uid, 'products', productId);
             deleteDocumentNonBlocking(productDocRef);
         }
     };
@@ -216,3 +207,4 @@ export default function CatalogoPage() {
         </div>
     );
 }
+
