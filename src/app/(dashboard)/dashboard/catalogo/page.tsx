@@ -12,10 +12,9 @@ import ShareCatalog from '@/components/catalogo/share-catalog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
-import type { Business } from '@/models/business';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, getDoc, setDoc, writeBatch } from 'firebase/firestore';
+import { doc, collection, setDoc, writeBatch } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -49,9 +48,6 @@ export default function CatalogoPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    const [businessDocExists, setBusinessDocExists] = useState(false);
-    const [checkingBusinessDoc, setCheckingBusinessDoc] = useState(true);
-
     // This function updates the denormalized public data document
     const updatePublicCatalog = async (updatedProducts: Product[], updatedConfig: LandingHeaderConfigData) => {
         if (!firestore || !user) return;
@@ -59,44 +55,17 @@ export default function CatalogoPage() {
         await setDoc(publicCatalogRef, { products: updatedProducts, headerConfig: updatedConfig }, { merge: true });
     };
 
-    useEffect(() => {
-        const checkBusinessDocument = async () => {
-            if (firestore && user) {
-                setCheckingBusinessDoc(true);
-                const businessRef = doc(firestore, 'businesses', user.uid);
-                const businessSnap = await getDoc(businessRef);
-                
-                if (!businessSnap.exists()) {
-                    const businessData: Business = {
-                        id: user.uid,
-                        name: user.displayName || `${user.email?.split('@')[0]}'s Business` || 'Mi Negocio',
-                        logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
-                        description: 'Bienvenido a mi negocio en EcoSalud.',
-                    };
-                    await setDoc(businessRef, businessData);
-                }
-                setBusinessDocExists(true);
-                setCheckingBusinessDoc(false);
-            } else if (!user) {
-                setCheckingBusinessDoc(false);
-            }
-        };
-
-        checkBusinessDocument();
-    }, [firestore, user]);
-
-
     const productsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        if (!firestore || !user) return null; // Wait for user and firestore
         return collection(firestore, 'businesses', user.uid, 'products');
     }, [firestore, user]);
 
     const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
     const headerConfigDocRef = useMemoFirebase(() => {
-        if (!firestore || !user || !businessDocExists) return null; 
+        if (!firestore || !user) return null; 
         return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
-    }, [firestore, user, businessDocExists]);
+    }, [firestore, user]);
     
     const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
@@ -153,7 +122,7 @@ export default function CatalogoPage() {
         setIsFormOpen(true);
     }
     
-    if (checkingBusinessDoc || isConfigLoading || isProductsLoading) {
+    if (isConfigLoading || isProductsLoading) {
         return <div>Cargando configuración del catálogo...</div>
     }
 
