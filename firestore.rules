@@ -103,44 +103,13 @@
  
 
   /**
-  * @description Defines the security rules for business profiles.
+  * @description Defines security rules for business profiles and all their subcollections.
   * @path /businesses/{businessId}
-  * @allow (get, list) Public read access.
-  * @allow (create, update, delete) Any authenticated user can manage businesses.
-  * @principle Open access for non-SaaS application.
+  * @allow (read) Public read access to all business data and sub-collections (landing pages, configs, etc.).
+  * @allow (write) Any authenticated user can manage business data and its sub-collections.
+  * @principle Open access for non-SaaS application, allowing public catalog viewing and authenticated management.
   */
-  match /businesses/{businessId} {
-    allow get: if true;
-    allow list: if true;
-    allow create: if isSignedIn();
-    allow update: if isSignedIn();
-    allow delete: if isSignedIn();
-  }
- 
-
-  /**
-  * @description Defines the security rules for landing pages created by businesses.
-  * @path /businesses/{businessId}/landingPages/{pageId}
-  * @allow (get, list) Public read access.
-  * @allow (create, update, delete) Any authenticated user can manage landing pages.
-  * @principle Open access for non-SaaS application.
-  */
-  match /businesses/{businessId}/landingPages/{pageId} {
-    allow get: if true;
-    allow list: if true;
-    allow create: if isSignedIn();
-    allow update: if isSignedIn();
-    allow delete: if isSignedIn();
-  }
-
-  /**
-  * @description Defines security rules for landing page configurations.
-  * @path /businesses/{businessId}/landingConfig/{configId}
-  * @allow (get, list) Public read access for catalog header.
-  * @allow (create, update, delete) Any authenticated user can manage configurations.
-  * @principle Open access for non-SaaS application.
-  */
-  match /businesses/{businessId}/landingConfig/{configId} {
+  match /businesses/{businessId}/{allPaths=**} {
     allow read: if true;
     allow write: if isSignedIn();
   }
