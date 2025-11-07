@@ -129,7 +129,7 @@ const PublicProductCard = ({ product, onOpenModal }: { product: Product, onOpenM
     );
 }
 
-const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone }: { product: Product | null, isOpen: boolean, onOpenChange: (open: boolean) => void, businessPhone: string }) => {
+const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, businessId }: { product: Product | null, isOpen: boolean, onOpenChange: (open: boolean) => void, businessPhone: string, businessId: string | null }) => {
     const [mainImage, setMainImage] = useState(product?.images[0] || '');
     const [isRating, setIsRating] = useState(false);
     const [userRating, setUserRating] = useState(0);
@@ -138,12 +138,12 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone }: { pr
     const hasRated = typeof window !== 'undefined' && localStorage.getItem(`rated_${product?.id}`);
 
     const handleRating = async (rating: number) => {
-        if (!product || !firestore || hasRated) return;
+        if (!product || !firestore || hasRated || !businessId) return;
 
         setIsRating(true);
         setUserRating(rating);
 
-        const productRef = doc(firestore, 'products', product.id);
+        const productRef = doc(firestore, `businesses/${businessId}/products`, product.id);
         const newRatingCount = product.ratingCount + 1;
         const newTotalRating = (product.rating * product.ratingCount) + rating;
         const newAverage = newTotalRating / newRatingCount;
@@ -228,7 +228,7 @@ export default function CatalogPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return query(collection(firestore, 'products'), where('businessId', '==', businessId));
+        return collection(firestore, `businesses/${businessId}/products`);
     }, [firestore, businessId]);
 
     const headerConfigRef = useMemoFirebase(() => {
@@ -300,6 +300,7 @@ export default function CatalogPage() {
                 isOpen={!!selectedProduct} 
                 onOpenChange={handleModalChange} 
                 businessPhone={headerConfig?.businessInfo.phone || ''}
+                businessId={businessId}
             />
             
             <footer className="w-full border-t bg-background mt-12">
@@ -312,4 +313,3 @@ export default function CatalogPage() {
         </div>
     );
 }
-

@@ -523,14 +523,18 @@
         }
       },
       {
-        "path": "/products/{productId}",
+        "path": "/businesses/{businessId}/products/{productId}",
         "definition": {
           "entityName": "Product",
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores product information.  Includes `businessId` to associate products with a business. Denormalized 'businessId' for authorization independence.",
+          "description": "Stores product information within a business's subcollection. Includes denormalized 'businessId' for authorization independence.",
           "params": [
+            {
+              "name": "businessId",
+              "description": "The unique identifier for the business."
+            },
             {
               "name": "productId",
               "description": "The unique identifier for the product."

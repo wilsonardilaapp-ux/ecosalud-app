@@ -13,11 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
-import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
+import { doc, getDoc, setDoc, collection, addDoc, deleteDoc } from 'firebase/firestore';
 
 
-// Datos de ejemplo
 const sampleProducts: Product[] = [
     {
         id: '1',
@@ -72,13 +71,19 @@ const initialHeaderConfig: LandingHeaderConfigData = {
 
 
 export default function CatalogoPage() {
-    const [products, setProducts] = useState<Product[]>(sampleProducts);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [headerConfig, setHeaderConfig] = useState<LandingHeaderConfigData>(initialHeaderConfig);
 
     const { user } = useUser();
     const firestore = useFirestore();
+
+    const productsCollectionRef = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return collection(firestore, `businesses/${user.uid}/products`);
+    }, [firestore, user]);
+
+    const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsCollectionRef);
 
     const headerConfigDocRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
@@ -98,7 +103,6 @@ export default function CatalogoPage() {
             if (headerConfigDocRef) {
                 const docSnap = await getDoc(headerConfigDocRef);
                 if (!docSnap.exists()) {
-                    // Document doesn't exist, so create it with initial data
                     await setDoc(headerConfigDocRef, initialHeaderConfig);
                 }
             }
@@ -107,11 +111,16 @@ export default function CatalogoPage() {
         initializeConfig();
     }, [headerConfigDocRef]);
 
-    const handleSaveProduct = (product: Product) => {
-        if (editingProduct) {
-            setProducts(products.map(p => p.id === product.id ? product : p));
+    const handleSaveProduct = async (productData: Product) => {
+        if (!productsCollectionRef || !user) return;
+        
+        const dataToSave = { ...productData, businessId: user.uid };
+
+        if (editingProduct && editingProduct.id) {
+            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, editingProduct.id);
+            setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
         } else {
-            setProducts([...products, { ...product, id: Date.now().toString() }]);
+            addDocumentNonBlocking(productsCollectionRef, dataToSave);
         }
         setIsFormOpen(false);
         setEditingProduct(null);
@@ -130,8 +139,10 @@ export default function CatalogoPage() {
     };
 
     const handleDelete = (productId: string) => {
+        if (!user || !firestore) return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            setProducts(products.filter(p => p.id !== productId));
+            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, productId);
+            deleteDocumentNonBlocking(productDocRef);
         }
     };
     
@@ -140,7 +151,7 @@ export default function CatalogoPage() {
         setIsFormOpen(true);
     }
     
-    if (isConfigLoading) {
+    if (isConfigLoading || isProductsLoading) {
         return <div>Cargando configuración del catálogo...</div>
     }
 
@@ -180,7 +191,7 @@ export default function CatalogoPage() {
             </Card>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.length > 0 ? (
+                {products && products.length > 0 ? (
                     products.map(product => (
                         <ProductCard key={product.id} product={product}>
                             <div className="flex gap-2">
@@ -212,3 +223,4 @@ export default function CatalogoPage() {
         </div>
     );
 }
+
