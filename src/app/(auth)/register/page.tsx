@@ -69,10 +69,11 @@ export default function RegisterPage() {
     if (!auth || !firestore) return;
     
     try {
+        // STEP 1: Await user creation in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
         const newUser = userCredential.user;
 
-        // 1. Create user document in /users collection
+        // STEP 2: If auth is successful, create user and business documents in Firestore
         const userDocRef = doc(firestore, 'users', newUser.uid);
         const userData: AppUser = {
           id: newUser.uid,
@@ -83,22 +84,20 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
-        // This non-blocking call will emit a contextual error on failure
+        // The non-blocking call will emit a contextual error on permission failure
         setDocumentNonBlocking(userDocRef, userData, { merge: false });
         
-        // 2. CRITICAL: Create corresponding business document in /businesses collection
         const businessDocRef = doc(firestore, 'businesses', newUser.uid);
         const businessData: Business = {
             id: newUser.uid,
             name: `${values.name}'s Business`,
-            logoURL: '',
+            logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
             description: 'Bienvenido a mi negocio en EcoSalud.',
         };
-        // This non-blocking call will also emit a contextual error on failure
+        // This non-blocking call will also emit a contextual error on permission failure
         setDocumentNonBlocking(businessDocRef, businessData, { merge: false });
-
-        // Since the writes are non-blocking, we show success and navigate immediately.
-        // If a permission error occurs, the global listener will catch and display it.
+        
+        // STEP 3: Navigate user to dashboard after all operations are initiated
         toast({
           title: "Cuenta Creada",
           description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
@@ -107,8 +106,7 @@ export default function RegisterPage() {
         router.push("/dashboard");
 
     } catch (error: any) {
-        // This will catch auth errors (like email-already-in-use) or other unexpected issues.
-        // Firestore permission errors are now handled by the non-blocking calls and the global emitter.
+        // This catch block will now properly handle auth errors
         toast({
             variant: "destructive",
             title: "Error al registrarse",
@@ -206,4 +204,3 @@ export default function RegisterPage() {
     </Card>
   );
 }
-
