@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
+import { useAuth, useUser, useFirestore, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc } from 'firebase/firestore';
@@ -67,49 +67,60 @@ export default function RegisterPage() {
 
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     if (!auth || !firestore) return;
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const newUser = userCredential.user;
+    
+    createUserWithEmailAndPassword(auth, values.email, values.password)
+      .then(async (userCredential) => {
+        const newUser = userCredential.user;
 
-      // 1. Create user document in /users collection
-      const userDocRef = doc(firestore, 'users', newUser.uid);
-      const userData: User = {
-        id: newUser.uid,
-        name: values.name,
-        email: values.email,
-        role: 'cliente_admin',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      };
-      await setDocumentNonBlocking(userDocRef, userData, {});
-      
-      // 2. CRITICAL: Create corresponding business document in /businesses collection
-      const businessDocRef = doc(firestore, 'businesses', newUser.uid);
-      const businessData: Business = {
+        // 1. Create user document in /users collection
+        const userDocRef = doc(firestore, 'users', newUser.uid);
+        const userData: User = {
           id: newUser.uid,
-          name: `${values.name}'s Business`,
-          logoURL: '',
-          description: 'Bienvenido a mi negocio en EcoSalud.',
-      };
-      await setDocumentNonBlocking(businessDocRef, businessData, {});
+          name: values.name,
+          email: values.email,
+          role: 'cliente_admin',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        };
+        await setDocumentNonBlocking(userDocRef, userData, {});
+        
+        // 2. CRITICAL: Create corresponding business document in /businesses collection
+        const businessDocRef = doc(firestore, 'businesses', newUser.uid);
+        const businessData: Business = {
+            id: newUser.uid,
+            name: `${values.name}'s Business`,
+            logoURL: '',
+            description: 'Bienvenido a mi negocio en EcoSalud.',
+        };
+        await setDocumentNonBlocking(businessDocRef, businessData, {});
 
-      toast({
-        title: "Cuenta Creada",
-        description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
+        toast({
+          title: "Cuenta Creada",
+          description: "Tu cuenta ha sido creada con éxito. Redirigiendo...",
+        });
+        
+        router.push("/dashboard");
+      })
+      .catch((error: any) => {
+        if (error.code && error.code.startsWith('auth/')) {
+            toast({
+                variant: "destructive",
+                title: "Error al registrarse",
+                description: error.code === 'auth/email-already-in-use' 
+                    ? 'Este correo electrónico ya está en uso.' 
+                    : error.message || "Ha ocurrido un error inesperado.",
+            });
+        } else {
+             // This is likely a Firestore permission error from setDocumentNonBlocking
+            const permissionError = new FirestorePermissionError({
+                path: `users/${form.getValues('email')} or businesses/${form.getValues('email')}`, // Best guess for path
+                operation: 'create',
+                requestResourceData: { name: values.name, email: values.email },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
       });
-      
-      router.push("/dashboard");
-
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error al registrarse",
-        description: error.code === 'auth/email-already-in-use' 
-            ? 'Este correo electrónico ya está en uso.' 
-            : error.message || "Ha ocurrido un error inesperado.",
-      });
-    }
   }
 
   if (isUserLoading || user) {
