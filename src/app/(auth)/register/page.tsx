@@ -24,16 +24,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from "@/firebase";
+import { useAuth, useUser, useFirestore, setDocumentNonBlocking, initiateEmailSignUp } from "@/firebase";
 import { useEffect } from "react";
-import { signInAnonymously } from "firebase/auth";
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
 import type { User as AppUser } from "@/models/user";
+import Link from "next/link";
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
+  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
 });
 
 export default function RegisterPage() {
@@ -48,14 +49,13 @@ export default function RegisterPage() {
     defaultValues: {
       name: "",
       email: "",
+      password: "",
     },
   });
 
   useEffect(() => {
-    // If the user is already logged in (even anonymously) and has an email,
-    // they have likely completed registration. Redirect them.
-    if (!isUserLoading && user && user.email) { 
-        router.push("/dashboard");
+    if (!isUserLoading && user) { 
+      router.push("/dashboard");
     }
   }, [user, isUserLoading, router]);
 
@@ -63,66 +63,59 @@ export default function RegisterPage() {
     if (!auth || !firestore) return;
     
     try {
-        // Step 1: Ensure user is signed in anonymously.
-        // If already signed in, it uses the existing session.
-        const userCredential = await signInAnonymously(auth);
-        const newUser = userCredential.user;
+      const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+      const newUser = userCredential.user;
 
-        // Step 2: Save user and business data to Firestore using the anonymous UID.
-        // The user's identity is now tied to the Firestore documents.
-        const userDocRef = doc(firestore, 'users', newUser.uid);
-        const userData: AppUser = {
-          id: newUser.uid,
-          name: values.name,
-          email: values.email,
-          role: 'cliente_admin',
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-        };
-        // This is a non-blocking call, error handling is done globally.
-        setDocumentNonBlocking(userDocRef, userData);
-        
-        const businessDocRef = doc(firestore, 'businesses', newUser.uid);
-        const businessData: Business = {
-            id: newUser.uid,
-            name: `${values.name}'s Business`,
-            logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
-            description: 'Bienvenido a mi negocio en EcoSalud.',
-        };
-        setDocumentNonBlocking(businessDocRef, businessData);
-        
-        toast({
-          title: "Cuenta Creada",
-          description: "Tus datos han sido guardados con éxito. Redirigiendo...",
-        });
-        
-        // The user is already in an anonymous session, so we just need to navigate.
-        router.push("/dashboard");
-
+      const userDocRef = doc(firestore, 'users', newUser.uid);
+      const userData: AppUser = {
+        id: newUser.uid,
+        name: values.name,
+        email: values.email,
+        role: 'cliente_admin',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      setDocumentNonBlocking(userDocRef, userData);
+      
+      const businessDocRef = doc(firestore, 'businesses', newUser.uid);
+      const businessData: Business = {
+        id: newUser.uid,
+        name: `${values.name}'s Business`,
+        logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
+        description: 'Bienvenido a mi negocio en EcoSalud.',
+      };
+      setDocumentNonBlocking(businessDocRef, businessData);
+      
+      toast({
+        title: "Cuenta Creada con Éxito",
+        description: "Serás redirigido a tu panel de control.",
+      });
+      
+      // The useEffect will handle redirection.
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Error al Registrarse",
-            description: error.message || "No se pudo completar el registro. Inténtalo de nuevo.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Error al Registrarse",
+        description: error.message || "No se pudo completar el registro. Inténtalo de nuevo.",
+      });
     }
   }
 
-  if (isUserLoading) {
+  if (isUserLoading || user) {
     return (
-        <div className="flex justify-center items-center h-screen">
-            <div className="text-center">
-                <p>Cargando...</p>
-            </div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <p>Cargando...</p>
         </div>
+      </div>
     );
   }
 
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-headline">Registrar tus Datos</CardTitle>
+        <CardTitle className="text-2xl font-headline">Crear una Cuenta</CardTitle>
         <CardDescription>
           Ingresa tus datos para crear el perfil de tu negocio.
         </CardDescription>
@@ -148,9 +141,22 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email de Contacto</FormLabel>
+                  <FormLabel>Correo Electrónico</FormLabel>
                   <FormControl>
                     <Input placeholder="nombre@ejemplo.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contraseña</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,11 +165,20 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Guardando..." : "Guardar y Acceder"}
+              {form.formState.isSubmitting ? "Creando cuenta..." : "Crear Cuenta"}
             </Button>
+             <div className="text-sm text-muted-foreground">
+              ¿Ya tienes una cuenta?{" "}
+              <Link href="/login" className="underline text-primary hover:text-primary/80">
+                Inicia sesión aquí
+              </Link>
+              .
+            </div>
           </CardFooter>
         </form>
       </Form>
     </Card>
   );
 }
+
+    
