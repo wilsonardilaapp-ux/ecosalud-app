@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { PlusCircle, ShoppingBag, Edit, Trash2 } from 'lucide-react';
@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
+import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 // Datos de ejemplo
@@ -49,9 +51,9 @@ const initialHeaderConfig: LandingHeaderConfigData = {
       mediaType: null,
     },
     businessInfo: {
-      name: 'Tu Negocio',
-      address: 'Calle Falsa 123',
-      phone: '+57 300 123 4567',
+      name: 'Mi Negocio',
+      address: 'Dirección de ejemplo',
+      phone: '3001234567',
       email: 'info@tunegocio.com',
     },
     socialLinks: {
@@ -75,6 +77,36 @@ export default function CatalogoPage() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [headerConfig, setHeaderConfig] = useState<LandingHeaderConfigData>(initialHeaderConfig);
 
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const headerConfigDocRef = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return doc(firestore, `businesses/${user.uid}/landingConfig/header`);
+    }, [firestore, user]);
+    
+    const { data: loadedHeaderConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
+
+    useEffect(() => {
+        if (loadedHeaderConfig) {
+            setHeaderConfig(loadedHeaderConfig);
+        }
+    }, [loadedHeaderConfig]);
+
+    useEffect(() => {
+        const initializeConfig = async () => {
+            if (headerConfigDocRef) {
+                const docSnap = await getDoc(headerConfigDocRef);
+                if (!docSnap.exists()) {
+                    // Document doesn't exist, so create it with initial data
+                    await setDoc(headerConfigDocRef, initialHeaderConfig);
+                }
+            }
+        };
+
+        initializeConfig();
+    }, [headerConfigDocRef]);
+
     const handleSaveProduct = (product: Product) => {
         if (editingProduct) {
             setProducts(products.map(p => p.id === product.id ? product : p));
@@ -83,6 +115,13 @@ export default function CatalogoPage() {
         }
         setIsFormOpen(false);
         setEditingProduct(null);
+    };
+    
+    const handleSaveHeader = (config: LandingHeaderConfigData) => {
+        if (headerConfigDocRef) {
+            setDocumentNonBlocking(headerConfigDocRef, config, { merge: true });
+        }
+        setHeaderConfig(config);
     };
 
     const handleEdit = (product: Product) => {
@@ -100,10 +139,14 @@ export default function CatalogoPage() {
         setEditingProduct(null);
         setIsFormOpen(true);
     }
+    
+    if (isConfigLoading) {
+        return <div>Cargando configuración del catálogo...</div>
+    }
 
     return (
         <div className="flex flex-col gap-6">
-            <CatalogHeaderForm data={headerConfig} setData={setHeaderConfig} />
+            <CatalogHeaderForm data={headerConfig} setData={handleSaveHeader} />
             <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
                     <div>

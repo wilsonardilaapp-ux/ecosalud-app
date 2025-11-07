@@ -51,9 +51,8 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   };
   
     const handleSave = () => {
+        setData(data);
         toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
-        console.log("Saving data...", data);
-        // Here you would typically save the data to a backend like Firestore
     };
   
   const MediaUploader = ({
