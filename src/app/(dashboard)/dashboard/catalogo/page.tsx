@@ -14,35 +14,7 @@ import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, getDoc, setDoc, collection, addDoc, deleteDoc } from 'firebase/firestore';
-
-
-const sampleProducts: Product[] = [
-    {
-        id: '1',
-        businessId: '123',
-        name: 'Producto de Bienestar Natural',
-        description: '<p>Este es un producto increíble que mejora tu salud de manera natural y efectiva.</p>',
-        price: 25.99,
-        stock: 50,
-        category: 'Salud y Bienestar',
-        images: ['https://picsum.photos/seed/product1/600/400'],
-        rating: 4.5,
-        ratingCount: 120,
-    },
-    {
-        id: '2',
-        businessId: '123',
-        name: 'Suplemento Energético Orgánico',
-        description: '<p>Aumenta tu energía durante todo el día con nuestros ingredientes orgánicos certificados.</p>',
-        price: 39.99,
-        stock: 30,
-        category: 'Suplementos',
-        images: ['https://picsum.photos/seed/product2/600/400'],
-        rating: 4.8,
-        ratingCount: 95,
-    },
-];
+import { doc, setDoc, collection, query, where, deleteDoc } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -69,7 +41,6 @@ const initialHeaderConfig: LandingHeaderConfigData = {
     ],
 };
 
-
 export default function CatalogoPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -78,16 +49,19 @@ export default function CatalogoPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    const productsCollectionRef = useMemoFirebase(() => {
+    const productsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return collection(firestore, `businesses/${user.uid}/products`);
+        return query(
+            collection(firestore, 'products'),
+            where('businessId', '==', user.uid)
+        );
     }, [firestore, user]);
 
-    const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsCollectionRef);
+    const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
     const headerConfigDocRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return doc(firestore, `businesses/${user.uid}/landingConfig/header`);
+        return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
     }, [firestore, user]);
     
     const { data: loadedHeaderConfig, isLoading: isConfigLoading, error } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
@@ -96,20 +70,20 @@ export default function CatalogoPage() {
         if (loadedHeaderConfig) {
             setHeaderConfig(loadedHeaderConfig);
         } else if (!isConfigLoading && !error && headerConfigDocRef) {
-            // Document doesn't exist, so create it
             setDoc(headerConfigDocRef, initialHeaderConfig, { merge: true });
         }
     }, [loadedHeaderConfig, isConfigLoading, error, headerConfigDocRef]);
 
     const handleSaveProduct = async (productData: Product) => {
-        if (!productsCollectionRef || !user) return;
+        if (!firestore || !user) return;
         
         const dataToSave = { ...productData, businessId: user.uid };
 
         if (editingProduct && editingProduct.id) {
-            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, editingProduct.id);
+            const productDocRef = doc(firestore, 'products', editingProduct.id);
             setDocumentNonBlocking(productDocRef, dataToSave, { merge: true });
         } else {
+            const productsCollectionRef = collection(firestore, 'products');
             addDocumentNonBlocking(productsCollectionRef, dataToSave);
         }
         setIsFormOpen(false);
@@ -129,9 +103,9 @@ export default function CatalogoPage() {
     };
 
     const handleDelete = (productId: string) => {
-        if (!user || !firestore) return;
+        if (!firestore) return;
         if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            const productDocRef = doc(firestore, `businesses/${user.uid}/products`, productId);
+            const productDocRef = doc(firestore, 'products', productId);
             deleteDocumentNonBlocking(productDocRef);
         }
     };

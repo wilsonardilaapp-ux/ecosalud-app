@@ -135,6 +135,14 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
     const [userRating, setUserRating] = useState(0);
     const firestore = useFirestore();
 
+    useEffect(() => {
+        if (product) {
+            setMainImage(product.images[0] || '');
+        }
+    }, [product]);
+
+    if (!product) return null;
+    
     const hasRated = typeof window !== 'undefined' && localStorage.getItem(`rated_${product?.id}`);
 
     const handleRating = async (rating: number) => {
@@ -143,7 +151,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         setIsRating(true);
         setUserRating(rating);
 
-        const productRef = doc(firestore, `businesses/${businessId}/products`, product.id);
+        const productRef = doc(firestore, `products`, product.id);
         const newRatingCount = product.ratingCount + 1;
         const newTotalRating = (product.rating * product.ratingCount) + rating;
         const newAverage = newTotalRating / newRatingCount;
@@ -160,8 +168,6 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
             setIsRating(false);
         }
     };
-    
-    if (!product) return null;
     
     const whatsappMessage = encodeURIComponent(`¡Hola! Estoy interesado en el producto "${product.name}" que vi en tu catálogo.`);
     const whatsappUrl = `https://wa.me/${businessPhone.replace(/\D/g, '')}?text=${whatsappMessage}`;
@@ -228,7 +234,7 @@ export default function CatalogPage() {
 
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return collection(firestore, `businesses/${businessId}/products`);
+        return query(collection(firestore, `products`), where('businessId', '==', businessId));
     }, [firestore, businessId]);
 
     const headerConfigRef = useMemoFirebase(() => {

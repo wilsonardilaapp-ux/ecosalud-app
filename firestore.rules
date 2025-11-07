@@ -1,35 +1,31 @@
+
 /**
   * @fileOverview
   * Core Philosophy: This ruleset enforces a strict user-ownership model for user-specific data and a business-ownership model for business-related data. Global configurations and system services are restricted to super admins.
-  * Data Structure: The data is organized hierarchically, with user data nested under `/users/{userId}`, business data under `/businesses/{businessId}`, and global configurations stored in `/globalConfig/system`.
+  * Data Structure: The data is organized hierarchically, with user data nested under `/users/{userId}`, business data under `/businesses/{businessId}`, and global configurations stored in `/globalConfig/system`. Products are stored in a root-level collection `/products`.
   * Key Security Decisions:
   *   - User listing is disallowed for privacy, except for the super admin.
-  *   - Business ownership is enforced for all write resources within a business (landing pages, contact forms, products, etc.).
+  *   - Business ownership is enforced for write operations (businessId must match userId).
   *   - Global configuration and system service management are limited to super admins.
-  *   - Public read access is granted to business profiles and their subcollections (catalogs, landing pages).
-  * Denormalization for Authorization: The `businessId` field is included in documents within subcollections (like `products`) to allow security rules to validate access without needing extra `get()` calls. This is an example of Authorization Independence.
+  *   - Public read access is granted to products and business-related public data.
+  * Denormalization for Authorization: The `Product` collection includes a `businessId` field. This allows security rules to validate write access based on ownership without needing extra `get()` calls.
   */
  
-
- rules_version = '2';
- service cloud.firestore {
+rules_version = '2';
+service cloud.firestore {
   match /databases/{database}/documents {
- 
 
     function isSignedIn() {
       return request.auth != null;
     }
- 
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
- 
 
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
- 
 
     function isSuperAdmin() {
       return request.auth.token.email == "allseosoporte@gmail.com";
@@ -39,9 +35,19 @@
       return isSignedIn() && request.auth.uid == businessId;
     }
 
+    function isProductOwner() {
+        let businessId = request.resource.data.businessId;
+        return isSignedIn() && request.auth.uid == businessId;
+    }
+
+    function isExistingProductOwner() {
+        let businessId = resource.data.businessId;
+        return isSignedIn() && request.auth.uid == businessId;
+    }
+
+
     /**
-    * @description Defines the security rules for user profiles. Only the user themselves can read or modify their profile. The super admin can list all users.
-    * @path /users/{userId}
+    * @description Defines the security rules for user profiles.
     */
     match /users/{userId} {
       allow get: if isOwner(userId) || isSuperAdmin();
@@ -50,57 +56,47 @@
       allow update: if isExistingOwner(userId) || isSuperAdmin();
       allow delete: if isExistingOwner(userId) || isSuperAdmin();
     }
- 
 
     /**
-    * @description Defines the security rules for system service configurations. Only super admins can manage these configurations.
-    * @path /systemServices/{serviceId}
+    * @description Defines the security rules for system service configurations.
     */
     match /systemServices/{serviceId} {
-      allow get: if isSuperAdmin();
-      allow list: if isSuperAdmin();
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow read, write: if isSuperAdmin();
     }
 
     /**
-    * @description Defines the security rules for platform modules. Only super admins can manage these modules.
-    * @path /modules/{moduleId}
+    * @description Defines the security rules for platform modules.
     */
     match /modules/{moduleId} {
-      allow get: if isSuperAdmin();
-      allow list: if isSuperAdmin();
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow read, write: if isSuperAdmin();
     }
- 
 
     /**
-    * @description Defines the security rules for global configuration settings. Only super admins can manage these settings.
-    * @path /globalConfig/system
+    * @description Defines the security rules for global configuration settings.
     */
     match /globalConfig/system {
       allow get: if isSuperAdmin();
       allow list: if false;
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow create, update, delete: if isSuperAdmin();
     }
- 
 
     /**
-    * @description Defines security rules for business profiles and all their subcollections.
-    * This setup grants public read access, which is essential for catalogs and landing pages.
-    * Write access is strictly limited to the authenticated owner of the business.
-    * @path /businesses/{businessId}
-    * @principle Open read access for public-facing content, owner-only write access.
+    * @description Defines security rules for the root products collection.
+    * This allows public listing/reading and owner-only writes.
+    */
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isProductOwner();
+      allow update, delete: if isExistingProductOwner();
+    }
+
+    /**
+    * @description Defines security rules for business documents and their subcollections.
+    * This grants public read access and owner-only write access.
     */
     match /businesses/{businessId}/{allPaths=**} {
       allow read: if true;
       allow write: if isBusinessOwner(businessId);
     }
- 
   }
 }
