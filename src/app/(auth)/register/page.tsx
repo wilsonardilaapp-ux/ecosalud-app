@@ -85,7 +85,7 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
-        setDocumentNonBlocking(userDocRef, userData, { merge: false });
+        setDocumentNonBlocking(userDocRef, userData);
         
         const businessDocRef = doc(firestore, 'businesses', newUser.uid);
         const businessData: Business = {
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
             description: 'Bienvenido a mi negocio en EcoSalud.',
         };
-        setDocumentNonBlocking(businessDocRef, businessData, { merge: false });
+        setDocumentNonBlocking(businessDocRef, businessData);
         
         toast({
           title: "Cuenta Creada",
@@ -105,7 +105,7 @@ export default function RegisterPage() {
         router.push("/dashboard");
 
     } catch (error: any) {
-        // This catch block primarily handles AUTHENTICATION errors now.
+        // This catch block now primarily handles AUTHENTICATION errors.
         // Firestore permission errors are handled by the global error listener.
         toast({
             variant: "destructive",
