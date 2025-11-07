@@ -68,8 +68,8 @@ export default function RegisterPage() {
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     if (!auth || !firestore) return;
     
-    createUserWithEmailAndPassword(auth, values.email, values.password)
-      .then(async (userCredential) => {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
         const newUser = userCredential.user;
 
         // 1. Create user document in /users collection
@@ -83,7 +83,8 @@ export default function RegisterPage() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
-        await setDocumentNonBlocking(userDocRef, userData, {});
+        // This will now properly throw a contextual error on failure
+        setDocumentNonBlocking(userDocRef, userData, { merge: false });
         
         // 2. CRITICAL: Create corresponding business document in /businesses collection
         const businessDocRef = doc(firestore, 'businesses', newUser.uid);
@@ -93,7 +94,8 @@ export default function RegisterPage() {
             logoURL: '',
             description: 'Bienvenido a mi negocio en EcoSalud.',
         };
-        await setDocumentNonBlocking(businessDocRef, businessData, {});
+        // This will also throw a contextual error on failure
+        setDocumentNonBlocking(businessDocRef, businessData, { merge: false });
 
         toast({
           title: "Cuenta Creada",
@@ -101,8 +103,9 @@ export default function RegisterPage() {
         });
         
         router.push("/dashboard");
-      })
-      .catch((error: any) => {
+
+    } catch (error: any) {
+        // This will catch auth errors (like email-already-in-use)
         if (error.code && error.code.startsWith('auth/')) {
             toast({
                 variant: "destructive",
@@ -112,15 +115,17 @@ export default function RegisterPage() {
                     : error.message || "Ha ocurrido un error inesperado.",
             });
         } else {
-             // This is likely a Firestore permission error from setDocumentNonBlocking
-            const permissionError = new FirestorePermissionError({
-                path: `users/${form.getValues('email')} or businesses/${form.getValues('email')}`, // Best guess for path
-                operation: 'create',
-                requestResourceData: { name: values.name, email: values.email },
+             // This branch is now less likely to be hit for Firestore errors,
+             // but is kept as a fallback. The FirestorePermissionError will be
+             // thrown and caught by the global error handler.
+            console.error("An unexpected error occurred during registration:", error);
+            toast({
+                variant: "destructive",
+                title: "Error inesperado",
+                description: "Ocurrió un problema durante el registro. Por favor, inténtalo de nuevo.",
             });
-            errorEmitter.emit('permission-error', permissionError);
         }
-      });
+    }
   }
 
   if (isUserLoading || user) {
