@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { Star, Loader2 } from 'lucide-react';
+import { Star, Loader2, PackageSearch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
@@ -232,7 +233,8 @@ export default function CatalogPage({ params }: { params: { businessId: string }
 
     const headerConfigRef = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        return doc(firestore, `businesses/${businessId}/landingConfig/header`);
+        // Correct path for subcollection document
+        return doc(firestore, 'businesses', businessId, 'landingConfig', 'header');
     }, [firestore, businessId]);
 
     const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
@@ -246,9 +248,8 @@ export default function CatalogPage({ params }: { params: { businessId: string }
         );
     }
     
-    if (!isLoadingProducts && (!products || products.length === 0)) {
-        notFound();
-    }
+    // Instead of calling notFound(), render a message if the catalog is empty.
+    const isCatalogEmpty = !products || products.length === 0;
     
     const handleOpenModal = (product: Product) => {
         setSelectedProduct(product);
@@ -262,14 +263,34 @@ export default function CatalogPage({ params }: { params: { businessId: string }
     
     return (
         <div className="bg-muted/40 min-h-screen">
-            <CatalogHeader config={headerConfig} />
+            {headerConfig ? (
+                <CatalogHeader config={headerConfig} />
+            ) : (
+                <div className="bg-card shadow-md p-4 text-center">
+                     <h1 className="text-2xl font-bold font-headline">Catálogo de EcoSalud</h1>
+                </div>
+            )}
             
             <main className="container mx-auto py-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {products?.map(product => (
-                        <PublicProductCard key={product.id} product={product} onOpenModal={handleOpenModal} />
-                    ))}
-                </div>
+                {isCatalogEmpty ? (
+                    <Card className="sm:col-span-2 md:col-span-3 lg:col-span-4">
+                        <CardContent className="h-[400px] flex flex-col items-center justify-center text-center gap-4">
+                            <div className="p-4 bg-secondary rounded-full">
+                                <PackageSearch className="h-12 w-12 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-xl font-semibold">Este catálogo se está construyendo</h3>
+                            <p className="text-muted-foreground max-w-sm">
+                                El propietario está trabajando para añadir sus productos. ¡Vuelve pronto!
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {products?.map(product => (
+                            <PublicProductCard key={product.id} product={product} onOpenModal={handleOpenModal} />
+                        ))}
+                    </div>
+                )}
             </main>
             
              <ProductViewModal 
@@ -289,3 +310,4 @@ export default function CatalogPage({ params }: { params: { businessId: string }
         </div>
     );
 }
+
