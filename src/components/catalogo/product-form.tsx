@@ -29,7 +29,7 @@ const productSchema = z.object({
 
 interface ProductFormProps {
     product: Product | null;
-    onSave: (data: Product) => void;
+    onSave: (data: Omit<Product, 'id' | 'businessId'>) => void;
     onCancel: () => void;
 }
 
@@ -67,9 +67,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     
     const onSubmit = (data: z.infer<typeof productSchema>) => {
         const allImages = mainImage ? [mainImage, ...images] : images;
-        const productData: Product = {
-            id: product?.id || '',
-            businessId: product?.businessId || '',
+        const productData: Omit<Product, 'id' | 'businessId'> = {
             ...data,
             images: allImages,
             rating: product?.rating || 0,
@@ -211,6 +209,3 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
         </form>
     );
 }
-
-
-    

@@ -63,16 +63,17 @@ export default function CatalogoPage() {
                     const businessData: Business = {
                         id: user.uid,
                         name: user.displayName || `${user.email?.split('@')[0]}'s Business` || 'Mi Negocio',
-                        logoURL: '',
+                        logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
                         description: 'Bienvenido a mi negocio en EcoSalud.',
                     };
+                    // Use setDoc directly here to ensure completion before proceeding
                     await setDoc(businessRef, businessData);
                     setBusinessDocExists(true);
                 } else {
                     setBusinessDocExists(true);
                 }
                 setCheckingBusinessDoc(false);
-            } else {
+            } else if (!user) {
                 setCheckingBusinessDoc(false);
             }
         };
@@ -95,7 +96,7 @@ export default function CatalogoPage() {
     
     const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
-    const handleSaveProduct = async (productData: Product) => {
+    const handleSaveProduct = async (productData: Omit<Product, 'id' | 'businessId'>) => {
         if (!firestore || !user) return;
         
         const dataToSave = { ...productData, businessId: user.uid };
@@ -207,4 +208,3 @@ export default function CatalogoPage() {
         </div>
     );
 }
-
