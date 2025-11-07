@@ -90,7 +90,7 @@ export default function CatalogoPage() {
         return doc(firestore, `businesses/${user.uid}/landingConfig/header`);
     }, [firestore, user]);
     
-    const { data: loadedHeaderConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
+    const { data: loadedHeaderConfig, isLoading: isConfigLoading, error } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
     useEffect(() => {
         if (loadedHeaderConfig) {
@@ -100,16 +100,17 @@ export default function CatalogoPage() {
 
     useEffect(() => {
         const initializeConfig = async () => {
-            if (headerConfigDocRef) {
+            if (headerConfigDocRef && !isConfigLoading && !loadedHeaderConfig) {
                 const docSnap = await getDoc(headerConfigDocRef);
                 if (!docSnap.exists()) {
                     await setDoc(headerConfigDocRef, initialHeaderConfig);
+                    setHeaderConfig(initialHeaderConfig);
                 }
             }
         };
 
         initializeConfig();
-    }, [headerConfigDocRef]);
+    }, [headerConfigDocRef, isConfigLoading, loadedHeaderConfig]);
 
     const handleSaveProduct = async (productData: Product) => {
         if (!productsCollectionRef || !user) return;
