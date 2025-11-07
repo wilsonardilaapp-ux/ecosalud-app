@@ -103,9 +103,9 @@
  
 
   /**
-  * @description Defines security rules for products. Allows public read access to the product catalog.
+  * @description Defines security rules for products. Allows public read access to the product catalog, and write access for authenticated users.
   * @path /products/{productId}
-  * @allow (read) Public read access for the catalog.
+  * @allow (read) Public read access for the catalog for anyone.
   * @allow (write) Only authenticated users can manage products.
   * @principle Allows public viewing of the product catalog.
   */
