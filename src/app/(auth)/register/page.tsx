@@ -29,6 +29,7 @@ import { useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
+import type { User } from "@/models/user";
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -71,7 +72,7 @@ export default function RegisterPage() {
 
       // 1. Create user document in /users collection
       const userDocRef = doc(firestore, 'users', newUser.uid);
-      const userData = {
+      const userData: User = {
         id: newUser.uid,
         name: values.name,
         email: values.email,
