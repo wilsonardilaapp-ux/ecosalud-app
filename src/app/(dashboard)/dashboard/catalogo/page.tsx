@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { PlusCircle, ShoppingBag, Edit, Trash2 } from 'lucide-react';
@@ -12,9 +12,10 @@ import ShareCatalog from '@/components/catalogo/share-catalog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
+import type { Business } from '@/models/business';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
+import { doc, collection, query, where, getDoc } from 'firebase/firestore';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -48,6 +49,42 @@ export default function CatalogoPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
+    // Estado para verificar si el documento del negocio existe
+    const [businessDocExists, setBusinessDocExists] = useState(false);
+    const [checkingBusinessDoc, setCheckingBusinessDoc] = useState(true); // Nuevo estado de carga
+
+    // Verificar si el documento del negocio existe al cargar la página
+    useEffect(() => {
+        const checkBusinessDocument = async () => {
+            if (firestore && user) {
+                setCheckingBusinessDoc(true);
+                const businessRef = doc(firestore, 'businesses', user.uid);
+                const businessSnap = await getDoc(businessRef);
+                
+                if (!businessSnap.exists()) {
+                    // Si no existe, crearlo aquí para usuarios antiguos
+                    const businessData: Business = {
+                        id: user.uid,
+                        name: user.displayName || `${user.email?.split('@')[0]}'s Business` || 'Mi Negocio',
+                        logoURL: '',
+                        description: 'Bienvenido a mi negocio en EcoSalud.',
+                    };
+                    // Usamos setDoc aquí para asegurarnos de que se complete antes de continuar
+                    await setDoc(businessRef, businessData);
+                    setBusinessDocExists(true); // Ahora existe
+                } else {
+                    setBusinessDocExists(true);
+                }
+                setCheckingBusinessDoc(false); // Terminó la verificación
+            } else {
+                setCheckingBusinessDoc(false);
+            }
+        };
+
+        checkBusinessDocument();
+    }, [firestore, user]);
+
+
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(
@@ -59,10 +96,12 @@ export default function CatalogoPage() {
     const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
     const headerConfigDocRef = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        // Solo construye la referencia si el documento del negocio existe
+        if (!firestore || !user || !businessDocExists) return null; 
         return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
-    }, [firestore, user]);
+    }, [firestore, user, businessDocExists]);
     
+    // Solo carga la configuración si la referencia es válida
     const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
 
     const handleSaveProduct = async (productData: Product) => {
@@ -105,7 +144,7 @@ export default function CatalogoPage() {
         setIsFormOpen(true);
     }
     
-    if (isConfigLoading || isProductsLoading) {
+    if (checkingBusinessDoc || isConfigLoading || isProductsLoading) {
         return <div>Cargando configuración del catálogo...</div>
     }
 
