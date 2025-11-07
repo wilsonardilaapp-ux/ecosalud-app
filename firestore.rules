@@ -88,19 +88,24 @@ service cloud.firestore {
          */
         match /publicData/{docId} {
             allow get: if true;
-            // Only the business owner can write to this document (e.g., update their product list).
+            allow list: if false; // Deny listing the collection, only direct get is allowed.
             allow write: if isBusinessOwner(businessId);
-            // List and create are denied because there should only be one document ('catalog').
-            allow list, create: if false;
         }
 
         /**
-         * @description Subcollections like 'products', 'landingConfig', etc. are private.
+         * @description Subcollections like 'products', 'landingConfig', 'contactSubmissions' are private.
          * Only the business owner can read, list, and write to these collections.
          */
-        match /{subcollection}/{docId} {
-           // Allow full access to the business owner for their private subcollections.
+        match /products/{productId} {
            allow read, list, write: if isBusinessOwner(businessId);
+        }
+
+        match /landingConfig/{configId} {
+           allow read, list, write: if isBusinessOwner(businessId);
+        }
+
+        match /contactSubmissions/{submissionId} {
+            allow read, list, write: if isBusinessOwner(businessId);
         }
     }
   }

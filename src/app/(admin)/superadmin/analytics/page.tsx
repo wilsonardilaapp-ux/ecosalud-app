@@ -16,20 +16,17 @@ export default function AnalyticsPage() {
 
   const usersQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'users'), [firestore]);
   const businessesQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'businesses'), [firestore]);
-  // Note: We can't query all products across all businesses efficiently for analytics without a root collection or aggregation.
-  // This value will be 0 or inaccurate until a better analytics strategy is in place.
-  const productsQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'products_placeholder_for_analytics'), [firestore]);
-
+  // Nota: No podemos consultar eficientemente todos los productos de todos los negocios para análisis.
+  // Esta métrica se deja en 0 hasta que se implemente una estrategia de agregación.
 
   const { data: users } = useCollection(usersQuery);
   const { data: businesses } = useCollection(businessesQuery);
-  const { data: products } = useCollection(productsQuery);
-
+  
   const kpiData = [
       { title: "Empresas Registradas", value: businesses?.length.toString() ?? "0", icon: Building, change: "+15.2%", period: "el último mes" },
       { title: "Landing Pages Activas", value: "289", icon: TestTube, change: "+8.9%", period: "esta semana" },
       { title: "Envíos de Formularios", value: "1,204", icon: FileText, change: "+112", period: "hoy" },
-      { title: "Productos en Catálogo", value: products?.length.toString() ?? "0", icon: ShoppingCart, change: "+50", period: "esta semana" },
+      { title: "Productos en Catálogo", value: "0", icon: ShoppingCart, change: "+0", period: "esta semana" },
       { title: "Nuevos Usuarios", value: users?.length.toString() ?? "0", icon: Users, change: "+22.5%", period: "el último mes" },
   ];
 
@@ -73,4 +70,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
