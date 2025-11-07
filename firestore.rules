@@ -35,13 +35,6 @@
     return request.auth.token.email == "allseosoporte@gmail.com";
   }
 
-  function isBusinessOwner(businessId) {
-    return isSignedIn() &&
-           exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-           get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid;
-  }
- 
-
   /**
   * @description Defines the security rules for user profiles. Only the user themselves can read or modify their profile. The super admin can list all users.
   * @path /users/{userId}
@@ -148,11 +141,8 @@
   * @principle Open access for non-SaaS application.
   */
   match /businesses/{businessId}/landingConfig/{configId} {
-    allow get: if true;
-    allow list: if true;
-    allow create: if isSignedIn();
-    allow update: if isSignedIn();
-    allow delete: if isSignedIn();
+    allow read: if true;
+    allow write: if isSignedIn();
   }
  
  }
