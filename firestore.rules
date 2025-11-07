@@ -81,7 +81,7 @@ service cloud.firestore {
 
     /**
     * @description Defines security rules for the root products collection.
-    * This allows public 'get' for individual documents and authenticated 'list' for queries.
+    * This allows public `get` for individual product pages and authenticated `list` for dashboard queries.
     */
     match /products/{productId} {
       allow get: if true;
