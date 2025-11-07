@@ -233,13 +233,16 @@ export default function CatalogPage() {
 
     const headerConfigRef = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
-        // Correct path for subcollection document
         return doc(firestore, 'businesses', businessId, 'landingConfig', 'header');
     }, [firestore, businessId]);
 
     const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
-    const { data: headerConfig, isLoading: isLoadingConfig } = useDoc<LandingHeaderConfigData>(headerConfigRef);
+    const { data: headerConfig, isLoading: isLoadingConfig, error: headerError } = useDoc<LandingHeaderConfigData>(headerConfigRef);
 
+    if (headerError) {
+        console.error('Error loading header config:', headerError);
+    }
+    
     if (isLoadingProducts || isLoadingConfig) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -248,7 +251,6 @@ export default function CatalogPage() {
         );
     }
     
-    // Instead of calling notFound(), render a message if the catalog is empty.
     const isCatalogEmpty = !products || products.length === 0;
     
     const handleOpenModal = (product: Product) => {
