@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,8 @@ import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 import { useParams } from 'next/navigation';
+import { rateProduct } from '@/ai/flows/rate-product-flow';
+import { useToast } from '@/hooks/use-toast';
 
 const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) => {
     if (!config) {
@@ -133,7 +135,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
     const [mainImage, setMainImage] = useState(product?.images[0] || '');
     const [isRating, setIsRating] = useState(false);
     const [userRating, setUserRating] = useState(0);
-    const firestore = useFirestore();
+    const { toast } = useToast();
 
     useEffect(() => {
         if (product) {
@@ -146,24 +148,35 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
     const hasRated = typeof window !== 'undefined' && localStorage.getItem(`rated_${product?.id}`);
 
     const handleRating = async (rating: number) => {
-        if (!product || !firestore || hasRated || !businessId) return;
+        if (!product || !businessId || hasRated) return;
 
         setIsRating(true);
         setUserRating(rating);
 
-        const productRef = doc(firestore, 'businesses', businessId, 'products', product.id);
-        const newRatingCount = product.ratingCount + 1;
-        const newTotalRating = (product.rating * product.ratingCount) + rating;
-        const newAverage = newTotalRating / newRatingCount;
-
         try {
-            await updateDoc(productRef, {
-                rating: newAverage,
-                ratingCount: newRatingCount,
+            const result = await rateProduct({
+                businessId: businessId,
+                productId: product.id,
+                rating: rating,
             });
-            localStorage.setItem(`rated_${product.id}`, 'true');
-        } catch (error) {
+
+            if (result.success) {
+                localStorage.setItem(`rated_${product.id}`, 'true');
+                toast({
+                    title: '¡Gracias por tu opinión!',
+                    description: 'Tu calificación ha sido registrada.',
+                });
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error: any) {
             console.error("Error updating rating:", error);
+            toast({
+                variant: "destructive",
+                title: 'Error al calificar',
+                description: error.message || 'No se pudo registrar tu calificación.',
+            });
+            setUserRating(0); // Reset visual state on failure
         } finally {
             setIsRating(false);
         }
@@ -312,3 +325,4 @@ export default function CatalogPage() {
     );
 }
 
+    
