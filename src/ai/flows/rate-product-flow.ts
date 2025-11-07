@@ -9,18 +9,12 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { doc, runTransaction, getFirestore, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, runTransaction, getFirestore } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import type { Product } from '@/models/product';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
+import { RateProductInput, RateProductInputSchema } from '@/models/rate-product-input';
 
-export const RateProductInputSchema = z.object({
-  businessId: z.string().describe('The ID of the business that owns the product.'),
-  productId: z.string().describe('The ID of the product to rate.'),
-  rating: z.number().min(1).max(5).describe('The rating value from 1 to 5.'),
-});
-export type RateProductInput = z.infer<typeof RateProductInputSchema>;
 
 // This is the wrapper function that will be called from the client.
 export async function rateProduct(input: RateProductInput): Promise<{ success: boolean; message: string }> {
