@@ -34,6 +34,13 @@
   function isSuperAdmin() {
     return request.auth.token.email == "allseosoporte@gmail.com";
   }
+
+  function isBusinessOwner(businessId) {
+    let business = get(/databases/$(database)/documents/businesses/$(businessId)).data;
+    return isSignedIn() &&
+           exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+           business.ownerId == request.auth.uid;
+  }
  
 
   /**
@@ -113,9 +120,9 @@
   match /businesses/{businessId} {
   allow get: if true;
   allow list: if true;
-  allow create: if false; // TODO: Add business owner role check.
-  allow update: if false; // TODO: Add business owner role check.
-  allow delete: if false; // TODO: Add business owner role check.
+  allow create: if isOwner(businessId);
+  allow update: if isBusinessOwner(businessId);
+  allow delete: if isBusinessOwner(businessId);
   }
  
 
@@ -144,9 +151,9 @@
   match /businesses/{businessId}/landingConfig/{configId} {
     allow get: if true;
     allow list: if true; // Allow listing for potential future use
-    allow create: if isOwner(businessId);
-    allow update: if isOwner(businessId);
-    allow delete: if isOwner(businessId);
+    allow create: if isBusinessOwner(businessId);
+    allow update: if isBusinessOwner(businessId);
+    allow delete: if isBusinessOwner(businessId);
   }
  
  }

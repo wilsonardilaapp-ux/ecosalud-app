@@ -79,8 +79,19 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
-      
       setDocumentNonBlocking(userDocRef, userData, {});
+      
+      // Create business document in Firestore
+      const businessDocRef = doc(firestore, 'businesses', newUser.uid);
+      const businessData = {
+        id: newUser.uid,
+        ownerId: newUser.uid, // This is the crucial field for the security rule
+        name: `${values.name}'s Business`,
+        logoURL: '',
+        description: `Welcome to ${values.name}'s business page.`,
+      };
+      setDocumentNonBlocking(businessDocRef, businessData, {});
+
 
       toast({
         title: "Cuenta Creada",
