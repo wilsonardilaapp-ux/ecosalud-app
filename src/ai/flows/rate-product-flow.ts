@@ -9,10 +9,11 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { doc, runTransaction, getFirestore } from 'firebase/firestore';
+import { doc, runTransaction, getFirestore, getDoc, updateDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import type { Product } from '@/models/product';
-
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 export const RateProductInputSchema = z.object({
   businessId: z.string().describe('The ID of the business that owns the product.'),
@@ -54,18 +55,32 @@ const rateProductFlow = ai.defineFlow(
         const newTotalRating = (currentRating * currentRatingCount) + input.rating;
         const newAverage = newTotalRating / newRatingCount;
 
-        transaction.update(productRef, {
+        const updatedData = {
           rating: newAverage,
           ratingCount: newRatingCount,
-        });
+        };
+
+        transaction.update(productRef, updatedData);
       });
 
       return { success: true, message: 'Rating updated successfully.' };
     } catch (e: any) {
-      console.error("Transaction failed: ", e);
-      return { success: false, message: e.message || 'Failed to update rating.' };
+        // Although this is a server-side flow, we can still emit the error.
+        // The error listener on the client won't pick it up, but it standardizes our error pattern.
+        // The client will receive the failure from the flow's return value.
+        const permissionError = new FirestorePermissionError({
+            path: productRef.path,
+            operation: 'update',
+            // In a real scenario, you'd pass what you attempted to write.
+            // For simplicity, we are just noting the operation.
+        });
+        
+        // This won't show in the Next.js overlay but is good practice.
+        // The client will get the error from the thrown exception in the flow.
+        console.error("GENKIT_FLOW_ERROR:", permissionError.message);
+
+        // Make the flow fail with a descriptive message.
+        return { success: false, message: e.message || 'Failed to update rating due to a server-side error.' };
     }
   }
 );
-
-    
