@@ -98,87 +98,91 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     
     const removeImage = (index: number) => {
         const newImageUrls = [...imageUrls];
-        newImageUrls.splice(index, 1);
-        setImageUrls(newImageUrls);
+        // Al eliminar, simplemente dejamos un slot vacío para no cambiar los índices de las demás
+        // Esto previene que las imágenes "salten" a una nueva posición.
+        newImageUrls[index] = '';
+        setImageUrls(newImageUrls.filter(url => url)); // Limpiamos los vacíos al final
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1 max-h-[80vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
                 {/* Columna Izquierda: Imágenes */}
-                <div className="space-y-4">
+                <div className="space-y-2">
                     <Label>Imágenes del Producto (Principal primero, hasta 5)</Label>
-                    
-                    {/* Imagen Principal */}
-                    <div className="relative aspect-video w-full">
-                         {isUploading === 0 ? (
-                            <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
-                                <Loader2 className="h-8 w-8 animate-spin" />
-                            </div>
-                        ) : imageUrls[0] ? (
-                            <div className="group relative w-full h-full">
-                                <Image src={imageUrls[0]} alt="Producto Principal" layout="fill" className="rounded-md object-cover" />
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                    onClick={() => removeImage(0)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ) : (
-                            <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-4">
-                                <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                <span className="text-sm text-center font-semibold text-muted-foreground mt-2">Imagen Principal</span>
-                                <span className="text-xs text-center text-muted-foreground mt-1">1200x900px (4:3)</span>
-                                <Input 
-                                    type="file" 
-                                    className="hidden" 
-                                    onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], 0)} 
-                                    accept="image/*" 
-                                />
-                            </label>
-                        )}
-                    </div>
-
-                    {/* Imágenes Secundarias */}
-                    <div className="grid grid-cols-4 gap-2">
-                        {Array.from({ length: 4 }).map((_, index) => {
-                            const imageIndex = index + 1;
-                            return (
-                            <div key={imageIndex} className="relative aspect-square w-full">
-                                {isUploading === imageIndex ? (
-                                    <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
-                                        <Loader2 className="h-6 w-6 animate-spin" />
-                                    </div>
-                                ) : imageUrls[imageIndex] ? (
-                                    <div className="group relative w-full h-full">
-                                        <Image src={imageUrls[imageIndex]} alt={`Producto ${imageIndex + 1}`} layout="fill" className="rounded-md object-cover" />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100"
-                                            onClick={() => removeImage(imageIndex)}
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-2">
-                                        <UploadCloud className="h-5 w-5 text-muted-foreground" />
-                                        <Input 
-                                            type="file" 
-                                            className="hidden" 
-                                            onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], imageIndex)} 
-                                            accept="image/*" 
-                                        />
-                                    </label>
-                                )}
-                            </div>
-                        )})}
+                    <div className="flex gap-2">
+                        {/* Columna de miniaturas */}
+                        <div className="flex flex-col gap-2">
+                            {Array.from({ length: 4 }).map((_, index) => {
+                                const imageIndex = index + 1;
+                                return (
+                                <div key={imageIndex} className="relative aspect-square w-16">
+                                    {isUploading === imageIndex ? (
+                                        <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
+                                            <Loader2 className="h-6 w-6 animate-spin" />
+                                        </div>
+                                    ) : imageUrls[imageIndex] ? (
+                                        <div className="group relative w-full h-full">
+                                            <Image src={imageUrls[imageIndex]} alt={`Producto ${imageIndex + 1}`} layout="fill" className="rounded-md object-cover" />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100"
+                                                onClick={() => removeImage(imageIndex)}
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-2">
+                                            <UploadCloud className="h-5 w-5 text-muted-foreground" />
+                                            <Input 
+                                                type="file" 
+                                                className="hidden" 
+                                                onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], imageIndex)} 
+                                                accept="image/*" 
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            )})}
+                        </div>
+                        
+                        {/* Imagen Principal */}
+                        <div className="flex-1 relative aspect-[4/3] w-full">
+                             {isUploading === 0 ? (
+                                <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
+                                    <Loader2 className="h-8 w-8 animate-spin" />
+                                </div>
+                            ) : imageUrls[0] ? (
+                                <div className="group relative w-full h-full">
+                                    <Image src={imageUrls[0]} alt="Producto Principal" layout="fill" className="rounded-md object-cover" />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                                        onClick={() => removeImage(0)}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-4">
+                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                    <span className="text-sm text-center font-semibold text-muted-foreground mt-2">Imagen Principal</span>
+                                    <span className="text-xs text-center text-muted-foreground mt-1">1200x900px (4:3)</span>
+                                    <Input 
+                                        type="file" 
+                                        className="hidden" 
+                                        onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], 0)} 
+                                        accept="image/*" 
+                                    />
+                                </label>
+                            )}
+                        </div>
                     </div>
                 </div>
 
