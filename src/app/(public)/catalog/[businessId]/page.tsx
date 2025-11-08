@@ -190,20 +190,29 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl p-0">
                 <div className="grid grid-cols-1 md:grid-cols-2">
-                    {/* Galería */}
-                    <div className="p-6 flex flex-col gap-4">
-                        <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-                             <Image src={mainImage} alt={product.name} fill className="object-cover"/>
-                        </div>
-                        <div className="grid grid-cols-5 gap-2">
+                    {/* Galería de Imágenes */}
+                    <div className="p-4 md:p-6 flex flex-col-reverse md:flex-row gap-4">
+                        {/* Columna de Miniaturas */}
+                        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 -mr-2">
                             {product.images.map((img, index) => (
-                                <button key={index} onClick={() => setMainImage(img)} className={cn("relative aspect-square rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring", mainImage === img && "ring-2 ring-primary")}>
+                                <button 
+                                    key={index} 
+                                    onClick={() => setMainImage(img)} 
+                                    className={cn(
+                                        "relative aspect-square w-16 md:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                        mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
+                                    )}
+                                >
                                     <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
                                 </button>
                             ))}
                         </div>
+                        {/* Imagen Principal */}
+                        <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                             <Image src={mainImage} alt={product.name} fill className="object-cover"/>
+                        </div>
                     </div>
-                    {/* Detalles */}
+                    {/* Detalles del Producto */}
                     <div className="p-6 flex flex-col">
                         <DialogHeader className="mb-4">
                             <Badge className="w-fit mb-2">{product.category}</Badge>
@@ -324,5 +333,3 @@ export default function CatalogPage() {
         </div>
     );
 }
-
-    
