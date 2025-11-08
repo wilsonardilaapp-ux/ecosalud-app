@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
 import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
 
@@ -62,7 +61,9 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     onUpload,
     onRemove,
     aspectRatio = 'aspect-[3/1]',
-    uploadTrigger
+    uploadTrigger,
+    dimensions,
+    description,
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
@@ -70,6 +71,8 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     onRemove: () => void;
     aspectRatio?: string;
     uploadTrigger?: React.ReactNode;
+    dimensions?: string;
+    description?: string;
   }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,11 +107,13 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
               <p className="mt-2 font-semibold">Haz clic para subir una imagen o video</p>
+              {dimensions && <p className="text-lg font-bold text-muted-foreground mt-2">{dimensions}</p>}
+              {description && <p className="text-xs text-muted-foreground">{description}</p>}
             </div>
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {React.isValidElement(uploadTrigger) && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
+        {React.isValidElement(uploadTrigger) && uploadTrigger.type !== React.Fragment && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
       </div>
     );
   };
@@ -179,6 +184,9 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                 mediaType={data.banner.mediaType}
                 onUpload={handleBannerUpload}
                 onRemove={() => setData({ ...data, banner: { mediaUrl: null, mediaType: null } })}
+                aspectRatio="aspect-[16/7]"
+                dimensions="1920 x 720 px"
+                description="Imagen o video panorámico (16:7)"
             />
         </div>
 
@@ -201,7 +209,8 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                                     onUpload={(file) => handleCarouselUpload(item.id, file)}
                                     onRemove={() => removeCarouselItemMedia(item.id)}
                                     aspectRatio="aspect-video"
-                                    uploadTrigger={<></>}
+                                    dimensions="1920 x 1080 px"
+                                    description="Formato 16:9 (Carrusel)"
                                 />
                                 <div>
                                     <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>

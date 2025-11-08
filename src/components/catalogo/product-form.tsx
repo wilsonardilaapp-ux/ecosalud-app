@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import RichTextEditor from '@/components/editor/RichTextEditor';
 import type { Product } from '@/models/product';
-import { UploadCloud, X, Plus, Loader2 } from 'lucide-react';
+import { UploadCloud, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -69,7 +69,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     const onSubmit = (data: z.infer<typeof productSchema>) => {
         const productData: Omit<Product, 'id' | 'businessId'> = {
             ...data,
-            images: imageUrls,
+            images: imageUrls.filter(url => url), // Filtra los slots vacíos
             rating: product?.rating || 0,
             ratingCount: product?.ratingCount || 0,
         };
@@ -97,16 +97,9 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     };
     
     const removeImage = (index: number) => {
-        const newImageUrls = [...imageUrls];
-        newImageUrls.splice(index, 1);
+        const newImageUrls = imageUrls.filter((_, i) => i !== index);
         setImageUrls(newImageUrls);
     };
-    
-    const addImageSlot = () => {
-        if (imageUrls.length < 5) {
-            setImageUrls([...imageUrls, '']); // Add a placeholder
-        }
-    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1 max-h-[80vh] overflow-y-auto">
@@ -135,8 +128,9 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                         </Button>
                                     </div>
                                 ) : (
-                                    <label className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted">
+                                    <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-2">
                                         <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                                        <span className="text-xs text-center text-muted-foreground mt-1">1200x900px (4:3)</span>
                                         <Input 
                                             type="file" 
                                             className="hidden" 
