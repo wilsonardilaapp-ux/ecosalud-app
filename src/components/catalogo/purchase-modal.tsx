@@ -20,6 +20,7 @@ import type { PaymentSettings } from '@/models/payment-settings';
 const purchaseSchema = z.object({
   fullName: z.string().min(3, { message: 'El nombre es requerido.' }),
   email: z.string().email({ message: 'El correo electrónico no es válido.' }),
+  address: z.string().optional(),
   message: z.string().optional(),
   quantity: z.preprocess(
     (val) => parseInt(String(val), 10),
@@ -54,7 +55,8 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
 *Datos del Cliente:*
 *Nombre:* ${data.fullName}
 *Correo:* ${data.email}
-*Dirección/Mensaje:* ${data.message || 'No especificado'}
+*Dirección:* ${data.address || 'No especificada'}
+*Mensaje Adicional:* ${data.message || 'Sin mensaje'}
 -----------------------------------
 ¡Hola! Quisiera confirmar este pedido.
     `.trim().replace(/\n\s*\n/g, '\n\n');
@@ -91,8 +93,13 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
                 {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
               </div>
               <div>
-                <Label htmlFor="message">Dirección o Mensaje Adicional</Label>
-                <Textarea id="message" {...register('message')} />
+                <Label htmlFor="address">Dirección</Label>
+                <Input id="address" {...register('address')} />
+                {errors.address && <p className="text-sm text-destructive mt-1">{errors.address.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="message">Mensaje Adicional</Label>
+                <Textarea id="message" {...register('message')} placeholder="Instrucciones especiales, etc." />
               </div>
               <div>
                 <Label htmlFor="quantity">Cantidad</Label>
