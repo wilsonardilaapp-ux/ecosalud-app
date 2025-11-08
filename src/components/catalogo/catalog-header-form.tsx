@@ -12,6 +12,7 @@ import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-pag
 import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
+import { uploadMedia } from '@/ai/flows/upload-media-flow';
 
 
 interface CatalogHeaderFormProps {
@@ -78,10 +79,8 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
       if (!file) return;
 
       setIsUploading(true);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay
-      onUpload(file);
+      await onUpload(file);
       setIsUploading(false);
-      toast({ title: "Archivo listo", description: "El medio ha sido cargado para guardar." });
     };
 
     return (
@@ -114,14 +113,20 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     );
   };
   
-  const handleFileUpload = (file: File, callback: (mediaUrl: string, mediaType: 'image' | 'video') => void) => {
+  const handleFileUpload = async (file: File, callback: (mediaUrl: string, mediaType: 'image' | 'video') => void) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-        const mediaUrl = reader.result as string;
-        const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-        callback(mediaUrl, mediaType);
-    };
     reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+        const mediaDataUri = reader.result as string;
+        try {
+            const result = await uploadMedia({ mediaDataUri });
+            const mediaType = file.type.startsWith('image') ? 'image' : 'video';
+            callback(result.secure_url, mediaType);
+            toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+        }
+    };
   };
 
   const handleBannerUpload = (file: File) => {
@@ -196,7 +201,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                                     onUpload={(file) => handleCarouselUpload(item.id, file)}
                                     onRemove={() => removeCarouselItemMedia(item.id)}
                                     aspectRatio="aspect-video"
-                                    uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2 invisible">Subir</Button>}
+                                    uploadTrigger={<></>}
                                 />
                                 <div>
                                     <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
