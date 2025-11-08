@@ -18,6 +18,9 @@ import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/
 import { useParams } from 'next/navigation';
 import { rateProduct } from '@/ai/flows/rate-product-flow';
 import { useToast } from '@/hooks/use-toast';
+import { PurchaseModal } from '@/components/catalogo/purchase-modal';
+import type { PaymentSettings } from '@/models/payment-settings';
+
 
 const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) => {
     if (!config) {
@@ -131,10 +134,11 @@ const PublicProductCard = ({ product, onOpenModal }: { product: Product, onOpenM
     );
 }
 
-const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, businessId }: { product: Product | null, isOpen: boolean, onOpenChange: (open: boolean) => void, businessPhone: string, businessId: string | null }) => {
+const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, businessId, paymentSettings }: { product: Product | null, isOpen: boolean, onOpenChange: (open: boolean) => void, businessPhone: string, businessId: string | null, paymentSettings: PaymentSettings | null }) => {
     const [mainImage, setMainImage] = useState(product?.images[0] || '');
     const [isRating, setIsRating] = useState(false);
     const [userRating, setUserRating] = useState(0);
+    const [isPurchaseModalOpen, setPurchaseModalOpen] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -182,69 +186,80 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         }
     };
     
-    const whatsappMessage = encodeURIComponent(`¡Hola! Estoy interesado en el producto "${product.name}" que vi en tu catálogo.`);
-    const whatsappUrl = `https://wa.me/${businessPhone.replace(/\D/g, '')}?text=${whatsappMessage}`;
-
+    const handleOpenPurchaseModal = () => {
+        setPurchaseModalOpen(true);
+    };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2">
-                    {/* Galería de Imágenes */}
-                    <div className="p-4 md:p-6 flex flex-col-reverse md:flex-row gap-4">
-                        {/* Columna de Miniaturas */}
-                        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 -mr-2">
-                            {product.images.map((img, index) => (
-                                <button 
-                                    key={index} 
-                                    onClick={() => setMainImage(img)} 
-                                    className={cn(
-                                        "relative aspect-square w-16 md:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
-                                        mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
-                                    )}
-                                >
-                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
-                                </button>
-                            ))}
-                        </div>
-                        {/* Imagen Principal */}
-                        <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
-                             <Image src={mainImage} alt={product.name} fill className="object-cover"/>
-                        </div>
-                    </div>
-                    {/* Detalles del Producto */}
-                    <div className="p-6 flex flex-col">
-                        <DialogHeader className="mb-4">
-                            <Badge className="w-fit mb-2">{product.category}</Badge>
-                            <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex-grow space-y-4">
-                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
-                            <p><span className="font-semibold">Disponibles:</span> {product.stock} unidades</p>
-                            <div className="flex flex-col gap-2">
-                                <span className="font-semibold">Califica este producto:</span>
-                                <div className="flex items-center gap-1">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                        <button key={star} onClick={() => handleRating(star)} disabled={!!hasRated || isRating}>
-                                            <Star className={cn("h-6 w-6 transition-colors", star <= (userRating || product.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300 hover:text-yellow-300")} />
-                                        </button>
-                                    ))}
-                                    {isRating && <Loader2 className="h-5 w-5 animate-spin ml-2" />}
-                                </div>
-                                {hasRated && <p className="text-xs text-muted-foreground">Ya has calificado este producto.</p>}
+        <>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-4xl p-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        {/* Galería de Imágenes (columna izquierda) */}
+                         <div className="p-4 md:p-6 flex flex-col-reverse sm:flex-row gap-4">
+                            {/* Miniaturas */}
+                            <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto pr-2 -mr-2 sm:pr-0 sm:mr-0">
+                                {product.images.map((img, index) => (
+                                    <button 
+                                        key={index} 
+                                        onClick={() => setMainImage(img)} 
+                                        className={cn(
+                                            "relative aspect-square w-16 sm:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                            mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
+                                        )}
+                                    >
+                                        <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
+                                    </button>
+                                ))}
+                            </div>
+                            {/* Imagen Principal */}
+                            <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                                 <Image src={mainImage} alt={product.name} fill className="object-cover"/>
                             </div>
                         </div>
-                        <div className="mt-6">
-                            <Button asChild size="lg" className="w-full">
-                                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                                    <WhatsAppIcon className="mr-2 h-5 w-5" /> Pedir por WhatsApp
-                                </a>
-                            </Button>
+                        {/* Detalles del Producto (columna derecha) */}
+                        <div className="p-6 flex flex-col">
+                            <DialogHeader className="mb-4">
+                                <Badge className="w-fit mb-2">{product.category}</Badge>
+                                <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex-grow space-y-4">
+                                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                                <p><span className="font-semibold">Disponibles:</span> {product.stock} unidades</p>
+                                <div className="flex flex-col gap-2">
+                                    <span className="font-semibold">Califica este producto:</span>
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button key={star} onClick={() => handleRating(star)} disabled={!!hasRated || isRating}>
+                                                <Star className={cn("h-6 w-6 transition-colors", star <= (userRating || product.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300 hover:text-yellow-300")} />
+                                            </button>
+                                        ))}
+                                        {isRating && <Loader2 className="h-5 w-5 animate-spin ml-2" />}
+                                    </div>
+                                    {hasRated && <p className="text-xs text-muted-foreground">Ya has calificado este producto.</p>}
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <Button size="lg" className="w-full" onClick={handleOpenPurchaseModal}>
+                                    <WhatsAppIcon className="mr-2 h-5 w-5" /> Comprar por WhatsApp
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+
+            {/* Purchase Modal */}
+            {product && (
+                 <PurchaseModal
+                    isOpen={isPurchaseModalOpen}
+                    onOpenChange={setPurchaseModalOpen}
+                    product={product}
+                    businessPhone={businessPhone}
+                    paymentSettings={paymentSettings}
+                />
+            )}
+        </>
     )
 }
 
@@ -259,9 +274,15 @@ export default function CatalogPage() {
         return doc(firestore, `businesses/${businessId}/publicData`, 'catalog');
     }, [firestore, businessId]);
 
-    const { data: publicData, isLoading } = useDoc<{ products: Product[], headerConfig: LandingHeaderConfigData }>(publicDataRef);
+    const paymentSettingsRef = useMemoFirebase(() => {
+        if (!firestore || !businessId) return null;
+        return doc(firestore, 'paymentSettings', businessId);
+    }, [firestore, businessId]);
 
-    if (isLoading) {
+    const { data: publicData, isLoading: isPublicDataLoading } = useDoc<{ products: Product[], headerConfig: LandingHeaderConfigData }>(publicDataRef);
+    const { data: paymentSettings, isLoading: isPaymentSettingsLoading } = useDoc<PaymentSettings>(paymentSettingsRef);
+
+    if (isPublicDataLoading || isPaymentSettingsLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -321,6 +342,7 @@ export default function CatalogPage() {
                 onOpenChange={handleModalChange} 
                 businessPhone={headerConfig?.businessInfo.phone || ''}
                 businessId={businessId}
+                paymentSettings={paymentSettings ?? null}
             />
             
             <footer className="w-full border-t bg-background mt-12">
