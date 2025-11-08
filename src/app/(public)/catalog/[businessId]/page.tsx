@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
-import { Star, Loader2, PackageSearch } from 'lucide-react';
+import { Star, Loader2, PackageSearch, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
@@ -56,6 +56,12 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                     <div className="text-center md:text-left">
                         <h1 className="text-2xl font-bold font-headline">{config.businessInfo.name}</h1>
                         <p className="text-sm text-muted-foreground">{config.businessInfo.address}</p>
+                        {config.businessInfo.email && (
+                            <a href={`mailto:${config.businessInfo.email}`} className="text-sm text-muted-foreground hover:text-primary flex items-center justify-center md:justify-start gap-1 mt-1">
+                                <Mail className="h-3 w-3" />
+                                {config.businessInfo.email}
+                            </a>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
                         {Object.entries(config.socialLinks).map(([key, value]) => value && (
@@ -72,7 +78,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                 </div>
             </div>
             {config.carouselItems && config.carouselItems.some(item => item.mediaUrl) && (
-                <Carousel 
+                 <Carousel 
                     className="w-full" 
                     opts={{ loop: true }}
                     plugins={[
@@ -85,7 +91,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                     <CarouselContent>
                         {config.carouselItems.map(item => item.mediaUrl && (
                             <CarouselItem key={item.id}>
-                                <div className="relative aspect-[16/5] w-full">
+                                 <div className="relative aspect-[16/5] w-full">
                                     {item.mediaType === 'image' ? (
                                         <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
                                     ) : (
