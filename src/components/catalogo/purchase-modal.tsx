@@ -42,6 +42,10 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
       quantity: 1,
+      address: "",
+      message: "",
+      fullName: "",
+      email: ""
     },
   });
 
@@ -69,6 +73,10 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
     navigator.clipboard.writeText(text);
     toast({ title: 'Copiado', description: 'El número ha sido copiado al portapapeles.' });
   };
+  
+  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
+  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -95,7 +103,6 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
               <div>
                 <Label htmlFor="address">Dirección</Label>
                 <Input id="address" {...register('address')} />
-                {errors.address && <p className="text-sm text-destructive mt-1">{errors.address.message}</p>}
               </div>
               <div>
                 <Label htmlFor="message">Mensaje Adicional</Label>
@@ -116,14 +123,15 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
           {/* Columna de Pagos */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">2. Realiza el pago</h3>
-            {paymentSettings ? (
-              <Tabs defaultValue="nequi" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  {paymentSettings.nequi?.enabled && <TabsTrigger value="nequi">Nequi</TabsTrigger>}
-                  {paymentSettings.bancolombia?.enabled && <TabsTrigger value="bancolombia">Bancolombia</TabsTrigger>}
-                  {paymentSettings.daviplata?.enabled && <TabsTrigger value="daviplata">Daviplata</TabsTrigger>}
+            {hasPaymentMethods ? (
+              <Tabs defaultValue={defaultTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  {paymentSettings?.nequi?.enabled && <TabsTrigger value="nequi">Nequi</TabsTrigger>}
+                  {paymentSettings?.bancolombia?.enabled && <TabsTrigger value="bancolombia">Bancolombia</TabsTrigger>}
+                  {paymentSettings?.daviplata?.enabled && <TabsTrigger value="daviplata">Daviplata</TabsTrigger>}
+                  {paymentSettings?.pagoContraEntrega?.enabled && <TabsTrigger value="pagoContraEntrega">Contra Entrega</TabsTrigger>}
                 </TabsList>
-                {paymentSettings.nequi?.enabled && (
+                {paymentSettings?.nequi?.enabled && (
                     <TabsContent value="nequi">
                         <PaymentTabContent
                             methodName="Nequi"
@@ -133,7 +141,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
                         />
                     </TabsContent>
                 )}
-                {paymentSettings.bancolombia?.enabled && (
+                {paymentSettings?.bancolombia?.enabled && (
                      <TabsContent value="bancolombia">
                         <PaymentTabContent
                             methodName="Bancolombia"
@@ -143,7 +151,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
                         />
                     </TabsContent>
                 )}
-                 {paymentSettings.daviplata?.enabled && (
+                 {paymentSettings?.daviplata?.enabled && (
                     <TabsContent value="daviplata">
                         <PaymentTabContent
                             methodName="Daviplata"
@@ -152,6 +160,13 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
                             onCopy={copyToClipboard}
                         />
                     </TabsContent>
+                )}
+                {paymentSettings?.pagoContraEntrega?.enabled && (
+                  <TabsContent value="pagoContraEntrega">
+                    <div className="mt-4 space-y-4 text-center p-4 border rounded-lg">
+                      <p className="text-sm text-muted-foreground">Pagarás el pedido cuando lo recibas. Asegúrate de tener el monto exacto.</p>
+                    </div>
+                  </TabsContent>
                 )}
               </Tabs>
             ) : (

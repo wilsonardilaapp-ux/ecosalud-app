@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save } from "lucide-react";
+import { Save, HandCoins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { PaymentSettings } from "@/models/payment-settings";
 import { QRForm } from "@/components/pagos/qr-form";
@@ -40,6 +40,9 @@ const initialSettings: PaymentSettings = {
     qrImageUrl: null,
     accountNumber: "",
     holderName: "",
+  },
+  pagoContraEntrega: {
+    enabled: false,
   },
 };
 
@@ -69,7 +72,7 @@ export default function PagosPage() {
     }
   }, [savedSettings, user]);
 
-  const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata", enabled: boolean) => {
+  const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata" | "pagoContraEntrega", enabled: boolean) => {
     setSettings((prev) => ({
       ...prev,
       [method]: { ...prev[method], enabled },
@@ -166,6 +169,21 @@ export default function PagosPage() {
                     onClick={(e) => e.stopPropagation()}
                   />
                 </Label>
+                
+                {/* Pago Contra Entrega */}
+                <Label htmlFor="pagoContraEntrega" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
+                   <div className="flex items-center gap-3">
+                    <RadioGroupItem value="pagoContraEntrega" id="pagoContraEntrega" />
+                    <HandCoins className="h-6 w-6 text-muted-foreground" />
+                    <span className="font-medium">Pago contra entrega</span>
+                  </div>
+                  <Switch
+                    checked={settings.pagoContraEntrega.enabled}
+                    onCheckedChange={(checked) => handleEnabledChange("pagoContraEntrega", checked)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Label>
+
               </RadioGroup>
             </CardContent>
           </Card>
@@ -195,6 +213,24 @@ export default function PagosPage() {
                     setData={(formData) => setSettings(prev => ({...prev, daviplata: formData}))}
                     accountLabel="Número de Teléfono"
                 />
+            )}
+            {selectedMethod === 'pagoContraEntrega' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuración de Pago contra entrega</CardTitle>
+                  <CardDescription>
+                    Esta opción permite a tus clientes pagar al momento de recibir el producto. No requiere configuración adicional.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-6 bg-muted/50 rounded-lg text-center">
+                    <HandCoins className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      Al habilitar esta opción, aparecerá como un método de pago disponible para tus clientes. Podrás coordinar el pago directamente con ellos al momento de la entrega.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             )}
         </div>
       </div>
