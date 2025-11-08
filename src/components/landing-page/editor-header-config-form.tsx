@@ -55,7 +55,9 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     onUpload,
     onRemove,
     aspectRatio = 'aspect-[3/1]',
-    uploadTrigger
+    uploadTrigger,
+    dimensions,
+    description,
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
@@ -63,6 +65,8 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     onRemove: () => void;
     aspectRatio?: string;
     uploadTrigger: React.ReactNode;
+    dimensions?: string;
+    description?: string;
   }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,7 +85,7 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
 
     return (
       <div className="space-y-2">
-        <div className={`relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 ${aspectRatio}`}>
+        <div className={`relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group ${aspectRatio}`}>
           {isUploading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -100,11 +104,13 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
               <p className="mt-2 font-semibold">Haz clic para subir una imagen o video</p>
+              {dimensions && <p className="text-lg font-bold text-muted-foreground mt-2">{dimensions}</p>}
+              {description && <p className="text-xs text-muted-foreground">{description}</p>}
             </div>
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {mediaUrl ? null : uploadTrigger}
+        {React.isValidElement(uploadTrigger) && !mediaUrl && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
       </div>
     );
   };
@@ -151,6 +157,8 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                 onUpload={handleBannerUpload}
                 onRemove={() => setData({ ...data, banner: { mediaUrl: null, mediaType: null } })}
                 uploadTrigger={<></>}
+                dimensions="1920 x 720 px"
+                description="Imagen o video panorámico (16:7)"
             />
         </div>
 
@@ -212,6 +220,8 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                                 onRemove={() => removeCarouselItemMedia(item.id)}
                                 aspectRatio="aspect-video"
                                 uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2">Subir</Button>}
+                                dimensions="1920 x 1080 px"
+                                description="Formato 16:9 (Carrusel)"
                             />
                             <div>
                                 <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
