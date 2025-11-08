@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
+import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection, FormField, SubSection } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
 import { Star, Copy, ExternalLink } from 'lucide-react';
@@ -87,7 +87,24 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
             style={{ '--prose-color': section.textColor } as React.CSSProperties}
             dangerouslySetInnerHTML={{ __html: section.content }}
         />
-        {/* Placeholder for subsections */}
+        
+        {section.subsections && section.subsections.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 text-left">
+            {section.subsections.map(sub => (
+              <Card key={sub.id} className="bg-card/80 backdrop-blur-sm overflow-hidden">
+                <div className="relative aspect-video w-full">
+                  <Image src={sub.imageUrl} alt={sub.title} fill className="object-cover" />
+                </div>
+                <CardHeader>
+                  <CardTitle style={{ color: section.textColor }}>{sub.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm" style={{ color: section.textColor, opacity: 0.9 }}>{sub.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

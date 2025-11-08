@@ -13,11 +13,12 @@ import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X, Star } from "lucide-react";
-import type { LandingPageData, NavLink, ContentSection, TestimonialSection, FormField } from "@/models/landing-page";
+import type { LandingPageData, NavLink, ContentSection, TestimonialSection, FormField, SubSection } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 import { cn } from "@/lib/utils";
 import EditorHeaderConfigForm from "./editor-header-config-form";
+import { Textarea } from "../ui/textarea";
 
 interface EditorLandingFormProps {
   data: LandingPageData;
@@ -88,6 +89,46 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
     const removeContentSection = (id: string) => {
         setData({ ...data, sections: data.sections.filter(section => section.id !== id) });
     };
+
+    const addSubSection = (sectionId: string) => {
+        const newSubSection: SubSection = {
+            id: uuidv4(),
+            title: 'Nueva Característica',
+            description: 'Descripción breve de esta característica.',
+            imageUrl: `https://picsum.photos/seed/${uuidv4()}/600/400`,
+        };
+        const updatedSections = data.sections.map(section => {
+            if (section.id === sectionId) {
+                return { ...section, subsections: [...section.subsections, newSubSection] };
+            }
+            return section;
+        });
+        setData({ ...data, sections: updatedSections });
+    };
+
+    const updateSubSection = (sectionId: string, subSectionId: string, field: keyof SubSection, value: string) => {
+        const updatedSections = data.sections.map(section => {
+            if (section.id === sectionId) {
+                const updatedSubSections = section.subsections.map(sub => 
+                    sub.id === subSectionId ? { ...sub, [field]: value } : sub
+                );
+                return { ...section, subsections: updatedSubSections };
+            }
+            return section;
+        });
+        setData({ ...data, sections: updatedSections });
+    };
+
+    const removeSubSection = (sectionId: string, subSectionId: string) => {
+        const updatedSections = data.sections.map(section => {
+            if (section.id === sectionId) {
+                return { ...section, subsections: section.subsections.filter(sub => sub.id !== subSectionId) };
+            }
+            return section;
+        });
+        setData({ ...data, sections: updatedSections });
+    };
+
 
     const addTestimonial = () => {
         const newTestimonial: TestimonialSection = {
@@ -374,11 +415,44 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                     <Input type="color" value={section.textColor} onChange={(e) => updateContentSection(section.id, 'textColor', e.target.value)} className="p-1 h-10" />
                                                 </div>
                                             </div>
-                                            <div className="p-4 border rounded-md mt-4">
-                                                <h4 className="font-medium mb-2">Subsecciones (Tarjetas/Columnas)</h4>
-                                                <div className="flex flex-col items-center justify-center text-center p-6 h-40 bg-muted/50 rounded-md">
-                                                    <p className="text-sm text-muted-foreground">Funcionalidad en desarrollo.</p>
+                                            <div className="p-4 border rounded-md mt-4 space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <h4 className="font-medium">Subsecciones (Tarjetas/Columnas)</h4>
+                                                    <Button variant="outline" size="sm" onClick={() => addSubSection(section.id)}>
+                                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                                        Añadir Tarjeta
+                                                    </Button>
                                                 </div>
+                                                {section.subsections.length > 0 ? (
+                                                    <div className="space-y-4">
+                                                        {section.subsections.map(sub => (
+                                                            <div key={sub.id} className="p-3 border rounded-lg bg-muted/50 space-y-3">
+                                                                <div className="flex justify-between items-center">
+                                                                    <p className="font-semibold text-sm">{sub.title}</p>
+                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeSubSection(section.id, sub.id)}>
+                                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                                    </Button>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <div>
+                                                                        <Label htmlFor={`sub-title-${sub.id}`}>Título Tarjeta</Label>
+                                                                        <Input id={`sub-title-${sub.id}`} value={sub.title} onChange={(e) => updateSubSection(section.id, sub.id, 'title', e.target.value)} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor={`sub-desc-${sub.id}`}>Descripción</Label>
+                                                                        <Textarea id={`sub-desc-${sub.id}`} value={sub.description} onChange={(e) => updateSubSection(section.id, sub.id, 'description', e.target.value)} rows={3} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label htmlFor={`sub-img-${sub.id}`}>URL de Imagen</Label>
+                                                                        <Input id={`sub-img-${sub.id}`} value={sub.imageUrl} onChange={(e) => updateSubSection(section.id, sub.id, 'imageUrl', e.target.value)} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-muted-foreground text-center py-4">No hay subsecciones todavía.</p>
+                                                )}
                                             </div>
                                         </AccordionContent>
                                     </AccordionItem>
