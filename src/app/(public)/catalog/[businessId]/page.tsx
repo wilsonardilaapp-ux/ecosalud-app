@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
 import { Star, Loader2, PackageSearch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
@@ -71,23 +72,36 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                 </div>
             </div>
             {config.carouselItems && config.carouselItems.some(item => item.mediaUrl) && (
-                <Carousel className="w-full" opts={{ loop: true }}>
+                <Carousel 
+                    className="w-full" 
+                    opts={{ loop: true }}
+                    plugins={[
+                        Autoplay({
+                          delay: 5000,
+                          stopOnInteraction: true,
+                        }),
+                    ]}
+                >
                     <CarouselContent>
                         {config.carouselItems.map(item => item.mediaUrl && (
-                            <CarouselItem key={item.id} className="relative aspect-video">
-                                {item.mediaType === 'image' ? (
-                                     <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
-                                ) : (
-                                    <video src={item.mediaUrl} autoPlay loop muted className="w-full h-full object-cover"/>
-                                )}
-                                {item.slogan && (
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                        <p className="text-white text-2xl font-bold text-center drop-shadow-md p-4">{item.slogan}</p>
-                                    </div>
-                                )}
+                            <CarouselItem key={item.id}>
+                                <div className="relative aspect-[16/5] w-full">
+                                    {item.mediaType === 'image' ? (
+                                        <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
+                                    ) : (
+                                        <video src={item.mediaUrl} autoPlay loop muted className="w-full h-full object-cover"/>
+                                    )}
+                                    {item.slogan && (
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                            <p className="text-white text-2xl font-bold text-center drop-shadow-md p-4">{item.slogan}</p>
+                                        </div>
+                                    )}
+                                </div>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
                 </Carousel>
             )}
         </div>
@@ -355,3 +369,4 @@ export default function CatalogPage() {
         </div>
     );
 }
+
