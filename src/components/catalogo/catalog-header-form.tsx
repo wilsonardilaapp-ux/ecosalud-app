@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
-import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil, FacebookIcon, InstagramIcon, MessageCircle } from "lucide-react";
+import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
-import { TikTokIcon, WhatsAppIcon, XIcon } from '@/components/icons';
+import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 
 
 interface CatalogHeaderFormProps {
@@ -68,7 +68,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     onUpload: (file: File) => void;
     onRemove: () => void;
     aspectRatio?: string;
-    uploadTrigger: React.ReactNode;
+    uploadTrigger?: React.ReactNode;
   }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +110,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
+        {uploadTrigger && React.isValidElement(uploadTrigger) && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
       </div>
     );
   };
@@ -165,7 +165,6 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                 mediaType={data.banner.mediaType}
                 onUpload={handleBannerUpload}
                 onRemove={() => setData({ ...data, banner: { mediaUrl: null, mediaType: null } })}
-                uploadTrigger={<></>}
             />
         </div>
 
