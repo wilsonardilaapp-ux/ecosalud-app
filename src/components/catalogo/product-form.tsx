@@ -50,8 +50,10 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 category: product.category,
                 description: product.description,
             });
-            setImages(product.images.slice(1));
-            setMainImage(product.images[0] || null);
+            // Ensure images are always defined
+            const productImages = product.images || [];
+            setMainImage(productImages[0] || null);
+            setImages(productImages.slice(1));
         } else {
             reset({
                 name: '',

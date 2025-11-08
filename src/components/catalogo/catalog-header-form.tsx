@@ -78,11 +78,10 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
       if (!file) return;
 
       setIsUploading(true);
-      // Simulate upload
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay
       onUpload(file);
       setIsUploading(false);
-      toast({ title: "Archivo subido", description: "El medio ha sido cargado exitosamente." });
+      toast({ title: "Archivo listo", description: "El medio ha sido cargado para guardar." });
     };
 
     return (
@@ -91,7 +90,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
           {isUploading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">Subiendo...</p>
+              <p className="mt-2 text-sm text-muted-foreground">Procesando...</p>
             </div>
           ) : mediaUrl ? (
             <>
@@ -110,22 +109,32 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
           )}
         </div>
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {uploadTrigger && React.isValidElement(uploadTrigger) && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
+        {React.isValidElement(uploadTrigger) && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
       </div>
     );
   };
   
+  const handleFileUpload = (file: File, callback: (mediaUrl: string, mediaType: 'image' | 'video') => void) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const mediaUrl = reader.result as string;
+        const mediaType = file.type.startsWith('image') ? 'image' : 'video';
+        callback(mediaUrl, mediaType);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleBannerUpload = (file: File) => {
-    const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-    const mediaUrl = URL.createObjectURL(file); // Placeholder URL
-    setData({ ...data, banner: { mediaUrl, mediaType } });
+    handleFileUpload(file, (mediaUrl, mediaType) => {
+        setData({ ...data, banner: { mediaUrl, mediaType } });
+    });
   };
   
   const handleCarouselUpload = (id: string, file: File) => {
-    const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-    const mediaUrl = URL.createObjectURL(file);
-    const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl, mediaType} : item);
-    setData({ ...data, carouselItems: updatedItems });
+    handleFileUpload(file, (mediaUrl, mediaType) => {
+        const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl, mediaType} : item);
+        setData({ ...data, carouselItems: updatedItems });
+    });
   };
   
   const removeCarouselItemMedia = (id: string) => {
