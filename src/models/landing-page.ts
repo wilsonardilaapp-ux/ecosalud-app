@@ -59,7 +59,8 @@ export type SubSection = {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string | null;
+  mediaType: 'image' | 'video' | null;
 };
 
 export type TestimonialSection = {

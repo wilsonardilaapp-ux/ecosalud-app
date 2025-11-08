@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,18 +12,97 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X, Star } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, GripVertical, PlusCircle, Trash2, X, Star, UploadCloud, Loader2, Pencil } from "lucide-react";
 import type { LandingPageData, NavLink, ContentSection, TestimonialSection, FormField, SubSection } from "@/models/landing-page";
 import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 import { cn } from "@/lib/utils";
 import EditorHeaderConfigForm from "./editor-header-config-form";
 import { Textarea } from "../ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { uploadMedia } from "@/ai/flows/upload-media-flow";
+import Image from 'next/image';
 
 interface EditorLandingFormProps {
   data: LandingPageData;
   setData: (data: LandingPageData) => void;
 }
+
+const MediaUploader = ({
+    mediaUrl,
+    mediaType,
+    onUpload,
+    onRemove,
+    aspectRatio = 'aspect-video',
+    dimensions,
+    description,
+  }: {
+    mediaUrl: string | null;
+    mediaType: 'image' | 'video' | null;
+    onUpload: (file: File) => void;
+    onRemove: () => void;
+    aspectRatio?: string;
+    dimensions?: string;
+    description?: string;
+  }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = async () => {
+          const mediaDataUri = reader.result as string;
+          try {
+              const result = await uploadMedia({ mediaDataUri });
+              onUpload(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
+              toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
+          } catch (error: any) {
+              toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+          } finally {
+              setIsUploading(false);
+          }
+      };
+      reader.onerror = () => {
+        toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo."});
+        setIsUploading(false);
+      }
+    };
+    
+    return (
+      <div className="space-y-2">
+        <div className={cn("relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group", aspectRatio)}>
+          {isUploading ? (
+            <div className="flex flex-col items-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="mt-2 text-sm text-muted-foreground">Procesando...</p>
+            </div>
+          ) : mediaUrl ? (
+            <>
+              {mediaType === 'image' ? <Image src={mediaUrl} alt="Subido" layout="fill" className="object-cover rounded-md" /> : <video src={mediaUrl} controls className="w-full h-full rounded-md" />}
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
+                <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            </>
+          ) : (
+            <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
+              <p className="mt-2 text-xs font-semibold">Clic para subir imagen o video</p>
+              {dimensions && <p className="text-xs text-muted-foreground mt-1">{dimensions}</p>}
+              {description && <p className="text-xs text-muted-foreground">{description}</p>}
+            </div>
+          )}
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+      </div>
+    );
+  };
 
 export default function EditorLandingForm({ data, setData }: EditorLandingFormProps) {
     const [newKeyword, setNewKeyword] = useState('');
@@ -96,6 +175,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
             title: 'Nueva Característica',
             description: 'Descripción breve de esta característica.',
             imageUrl: `https://picsum.photos/seed/${uuidv4()}/600/400`,
+            mediaType: 'image',
         };
         const updatedSections = data.sections.map(section => {
             if (section.id === sectionId) {
@@ -106,7 +186,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         setData({ ...data, sections: updatedSections });
     };
 
-    const updateSubSection = (sectionId: string, subSectionId: string, field: keyof SubSection, value: string) => {
+    const updateSubSection = (sectionId: string, subSectionId: string, field: keyof Omit<SubSection, 'id'>, value: any) => {
         const updatedSections = data.sections.map(section => {
             if (section.id === sectionId) {
                 const updatedSubSections = section.subsections.map(sub => 
@@ -123,6 +203,19 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         const updatedSections = data.sections.map(section => {
             if (section.id === sectionId) {
                 return { ...section, subsections: section.subsections.filter(sub => sub.id !== subSectionId) };
+            }
+            return section;
+        });
+        setData({ ...data, sections: updatedSections });
+    };
+    
+    const handleSubSectionMediaUpload = (sectionId: string, subSectionId: string, mediaUrl: string, mediaType: 'image' | 'video') => {
+        const updatedSections = data.sections.map(section => {
+            if (section.id === sectionId) {
+                const updatedSubSections = section.subsections.map(sub =>
+                    sub.id === subSectionId ? { ...sub, imageUrl: mediaUrl, mediaType: mediaType } : sub
+                );
+                return { ...section, subsections: updatedSubSections };
             }
             return section;
         });
@@ -434,6 +527,15 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                                     </Button>
                                                                 </div>
                                                                 <div className="space-y-2">
+                                                                    <MediaUploader
+                                                                        mediaUrl={sub.imageUrl}
+                                                                        mediaType={sub.mediaType}
+                                                                        onUpload={(mediaUrl, mediaType) => handleSubSectionMediaUpload(section.id, sub.id, mediaUrl, mediaType)}
+                                                                        onRemove={() => handleSubSectionMediaUpload(section.id, sub.id, null, null)}
+                                                                        aspectRatio="aspect-video"
+                                                                        dimensions="600x400px (4:3)"
+                                                                        description="Imagen para tarjeta"
+                                                                    />
                                                                     <div>
                                                                         <Label htmlFor={`sub-title-${sub.id}`}>Título Tarjeta</Label>
                                                                         <Input id={`sub-title-${sub.id}`} value={sub.title} onChange={(e) => updateSubSection(section.id, sub.id, 'title', e.target.value)} />
@@ -441,10 +543,6 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                                     <div>
                                                                         <Label htmlFor={`sub-desc-${sub.id}`}>Descripción</Label>
                                                                         <Textarea id={`sub-desc-${sub.id}`} value={sub.description} onChange={(e) => updateSubSection(section.id, sub.id, 'description', e.target.value)} rows={3} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <Label htmlFor={`sub-img-${sub.id}`}>URL de Imagen</Label>
-                                                                        <Input id={`sub-img-${sub.id}`} value={sub.imageUrl} onChange={(e) => updateSubSection(section.id, sub.id, 'imageUrl', e.target.value)} />
                                                                     </div>
                                                                 </div>
                                                             </div>

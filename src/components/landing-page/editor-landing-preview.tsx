@@ -93,7 +93,13 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
             {section.subsections.map(sub => (
               <Card key={sub.id} className="bg-card/80 backdrop-blur-sm overflow-hidden">
                 <div className="relative aspect-video w-full">
-                  <Image src={sub.imageUrl} alt={sub.title} fill className="object-cover" />
+                  {sub.imageUrl && (
+                    sub.mediaType === 'image' ? (
+                      <Image src={sub.imageUrl} alt={sub.title} fill className="object-cover" />
+                    ) : (
+                      <video src={sub.imageUrl} autoPlay loop muted className="w-full h-full object-cover" />
+                    )
+                  )}
                 </div>
                 <CardHeader>
                   <CardTitle style={{ color: section.textColor }}>{sub.title}</CardTitle>
