@@ -49,12 +49,27 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
     },
   });
 
+  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
+  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
+  
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(defaultTab);
+
+
   const onSubmit = (data: z.infer<typeof purchaseSchema>) => {
+    const paymentMethodLabels: { [key: string]: string } = {
+        nequi: 'Nequi',
+        bancolombia: 'Bancolombia',
+        daviplata: 'Daviplata',
+        pagoContraEntrega: 'Pago Contra Entrega'
+    };
+    const paymentMethodText = paymentMethodLabels[selectedPaymentMethod] || 'No especificado';
+
     const formattedMessage = `
 🛍️ *¡Nuevo Pedido desde EcoSalud!* 🛍️
 
 *Producto:* ${product.name}
 *Cantidad:* ${data.quantity}
+*Método de Pago:* ${paymentMethodText}
 -----------------------------------
 *Datos del Cliente:*
 *Nombre:* ${data.fullName}
@@ -74,10 +89,6 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
     toast({ title: 'Copiado', description: 'El número ha sido copiado al portapapeles.' });
   };
   
-  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
-  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
-
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -102,7 +113,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
               </div>
               <div>
                 <Label htmlFor="address">Dirección</Label>
-                <Input id="address" {...register('address')} />
+                <Input id="address" {...register('address')} placeholder="Tu dirección de envío" />
               </div>
               <div>
                 <Label htmlFor="message">Mensaje Adicional</Label>
@@ -124,7 +135,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">2. Realiza el pago</h3>
             {hasPaymentMethods ? (
-              <Tabs defaultValue={defaultTab} className="w-full">
+              <Tabs defaultValue={defaultTab} value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   {paymentSettings?.nequi?.enabled && <TabsTrigger value="nequi">Nequi</TabsTrigger>}
                   {paymentSettings?.bancolombia?.enabled && <TabsTrigger value="bancolombia">Bancolombia</TabsTrigger>}
