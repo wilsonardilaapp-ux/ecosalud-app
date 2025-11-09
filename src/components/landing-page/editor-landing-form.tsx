@@ -91,7 +91,7 @@ const MediaUploader = ({
               </div>
             </>
           ) : (
-            <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
               <p className="mt-2 text-xs font-semibold">Clic para subir imagen o video</p>
               {dimensions && <p className="text-xs text-muted-foreground mt-1">{dimensions}</p>}
@@ -257,6 +257,12 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         handleInputChange('form', 'fields', [...data.form.fields, newField]);
     };
 
+    const handleTestimonialAvatarUpload = (id: string, mediaUrl: string, mediaType: 'image' | 'video') => {
+        if (mediaType === 'image') {
+            updateTestimonial(id, 'avatarUrl', mediaUrl);
+        }
+    };
+    
     const updateFormField = (id: string, field: keyof FormField, value: any) => {
         const updatedFields = data.form.fields.map(f =>
             f.id === id ? { ...f, [field]: value } : f
@@ -603,8 +609,16 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                 </div>
                                             </div>
                                             <div>
-                                                <Label>URL del Avatar</Label>
-                                                <Input value={testimonial.avatarUrl} onChange={(e) => updateTestimonial(testimonial.id, 'avatarUrl', e.target.value)} />
+                                                <Label>Avatar del Autor</Label>
+                                                <MediaUploader
+                                                    mediaUrl={testimonial.avatarUrl}
+                                                    mediaType={testimonial.avatarUrl ? 'image' : null}
+                                                    onUpload={(mediaUrl, mediaType) => handleTestimonialAvatarUpload(testimonial.id, mediaUrl, mediaType)}
+                                                    onRemove={() => updateTestimonial(testimonial.id, 'avatarUrl', `https://i.pravatar.cc/100?u=${testimonial.id}`)}
+                                                    aspectRatio="aspect-square"
+                                                    dimensions="100x100px"
+                                                    description="Avatar"
+                                                />
                                             </div>
                                             <div>
                                                 <Label>Testimonio</Label>
