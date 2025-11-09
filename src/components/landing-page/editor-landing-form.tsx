@@ -39,7 +39,7 @@ const MediaUploader = ({
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
-    onUpload: (file: File) => void;
+    onUpload: (mediaUrl: string, mediaType: 'image' | 'video') => void;
     onRemove: () => void;
     aspectRatio?: string;
     dimensions?: string;
@@ -174,8 +174,8 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
             id: uuidv4(),
             title: 'Nueva Característica',
             description: 'Descripción breve de esta característica.',
-            imageUrl: `https://picsum.photos/seed/${uuidv4()}/600/400`,
-            mediaType: 'image',
+            imageUrl: null,
+            mediaType: null,
         };
         const updatedSections = data.sections.map(section => {
             if (section.id === sectionId) {
@@ -209,7 +209,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         setData({ ...data, sections: updatedSections });
     };
     
-    const handleSubSectionMediaUpload = (sectionId: string, subSectionId: string, mediaUrl: string, mediaType: 'image' | 'video') => {
+    const handleSubSectionMediaUpload = (sectionId: string, subSectionId: string, mediaUrl: string | null, mediaType: 'image' | 'video' | null) => {
         const updatedSections = data.sections.map(section => {
             if (section.id === sectionId) {
                 const updatedSubSections = section.subsections.map(sub =>

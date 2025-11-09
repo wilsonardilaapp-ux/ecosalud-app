@@ -11,17 +11,91 @@ import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
 import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { uploadMedia } from '@/ai/flows/upload-media-flow';
+import { cn } from '@/lib/utils';
+import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 
 interface EditorHeaderConfigFormProps {
   data: LandingHeaderConfigData;
   setData: (data: LandingHeaderConfigData) => void;
 }
 
-const SocialIcon = ({ network }: { network: string }) => {
-    // A real implementation would have better icons
-    const initials = network.charAt(0).toUpperCase();
-    return <div className="h-6 w-6 flex items-center justify-center bg-gray-200 rounded-full text-xs">{initials}</div>
-}
+const MediaUploader = ({
+  mediaUrl,
+  mediaType,
+  onUpload,
+  onRemove,
+  aspectRatio = 'aspect-[3/1]',
+  dimensions,
+  description,
+}: {
+  mediaUrl: string | null;
+  mediaType: 'image' | 'video' | null;
+  onUpload: (url: string, type: 'image' | 'video') => void;
+  onRemove: () => void;
+  aspectRatio?: string;
+  dimensions?: string;
+  description?: string;
+}) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+      const mediaDataUri = reader.result as string;
+      try {
+        const result = await uploadMedia({ mediaDataUri });
+        onUpload(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
+        toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.onerror = () => {
+      toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo." });
+      setIsUploading(false);
+    };
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className={cn("relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group", aspectRatio)}>
+        {isUploading ? (
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="mt-2 text-sm text-muted-foreground">Subiendo...</p>
+          </div>
+        ) : mediaUrl ? (
+          <>
+            {mediaType === 'image' && <Image src={mediaUrl} alt="Banner" layout="fill" className="object-cover rounded-md" />}
+            {mediaType === 'video' && <video src={mediaUrl} controls className="w-full h-full rounded-md" />}
+            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
+              <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+          </>
+        ) : (
+          <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
+            <p className="mt-2 font-semibold text-sm">Haz clic para subir un archivo</p>
+            {dimensions && <p className="text-xs text-muted-foreground mt-1">{dimensions}</p>}
+            {description && <p className="text-xs text-muted-foreground">{description}</p>}
+          </div>
+        )}
+      </div>
+      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+    </div>
+  );
+};
 
 export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderConfigFormProps) {
   const { toast } = useToast();
@@ -37,11 +111,11 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     });
   };
 
-  const handleCarouselItemChange = (id: string, field: keyof CarouselItem, value: any) => {
+  const handleCarouselItemChange = (id: string, field: keyof Omit<CarouselItem, 'id'>, value: any) => {
     const updatedItems = data.carouselItems.map(item =>
       item.id === id ? { ...item, [field]: value } : item
     );
-    handleInputChange('carouselItems', '', updatedItems);
+    setData({ ...data, carouselItems: updatedItems });
   };
   
   const handleReset = () => {
@@ -49,81 +123,11 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     toast({ title: "Cambios Descartados", description: "La configuración ha sido restablecida." });
   };
   
-  const MediaUploader = ({
-    mediaUrl,
-    mediaType,
-    onUpload,
-    onRemove,
-    aspectRatio = 'aspect-[3/1]',
-    uploadTrigger,
-    dimensions,
-    description,
-  }: {
-    mediaUrl: string | null;
-    mediaType: 'image' | 'video' | null;
-    onUpload: (file: File) => void;
-    onRemove: () => void;
-    aspectRatio?: string;
-    uploadTrigger: React.ReactNode;
-    dimensions?: string;
-    description?: string;
-  }) => {
-    const [isUploading, setIsUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      setIsUploading(true);
-      // Simulate upload
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onUpload(file);
-      setIsUploading(false);
-      toast({ title: "Archivo subido", description: "El medio ha sido cargado exitosamente." });
-    };
-
-    return (
-      <div className="space-y-2">
-        <div className={`relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group ${aspectRatio}`}>
-          {isUploading ? (
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">Subiendo...</p>
-            </div>
-          ) : mediaUrl ? (
-            <>
-              {mediaType === 'image' && <Image src={mediaUrl} alt="Banner" layout="fill" className="object-cover rounded-md" />}
-              {mediaType === 'video' && <video src={mediaUrl} controls className="w-full h-full rounded-md" />}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            </>
-          ) : (
-            <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
-              <p className="mt-2 font-semibold">Haz clic para subir una imagen o video</p>
-              {dimensions && <p className="text-lg font-bold text-muted-foreground mt-2">{dimensions}</p>}
-              {description && <p className="text-xs text-muted-foreground">{description}</p>}
-            </div>
-          )}
-        </div>
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-        {React.isValidElement(uploadTrigger) && !mediaUrl && React.cloneElement(uploadTrigger as React.ReactElement, { onClick: () => fileInputRef.current?.click() })}
-      </div>
-    );
-  };
-  
-  const handleBannerUpload = (file: File) => {
-    const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-    const mediaUrl = URL.createObjectURL(file); // Placeholder URL
+  const handleBannerUpload = (mediaUrl: string, mediaType: 'image' | 'video') => {
     setData({ ...data, banner: { mediaUrl, mediaType } });
   };
   
-  const handleCarouselUpload = (id: string, file: File) => {
-    const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-    const mediaUrl = URL.createObjectURL(file);
+  const handleCarouselUpload = (id: string, mediaUrl: string, mediaType: 'image' | 'video') => {
     const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl, mediaType} : item);
     setData({ ...data, carouselItems: updatedItems });
   };
@@ -131,6 +135,14 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
   const removeCarouselItemMedia = (id: string) => {
      const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl: null, mediaType: null} : item);
      setData({ ...data, carouselItems: updatedItems });
+  };
+
+  const socialIcons: { [key: string]: React.ReactNode } = {
+    tiktok: <TikTokIcon className="h-5 w-5"/>,
+    instagram: <InstagramIcon className="h-5 w-5"/>,
+    facebook: <FacebookIcon className="h-5 w-5"/>,
+    whatsapp: <WhatsAppIcon className="h-5 w-5"/>,
+    twitter: <XIcon className="h-5 w-5"/>,
   };
 
   return (
@@ -156,9 +168,9 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                 mediaType={data.banner.mediaType}
                 onUpload={handleBannerUpload}
                 onRemove={() => setData({ ...data, banner: { mediaUrl: null, mediaType: null } })}
-                uploadTrigger={<></>}
+                aspectRatio="aspect-[16/7]"
                 dimensions="1920 x 720 px"
-                description="Imagen o video panorámico (16:7)"
+                description="Imagen o video panorámico"
             />
         </div>
 
@@ -191,7 +203,9 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.keys(data.socialLinks).map(key => (
                     <div key={key} className="flex items-center gap-2">
-                        <SocialIcon network={key} />
+                        <div className="p-2 bg-muted rounded-md text-muted-foreground">
+                            {socialIcons[key as keyof typeof socialIcons]}
+                        </div>
                         <Input 
                             placeholder={`URL de ${key}`} 
                             value={(data.socialLinks as any)[key]}
@@ -216,12 +230,11 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                             <MediaUploader
                                 mediaUrl={item.mediaUrl}
                                 mediaType={item.mediaType}
-                                onUpload={(file) => handleCarouselUpload(item.id, file)}
+                                onUpload={(mediaUrl, mediaType) => handleCarouselUpload(item.id, mediaUrl, mediaType)}
                                 onRemove={() => removeCarouselItemMedia(item.id)}
                                 aspectRatio="aspect-video"
-                                uploadTrigger={<Button variant="outline" size="sm" className="w-full mt-2">Subir</Button>}
                                 dimensions="1920 x 1080 px"
-                                description="Formato 16:9 (Carrusel)"
+                                description="Formato 16:9"
                             />
                             <div>
                                 <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
