@@ -39,7 +39,7 @@ const MediaUploader = ({
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
-    onUpload: (mediaUrl: string, mediaType: 'image' | 'video') => void;
+    onUpload: (file: File) => Promise<void>;
     onRemove: () => void;
     aspectRatio?: string;
     dimensions?: string;
@@ -47,31 +47,14 @@ const MediaUploader = ({
   }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
       setIsUploading(true);
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = async () => {
-          const mediaDataUri = reader.result as string;
-          try {
-              const result = await uploadMedia({ mediaDataUri });
-              onUpload(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
-              toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
-          } catch (error: any) {
-              toast({ variant: 'destructive', title: "Error al subir", description: error.message });
-          } finally {
-              setIsUploading(false);
-          }
-      };
-      reader.onerror = () => {
-        toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo."});
-        setIsUploading(false);
-      }
+      await onUpload(file);
+      setIsUploading(false);
     };
     
     return (
@@ -106,6 +89,25 @@ const MediaUploader = ({
 
 export default function EditorLandingForm({ data, setData }: EditorLandingFormProps) {
     const [newKeyword, setNewKeyword] = useState('');
+    const { toast } = useToast();
+
+    const handleFileUpload = async (file: File, callback: (mediaUrl: string, mediaType: 'image' | 'video') => void) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+            const mediaDataUri = reader.result as string;
+            try {
+                const result = await uploadMedia({ mediaDataUri });
+                callback(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
+                toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
+            } catch (error: any) {
+                toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+            }
+        };
+        reader.onerror = () => {
+            toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo."});
+        }
+    };
 
     const handleInputChange = (section: keyof LandingPageData, field: string, value: any) => {
         setData({
@@ -209,19 +211,20 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         setData({ ...data, sections: updatedSections });
     };
     
-    const handleSubSectionMediaUpload = (sectionId: string, subSectionId: string, mediaUrl: string | null, mediaType: 'image' | 'video' | null) => {
-        const updatedSections = data.sections.map(section => {
-            if (section.id === sectionId) {
-                const updatedSubSections = section.subsections.map(sub =>
-                    sub.id === subSectionId ? { ...sub, imageUrl: mediaUrl, mediaType: mediaType } : sub
-                );
-                return { ...section, subsections: updatedSubSections };
-            }
-            return section;
+    const handleSubSectionMediaUpload = (sectionId: string, subSectionId: string, file: File) => {
+        return handleFileUpload(file, (mediaUrl, mediaType) => {
+            const updatedSections = data.sections.map(section => {
+                if (section.id === sectionId) {
+                    const updatedSubSections = section.subsections.map(sub =>
+                        sub.id === subSectionId ? { ...sub, imageUrl: mediaUrl, mediaType: mediaType } : sub
+                    );
+                    return { ...section, subsections: updatedSubSections };
+                }
+                return section;
+            });
+            setData({ ...data, sections: updatedSections });
         });
-        setData({ ...data, sections: updatedSections });
     };
-
 
     const addTestimonial = () => {
         const newTestimonial: TestimonialSection = {
@@ -257,10 +260,14 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         handleInputChange('form', 'fields', [...data.form.fields, newField]);
     };
 
-    const handleTestimonialAvatarUpload = (id: string, mediaUrl: string, mediaType: 'image' | 'video') => {
-        if (mediaType === 'image') {
-            updateTestimonial(id, 'avatarUrl', mediaUrl);
-        }
+    const handleTestimonialAvatarUpload = (id: string, file: File) => {
+        return handleFileUpload(file, (mediaUrl, mediaType) => {
+            if (mediaType === 'image') {
+                updateTestimonial(id, 'avatarUrl', mediaUrl);
+            } else {
+                toast({ variant: 'destructive', title: 'Error de formato', description: 'Solo se pueden subir imágenes como avatares.' });
+            }
+        });
     };
     
     const updateFormField = (id: string, field: keyof FormField, value: any) => {
@@ -536,8 +543,19 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                                     <MediaUploader
                                                                         mediaUrl={sub.imageUrl}
                                                                         mediaType={sub.mediaType}
-                                                                        onUpload={(mediaUrl, mediaType) => handleSubSectionMediaUpload(section.id, sub.id, mediaUrl, mediaType)}
-                                                                        onRemove={() => handleSubSectionMediaUpload(section.id, sub.id, null, null)}
+                                                                        onUpload={(file) => handleSubSectionMediaUpload(section.id, sub.id, file)}
+                                                                        onRemove={() => {
+                                                                            const updatedSections = data.sections.map(s => {
+                                                                                if (s.id === section.id) {
+                                                                                    const updatedSubSections = s.subsections.map(ss => 
+                                                                                        ss.id === sub.id ? { ...ss, imageUrl: null, mediaType: null } : ss
+                                                                                    );
+                                                                                    return { ...s, subsections: updatedSubSections };
+                                                                                }
+                                                                                return s;
+                                                                            });
+                                                                            setData({ ...data, sections: updatedSections });
+                                                                        }}
                                                                         aspectRatio="aspect-video"
                                                                         dimensions="600x400px (4:3)"
                                                                         description="Imagen para tarjeta"
@@ -613,7 +631,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                 <MediaUploader
                                                     mediaUrl={testimonial.avatarUrl}
                                                     mediaType={testimonial.avatarUrl ? 'image' : null}
-                                                    onUpload={(mediaUrl, mediaType) => handleTestimonialAvatarUpload(testimonial.id, mediaUrl, mediaType)}
+                                                    onUpload={(file) => handleTestimonialAvatarUpload(testimonial.id, file)}
                                                     onRemove={() => updateTestimonial(testimonial.id, 'avatarUrl', `https://i.pravatar.cc/100?u=${testimonial.id}`)}
                                                     aspectRatio="aspect-square"
                                                     dimensions="100x100px"

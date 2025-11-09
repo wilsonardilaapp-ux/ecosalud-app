@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
-import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
+import { Loader2, UploadCloud, RotateCcw, Trash2, Pencil } from "lucide-react";
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
 import { cn } from '@/lib/utils';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
@@ -31,7 +30,7 @@ const MediaUploader = ({
 }: {
   mediaUrl: string | null;
   mediaType: 'image' | 'video' | null;
-  onUpload: (url: string, type: 'image' | 'video') => void;
+  onUpload: (file: File) => Promise<void>;
   onRemove: () => void;
   aspectRatio?: string;
   dimensions?: string;
@@ -39,31 +38,14 @@ const MediaUploader = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      const mediaDataUri = reader.result as string;
-      try {
-        const result = await uploadMedia({ mediaDataUri });
-        onUpload(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
-        toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
-      } catch (error: any) {
-        toast({ variant: 'destructive', title: "Error al subir", description: error.message });
-      } finally {
-        setIsUploading(false);
-      }
-    };
-    reader.onerror = () => {
-      toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo." });
-      setIsUploading(false);
-    };
+    await onUpload(file);
+    setIsUploading(false);
   };
 
   return (
@@ -101,6 +83,24 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
   const { toast } = useToast();
   const [initialData] = useState<LandingHeaderConfigData>(JSON.parse(JSON.stringify(data)));
   
+  const handleFileUpload = async (file: File, callback: (mediaUrl: string, mediaType: 'image' | 'video') => void) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+        const mediaDataUri = reader.result as string;
+        try {
+            const result = await uploadMedia({ mediaDataUri });
+            callback(result.secure_url, file.type.startsWith('image') ? 'image' : 'video');
+            toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+        }
+    };
+    reader.onerror = () => {
+        toast({ variant: 'destructive', title: "Error", description: "No se pudo leer el archivo."});
+    }
+  };
+
   const handleInputChange = (section: keyof LandingHeaderConfigData, field: string, value: any) => {
     setData({
       ...data,
@@ -123,13 +123,17 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     toast({ title: "Cambios Descartados", description: "La configuración ha sido restablecida." });
   };
   
-  const handleBannerUpload = (mediaUrl: string, mediaType: 'image' | 'video') => {
-    setData({ ...data, banner: { mediaUrl, mediaType } });
+  const handleBannerUpload = (file: File) => {
+    return handleFileUpload(file, (mediaUrl, mediaType) => {
+        setData({ ...data, banner: { mediaUrl, mediaType } });
+    });
   };
   
-  const handleCarouselUpload = (id: string, mediaUrl: string, mediaType: 'image' | 'video') => {
-    const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl, mediaType} : item);
-    setData({ ...data, carouselItems: updatedItems });
+  const handleCarouselUpload = (id: string, file: File) => {
+    return handleFileUpload(file, (mediaUrl, mediaType) => {
+        const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl, mediaType} : item);
+        setData({ ...data, carouselItems: updatedItems });
+    });
   };
   
   const removeCarouselItemMedia = (id: string) => {
@@ -230,7 +234,7 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                             <MediaUploader
                                 mediaUrl={item.mediaUrl}
                                 mediaType={item.mediaType}
-                                onUpload={(mediaUrl, mediaType) => handleCarouselUpload(item.id, mediaUrl, mediaType)}
+                                onUpload={(file) => handleCarouselUpload(item.id, file)}
                                 onRemove={() => removeCarouselItemMedia(item.id)}
                                 aspectRatio="aspect-video"
                                 dimensions="1920 x 1080 px"
