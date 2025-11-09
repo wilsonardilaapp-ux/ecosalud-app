@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import 'quill/dist/quill.snow.css';
+import { uploadMedia } from '@/ai/flows/upload-media-flow';
 
 interface RichTextEditorProps {
   value: string
@@ -53,6 +54,41 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
           toolbar: toolbarOptions
         }
       });
+      
+      // Manejador para la subida de imágenes
+      const imageHandler = () => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            if (input.files) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = async () => {
+                    const mediaDataUri = reader.result as string;
+                    try {
+                        const range = quillRef.current.getSelection(true);
+                        quillRef.current.insertEmbed(range.index, 'image', `data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`);
+                        quillRef.current.setSelection(range.index + 1);
+
+                        const result = await uploadMedia({ mediaDataUri });
+                        
+                        quillRef.current.deleteText(range.index, 1);
+                        quillRef.current.insertEmbed(range.index, 'image', result.secure_url);
+                        quillRef.current.setSelection(range.index + 1);
+                    } catch (error) {
+                        console.error('Image upload failed', error);
+                        quillRef.current.deleteText(range.index, 1);
+                    }
+                }
+            }
+        };
+      };
+
+      quillRef.current.getModule('toolbar').addHandler('image', imageHandler);
 
       // Establecer valor inicial
       if (value) {
