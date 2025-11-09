@@ -106,6 +106,14 @@ service cloud.firestore {
            allow read, list, write: if isBusinessOwner(businessId);
         }
 
+        match /landingPages/{pageId} {
+           allow read, list, write: if isBusinessOwner(businessId);
+        }
+        
+        match /contactForms/{formId} {
+           allow read, list, write: if isBusinessOwner(businessId);
+        }
+
         match /contactSubmissions/{submissionId} {
             allow read, list, write: if isBusinessOwner(businessId);
         }
