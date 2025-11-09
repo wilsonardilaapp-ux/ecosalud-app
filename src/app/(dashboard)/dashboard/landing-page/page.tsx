@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Save } from 'lucide-react';
@@ -9,6 +9,9 @@ import type { LandingPageData } from '@/models/landing-page';
 import EditorLandingForm from '@/components/landing-page/editor-landing-form';
 import EditorLandingPreview from '@/components/landing-page/editor-landing-preview';
 import { v4 as uuidv4 } from 'uuid';
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 // Initial state for a new landing page
 const initialLandingPageData: LandingPageData = {
@@ -85,21 +88,50 @@ const initialLandingPageData: LandingPageData = {
   }
 };
 
-
 export default function LandingPageBuilder() {
   const [landingPageData, setLandingPageData] = useState<LandingPageData>(initialLandingPageData);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const landingPageDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    // We use a single document 'main' for the landing page configuration
+    return doc(firestore, 'businesses', user.uid, 'landingPages', 'main');
+  }, [firestore, user]);
+
+  const { data: savedData, isLoading } = useDoc<LandingPageData>(landingPageDocRef);
+
+  useEffect(() => {
+    // When data is loaded from Firestore, set it as the current state
+    if (savedData) {
+      setLandingPageData(savedData);
+    }
+  }, [savedData]);
 
   const handleSave = () => {
+    if (!landingPageDocRef) return;
     setIsSaving(true);
-    console.log('Saving data:', landingPageData);
-    // Here you would typically save the data to Firestore
+    
+    // Using the non-blocking update function
+    setDocumentNonBlocking(landingPageDocRef, landingPageData, { merge: true });
+
+    // Simulate network latency for user feedback, but the write is already queued
     setTimeout(() => {
       setIsSaving(false);
-      // You can add a toast notification here for success
-    }, 1500);
+      toast({
+        title: "Configuración Guardada",
+        description: "Tu landing page ha sido actualizada.",
+      });
+    }, 1000);
   };
   
+  if (isLoading) {
+    return <div>Cargando configuración de la landing page...</div>
+  }
+
   return (
     <div className="flex flex-col gap-6">
         <Card>
