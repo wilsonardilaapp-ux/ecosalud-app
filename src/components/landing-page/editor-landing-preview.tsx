@@ -83,8 +83,8 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
         <h2 className="text-3xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
         <p className="text-lg mt-2 mb-6" style={{ color: section.textColor }}>{section.subtitle}</p>
         <div
-            className="prose prose-sm max-w-none mx-auto prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
-            style={{ '--prose-color': section.textColor } as React.CSSProperties}
+            className="max-w-none mx-auto"
+            style={{ color: section.textColor }}
             dangerouslySetInnerHTML={{ __html: section.content }}
         />
         
@@ -279,8 +279,8 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                           <p className="text-md mt-2" style={{ color: hero.textColor }}>{hero.subtitle}</p>
                           
                           <div 
-                              className="mt-4 text-sm prose prose-sm max-w-none prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
-                              style={{ '--prose-color': hero.textColor } as React.CSSProperties}
+                              className="mt-4 text-sm max-w-none"
+                              style={{ color: hero.textColor }}
                               dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
                           />
 

@@ -79,8 +79,8 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
         <h2 className="text-4xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
         <p className="text-xl mt-4 mb-8" style={{ color: section.textColor }}>{section.subtitle}</p>
         <div
-            className="prose lg:prose-lg max-w-none mx-auto prose-p:text-[var(--prose-color)] prose-strong:text-[var(--prose-color)]"
-            style={{ '--prose-color': section.textColor } as React.CSSProperties}
+            className="max-w-none mx-auto"
+            style={{ color: section.textColor }}
             dangerouslySetInnerHTML={{ __html: section.content }}
         />
         
@@ -240,7 +240,8 @@ export default function PublicLandingPage() {
               <p className="text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
               
               <div 
-                  className="mt-6 prose prose-invert max-w-none"
+                  className="mt-6 max-w-none"
+                  style={{color: hero.textColor}}
                   dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
               />
 
