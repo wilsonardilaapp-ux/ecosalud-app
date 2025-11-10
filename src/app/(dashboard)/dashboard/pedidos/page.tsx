@@ -11,9 +11,19 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Printer, FileDown } from "lucide-react";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import type { Order, OrderStatus } from "@/models/order";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 export default function PedidosPage() {
   const firestore = useFirestore();
@@ -39,6 +49,29 @@ export default function PedidosPage() {
     updateDocumentNonBlocking(docRef, { orderStatus: status });
   };
   
+  const handlePrint = () => {
+      window.print();
+  }
+  
+  const handleDownloadPDF = () => {
+    if (!orders) return;
+    const doc = new jsPDF();
+    
+    doc.autoTable({
+        head: [['Cliente', 'Producto', 'Cantidad', 'Total', 'Estado', 'Fecha']],
+        body: orders.map(order => [
+            order.customerName,
+            order.productName,
+            order.quantity,
+            new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(order.subtotal),
+            order.orderStatus,
+            new Date(order.orderDate).toLocaleDateString()
+        ]),
+    });
+
+    doc.save('pedidos.pdf');
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -50,8 +83,22 @@ export default function PedidosPage() {
       
       <Card>
         <CardHeader>
-            <CardTitle>Listado de Pedidos</CardTitle>
-            <CardDescription>Aquí puedes ver todos los pedidos recibidos.</CardDescription>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Listado de Pedidos</CardTitle>
+                    <CardDescription>Aquí puedes ver todos los pedidos recibidos.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handlePrint}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Imprimir
+                    </Button>
+                    <Button onClick={handleDownloadPDF}>
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Descargar PDF
+                    </Button>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
             <DataTable 
@@ -64,5 +111,3 @@ export default function PedidosPage() {
     </div>
   );
 }
-
-    
