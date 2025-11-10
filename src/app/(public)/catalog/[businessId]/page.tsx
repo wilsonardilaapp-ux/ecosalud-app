@@ -269,11 +269,12 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
             </Dialog>
 
             {/* Purchase Modal */}
-            {product && (
+            {product && businessId && (
                  <PurchaseModal
                     isOpen={isPurchaseModalOpen}
                     onOpenChange={setPurchaseModalOpen}
                     product={product}
+                    businessId={businessId}
                     businessPhone={businessPhone}
                     paymentSettings={paymentSettings}
                 />

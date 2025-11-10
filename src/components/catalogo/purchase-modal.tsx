@@ -35,11 +35,12 @@ interface PurchaseModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
+  businessId: string;
   businessPhone: string;
   paymentSettings: PaymentSettings | null;
 }
 
-export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, paymentSettings }: PurchaseModalProps) {
+export function PurchaseModal({ isOpen, onOpenChange, product, businessId, businessPhone, paymentSettings }: PurchaseModalProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   
@@ -62,7 +63,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
 
   const onSubmit = (data: z.infer<typeof purchaseSchema>) => {
     // 1. Guardar el pedido en Firestore (si está disponible)
-    if (firestore && paymentSettings?.businessId) {
+    if (firestore && businessId) {
       const paymentMethodLabels: { [key: string]: string } = {
           nequi: 'Nequi',
           bancolombia: 'Bancolombia',
@@ -73,7 +74,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
       const subtotal = product.price * data.quantity;
 
       const orderData: Omit<Order, 'id'> = {
-          businessId: paymentSettings.businessId,
+          businessId: businessId,
           customerName: data.fullName,
           customerEmail: data.email,
           customerPhone: data.whatsapp,
@@ -88,7 +89,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
           orderStatus: 'Pendiente',
       };
 
-      const ordersCollection = collection(firestore, 'businesses', paymentSettings.businessId, 'orders');
+      const ordersCollection = collection(firestore, 'businesses', businessId, 'orders');
       addDocumentNonBlocking(ordersCollection, orderData);
 
       toast({
