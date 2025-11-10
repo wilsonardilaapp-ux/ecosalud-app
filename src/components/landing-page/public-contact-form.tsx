@@ -64,18 +64,15 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
     const whatsappField = formConfig.fields.find(f => f.type === 'tel' || f.label.toLowerCase().includes('whatsapp'))?.id;
     const messageField = formConfig.fields.find(f => f.type === 'textarea')?.id;
 
-    // Build the main message content from all fields that are not the main message itself
-    const messageContent = messageField ? data[messageField] : formConfig.fields
-      .filter(field => field.id !== messageField)
-      .map(field => `${field.label}: ${data[field.id] || 'N/A'}`)
-      .join('\n');
+    // The main message content is what's in the textarea.
+    const messageContent = messageField ? data[messageField] : 'Sin mensaje.';
       
     const submission: Omit<ContactSubmission, 'id'> = {
       businessId: businessId,
       formId: 'main', // Static ID since there's one form per landing page
       sender: nameField ? data[nameField] : 'No especificado',
       email: emailField ? data[emailField] : 'no-reply@example.com',
-      whatsapp: whatsappField ? data[whatsappField] : undefined,
+      whatsapp: whatsappField ? data[whatsappField] : undefined, // Explicitly save the WhatsApp number
       message: messageContent,
       date: new Date().toISOString(),
     };
