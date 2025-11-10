@@ -2,8 +2,8 @@
 "use client";
 
 import { useMemo } from 'react';
-import { useDoc, useFirestore, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useDoc, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import {
   Card,
   CardHeader,
@@ -15,19 +15,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { GlobalConfig } from '@/models/global-config';
-import type { Business } from '@/models/business';
 import { useToast } from "@/hooks/use-toast";
 
 const configSchema = z.object({
   supportEmail: z.string().email({ message: "Email de soporte no válido." }),
   defaultLimits: z.number().min(0, { message: "El límite debe ser positivo." }),
   theme: z.string().min(1, { message: "El tema no puede estar vacío." }),
-  mainBusinessId: z.string().optional(),
 });
 
 export default function SettingsPage() {
@@ -41,19 +38,12 @@ export default function SettingsPage() {
 
   const { data: config, isLoading } = useDoc<GlobalConfig>(configDocRef);
 
-  const businessesQuery = useMemoFirebase(() => 
-    !firestore ? null : collection(firestore, 'businesses'),
-    [firestore]
-  );
-  const { data: businesses } = useCollection<Business>(businessesQuery);
-
-  const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(configSchema),
     values: {
         supportEmail: config?.supportEmail ?? '',
         defaultLimits: config?.defaultLimits ?? 100,
         theme: config?.theme ?? 'default',
-        mainBusinessId: config?.mainBusinessId ?? '',
     }
   });
 
@@ -117,31 +107,6 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-                <Label htmlFor="mainBusinessId">Negocio Principal para la Página de Inicio</Label>
-                <Controller
-                    name="mainBusinessId"
-                    control={control}
-                    render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger id="mainBusinessId">
-                                <SelectValue placeholder="Selecciona un negocio..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">Ninguno (Página de Bienvenida por defecto)</SelectItem>
-                                {businesses?.map(business => (
-                                    <SelectItem key={business.id} value={business.id}>
-                                        {business.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                <p className="text-xs text-muted-foreground">
-                    El negocio que selecciones aquí será el que se muestre en la página de inicio pública (/).
-                </p>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="supportEmail">Email de Soporte</Label>
               <Controller

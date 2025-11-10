@@ -6,5 +6,4 @@ export type GlobalConfig = {
     theme: string;
     supportEmail: string;
     defaultLimits: number;
-    mainBusinessId?: string; // Add this line
 };
