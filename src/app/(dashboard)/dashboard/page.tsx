@@ -8,11 +8,12 @@ import {
     CardDescription
 } from "@/components/ui/card";
 import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { FileText, ShoppingCart, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { FileText, ShoppingCart, MessageSquare, CheckCircle, XCircle, ShoppingBag } from "lucide-react";
 import { collection, doc } from "firebase/firestore";
 import type { Product } from "@/models/product";
 import type { ContactSubmission } from "@/models/contact-submission";
 import type { LandingPageData } from "@/models/landing-page";
+import type { Order } from "@/models/order";
 
 export default function DashboardPage() {
     const { user } = useUser();
@@ -39,8 +40,16 @@ export default function DashboardPage() {
     }, [firestore, user]);
     const { data: landingPage } = useDoc<LandingPageData>(landingPageRef);
 
+    // Query for orders
+    const ordersQuery = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return collection(firestore, 'businesses', user.uid, 'orders');
+    }, [firestore, user]);
+    const { data: orders } = useCollection<Order>(ordersQuery);
+
     const productCount = products?.length ?? 0;
     const messageCount = messages?.length ?? 0;
+    const orderCount = orders?.length ?? 0;
     const isLandingPageCreated = !!landingPage;
 
     return (
@@ -53,7 +62,7 @@ export default function DashboardPage() {
                     </CardDescription>
                 </CardHeader>
             </Card>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Editor de Landing Page</CardTitle>
@@ -97,6 +106,16 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{messageCount}</div>
                         <p className="text-xs text-muted-foreground">{messageCount === 0 ? "Aún no tienes mensajes de clientes." : `Has recibido ${messageCount} mensajes.`}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pedidos Recibidos</CardTitle>
+                        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{orderCount}</div>
+                        <p className="text-xs text-muted-foreground">{orderCount === 0 ? "Aún no has recibido pedidos." : `Tienes ${orderCount} pedidos en total.`}</p>
                     </CardContent>
                 </Card>
             </div>
