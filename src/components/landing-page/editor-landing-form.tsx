@@ -18,7 +18,6 @@ import { Badge } from "../ui/badge";
 import RichTextEditor from "../editor/RichTextEditor";
 import { cn } from "@/lib/utils";
 import EditorHeaderConfigForm from "./editor-header-config-form";
-import { Textarea } from "../ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { uploadMedia } from "@/ai/flows/upload-media-flow";
 import Image from 'next/image';
@@ -205,7 +204,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         const newSubSection: SubSection = {
             id: uuidv4(),
             title: 'Nueva Característica',
-            description: 'Descripción breve de esta característica.',
+            description: '<p>Descripción breve de esta característica.</p>',
             imageUrl: null,
             mediaType: null,
         };
@@ -571,7 +570,10 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                                     </div>
                                                                     <div>
                                                                         <Label htmlFor={`sub-desc-${sub.id}`}>Descripción</Label>
-                                                                        <Textarea id={`sub-desc-${sub.id}`} value={sub.description} onChange={(e) => updateSubSection(section.id, sub.id, 'description', e.target.value)} rows={3} />
+                                                                        <RichTextEditor 
+                                                                            value={sub.description} 
+                                                                            onChange={(content) => updateSubSection(section.id, sub.id, 'description', content)} 
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             </div>
