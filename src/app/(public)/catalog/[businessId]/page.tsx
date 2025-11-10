@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Image from 'next/image';
@@ -10,16 +10,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
-import { Star, Loader2, PackageSearch, Mail } from 'lucide-react';
+import { Star, Loader2, PackageSearch, Mail, Printer, FileDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { rateProduct } from '@/ai/flows/rate-product-flow';
 import { useToast } from '@/hooks/use-toast';
 import { PurchaseModal } from '@/components/catalogo/purchase-modal';
 import type { PaymentSettings } from '@/models/payment-settings';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 
 const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) => {
@@ -283,11 +285,70 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
     )
 }
 
+const ActionButtons = () => {
+    const pageRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        // Assign the root element to the ref
+        pageRef.current = document.getElementById('catalog-page-root') as HTMLDivElement;
+    }, []);
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const handleDownload = async () => {
+        if (!pageRef.current) return;
+        setIsLoading(true);
+        try {
+            const canvas = await html2canvas(pageRef.current, {
+                useCORS: true,
+                scale: 2,
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save('catalogo.pdf');
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            toast({
+                variant: "destructive",
+                title: "Error al generar PDF",
+                description: "No se pudo crear el archivo PDF.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    return (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+            <Button onClick={handlePrint} size="lg">
+                <Printer className="mr-2 h-5 w-5" /> Imprimir
+            </Button>
+            <Button onClick={handleDownload} size="lg" disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <FileDown className="mr-2 h-5 w-5" />}
+                {isLoading ? 'Generando...' : 'Descargar PDF'}
+            </Button>
+        </div>
+    );
+};
+
 export default function CatalogPage() {
     const firestore = useFirestore();
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const params = useParams();
+    const searchParams = useSearchParams();
     const businessId = params.businessId as string;
+    
+    const showPrintButton = searchParams.get('print') === 'true';
+    const showDownloadButton = searchParams.get('download') === 'true';
 
     const publicDataRef = useMemoFirebase(() => {
         if (!firestore || !businessId) return null;
@@ -301,6 +362,12 @@ export default function CatalogPage() {
 
     const { data: publicData, isLoading: isPublicDataLoading } = useDoc<{ products: Product[], headerConfig: LandingHeaderConfigData }>(publicDataRef);
     const { data: paymentSettings, isLoading: isPaymentSettingsLoading } = useDoc<PaymentSettings>(paymentSettingsRef);
+    
+    useEffect(() => {
+        if (showPrintButton) {
+            setTimeout(() => window.print(), 1000); // Delay to ensure content is rendered
+        }
+    }, [showPrintButton]);
 
     if (isPublicDataLoading || isPaymentSettingsLoading) {
         return (
@@ -325,7 +392,7 @@ export default function CatalogPage() {
     }
     
     return (
-        <div className="bg-muted/40 min-h-screen">
+        <div id="catalog-page-root" className="bg-muted/40 min-h-screen">
             {headerConfig ? (
                 <CatalogHeader config={headerConfig} />
             ) : (
@@ -364,6 +431,8 @@ export default function CatalogPage() {
                 businessId={businessId}
                 paymentSettings={paymentSettings ?? null}
             />
+
+            {(showPrintButton || showDownloadButton) && <ActionButtons />}
             
             <footer className="w-full border-t bg-background mt-12">
               <div className="container flex items-center justify-center h-16 px-4 md:px-6">

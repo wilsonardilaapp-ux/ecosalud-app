@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { PlusCircle, ShoppingBag, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, ShoppingBag, Edit, Trash2, Printer, FileDown } from 'lucide-react';
 import type { Product } from '@/models/product';
 import ProductForm from '@/components/catalogo/product-form';
 import ProductCard from '@/components/catalogo/product-card';
@@ -125,6 +125,12 @@ export default function CatalogoPage() {
         setEditingProduct(null);
         setIsFormOpen(true);
     }
+
+    const handleOpenActionWindow = (action: 'print' | 'download') => {
+        if (!user) return;
+        const url = `/catalog/${user.uid}?${action}=true`;
+        window.open(url, '_blank');
+    };
     
     // Improved loading state to wait for auth and data
     if (isUserLoading || isConfigLoading || isProductsLoading) {
@@ -142,27 +148,37 @@ export default function CatalogoPage() {
                             Añade, edita y gestiona los productos de tu negocio.
                         </CardDescription>
                     </div>
-                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                        <DialogTrigger asChild>
-                            <Button onClick={openNewProductForm}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Añadir Producto
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
-                            <DialogHeader>
-                                <DialogTitle>{editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
-                                <DialogDescription>
-                                    Completa los detalles de tu producto. La información se mostrará públicamente.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <ProductForm 
-                                product={editingProduct} 
-                                onSave={handleSaveProduct} 
-                                onCancel={() => setIsFormOpen(false)}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                     <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={() => handleOpenActionWindow('print')}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Imprimir
+                        </Button>
+                        <Button variant="outline" onClick={() => handleOpenActionWindow('download')}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </Button>
+                        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                            <DialogTrigger asChild>
+                                <Button onClick={openNewProductForm}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Añadir Producto
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl">
+                                <DialogHeader>
+                                    <DialogTitle>{editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
+                                    <DialogDescription>
+                                        Completa los detalles de tu producto. La información se mostrará públicamente.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <ProductForm 
+                                    product={editingProduct} 
+                                    onSave={handleSaveProduct} 
+                                    onCancel={() => setIsFormOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </CardHeader>
             </Card>
 
