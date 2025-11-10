@@ -105,7 +105,11 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
                   <CardTitle style={{ color: section.textColor }}>{sub.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm" style={{ color: section.textColor, opacity: 0.9 }}>{sub.description}</p>
+                  <div
+                    className="text-sm"
+                    style={{ color: section.textColor, opacity: 0.9 }}
+                    dangerouslySetInnerHTML={{ __html: sub.description }}
+                  />
                 </CardContent>
               </Card>
             ))}
