@@ -20,6 +20,7 @@ import type { PaymentSettings } from '@/models/payment-settings';
 const purchaseSchema = z.object({
   fullName: z.string().min(3, { message: 'El nombre es requerido.' }),
   email: z.string().email({ message: 'El correo electrónico no es válido.' }),
+  whatsapp: z.string().min(7, { message: 'Por favor, introduce un número de WhatsApp válido.' }),
   address: z.string().optional(),
   message: z.string().optional(),
   quantity: z.preprocess(
@@ -45,7 +46,8 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
       address: "",
       message: "",
       fullName: "",
-      email: ""
+      email: "",
+      whatsapp: "",
     },
   });
 
@@ -74,6 +76,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
 *Datos del Cliente:*
 *Nombre:* ${data.fullName}
 *Correo:* ${data.email}
+*WhatsApp:* ${data.whatsapp}
 *Dirección:* ${data.address || 'No especificada'}
 *Mensaje Adicional:* ${data.message || 'Sin mensaje'}
 -----------------------------------
@@ -112,7 +115,12 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
                 {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
               </div>
               <div>
-                <Label htmlFor="address">Dirección</Label>
+                <Label htmlFor="whatsapp">Número de WhatsApp</Label>
+                <Input id="whatsapp" type="tel" {...register('whatsapp')} placeholder="ej. 3001234567" />
+                {errors.whatsapp && <p className="text-sm text-destructive mt-1">{errors.whatsapp.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="address">Dirección de envío</Label>
                 <Input id="address" {...register('address')} placeholder="Tu dirección de envío" />
               </div>
               <div>
