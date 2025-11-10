@@ -57,31 +57,16 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
   const onSubmit = (data: { [key: string]: string }) => {
     if (!firestore) return;
 
-    // 🔍 DIAGNÓSTICO: Ver datos del formulario
-    console.log('📝 Datos recibidos del formulario:', data);
-    console.log('📋 Configuración de campos:', formConfig.fields);
-
     // Find the fields for name, email, whatsapp, and message based on labels or types
     const nameField = formConfig.fields.find(f => f.label.toLowerCase().includes('nombre'))?.id;
     const emailField = formConfig.fields.find(f => f.type === 'email')?.id;
     const whatsappField = formConfig.fields.find(f => f.type === 'tel' || f.label.toLowerCase().includes('whatsapp'))?.id;
     const messageField = formConfig.fields.find(f => f.type === 'textarea')?.id;
 
-    // 🔍 DIAGNÓSTICO: Ver qué campos se encontraron
-    console.log('🔎 Campos identificados:', {
-      nameField,
-      emailField,
-      whatsappField,
-      messageField
-    });
-
     // The main message content is what's in the textarea.
     const messageContent = messageField ? data[messageField] : 'Sin mensaje.';
     
-    // 🔍 DIAGNÓSTICO: Ver valor de WhatsApp
     const whatsappValue = whatsappField ? data[whatsappField] : undefined;
-    console.log('📱 Valor de WhatsApp extraído:', whatsappValue);
-    console.log('📱 Campo WhatsApp ID:', whatsappField);
       
     const submission: Omit<ContactSubmission, 'id'> = {
       businessId: businessId,
@@ -92,9 +77,6 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
       message: messageContent,
       date: new Date().toISOString(),
     };
-    
-    // 🔍 DIAGNÓSTICO: Ver el objeto final que se guardará
-    console.log('💾 Objeto submission que se guardará:', submission);
     
     const submissionsCollection = collection(firestore, `businesses/${businessId}/contactSubmissions`);
     addDocumentNonBlocking(submissionsCollection, submission);
