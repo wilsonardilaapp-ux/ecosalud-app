@@ -7,6 +7,12 @@ import {
     CardTitle,
     CardDescription
 } from "@/components/ui/card";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
 import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { FileText, ShoppingCart, MessageSquare, CheckCircle, XCircle, ShoppingBag } from "lucide-react";
 import { collection, doc } from "firebase/firestore";
@@ -14,6 +20,13 @@ import type { Product } from "@/models/product";
 import type { ContactSubmission } from "@/models/contact-submission";
 import type { LandingPageData } from "@/models/landing-page";
 import type { Order } from "@/models/order";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import { Bar, BarChart, Line, LineChart, Pie, PieChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { useMemo } from "react";
 
 export default function DashboardPage() {
     const { user } = useUser();
@@ -51,6 +64,46 @@ export default function DashboardPage() {
     const messageCount = messages?.length ?? 0;
     const orderCount = orders?.length ?? 0;
     const isLandingPageCreated = !!landingPage;
+
+    // --- Chart Data Processing ---
+    const monthlySales = useMemo(() => {
+        if (!orders) return [];
+        const sales: { [key: string]: number } = {};
+        orders.forEach(order => {
+            const month = new Date(order.orderDate).toLocaleString('default', { month: 'short' });
+            sales[month] = (sales[month] || 0) + order.subtotal;
+        });
+        const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return monthOrder.map(month => ({ month, total: sales[month] || 0 })).filter(d => d.total > 0);
+    }, [orders]);
+
+    const salesByStatus = useMemo(() => {
+        if (!orders) return [];
+        const statusCount: { [key: string]: number } = {};
+        orders.forEach(order => {
+            statusCount[order.orderStatus] = (statusCount[order.orderStatus] || 0) + 1;
+        });
+        return Object.entries(statusCount).map(([status, count]) => ({ status, count }));
+    }, [orders]);
+
+    const salesByProduct = useMemo(() => {
+        if (!orders) return [];
+        const productSales: { [key: string]: number } = {};
+        orders.forEach(order => {
+            productSales[order.productName] = (productSales[order.productName] || 0) + order.quantity;
+        });
+        return Object.entries(productSales).map(([name, quantity]) => ({ name, quantity }));
+    }, [orders]);
+
+    const lineChartConfig = {
+        total: { label: "Ventas", color: "hsl(var(--chart-1))" },
+    };
+     const barChartConfig = {
+        count: { label: "Pedidos", color: "hsl(var(--chart-2))" },
+    };
+    const pieChartConfig = {
+        quantity: { label: "Cantidad" },
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -119,6 +172,52 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Análisis de Ventas</CardTitle>
+                    <CardDescription>Visualiza el rendimiento de tu negocio.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="line">
+                        <TabsList>
+                            <TabsTrigger value="line">Ventas por Mes</TabsTrigger>
+                            <TabsTrigger value="bar">Pedidos por Estado</TabsTrigger>
+                            <TabsTrigger value="pie">Productos Vendidos</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="line">
+                            <ChartContainer config={lineChartConfig} className="h-[300px] w-full">
+                                <LineChart data={monthlySales}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                    <Line dataKey="total" type="monotone" stroke="var(--color-total)" strokeWidth={2} dot={false} />
+                                </LineChart>
+                            </ChartContainer>
+                        </TabsContent>
+                        <TabsContent value="bar">
+                            <ChartContainer config={barChartConfig} className="h-[300px] w-full">
+                                <BarChart data={salesByStatus}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="status" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                    <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+                                </BarChart>
+                            </ChartContainer>
+                        </TabsContent>
+                        <TabsContent value="pie" className="flex justify-center">
+                             <ChartContainer config={pieChartConfig} className="h-[300px] w-full">
+                                <PieChart>
+                                    <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                                    <Pie data={salesByProduct} dataKey="quantity" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--chart-1))" />
+                                </PieChart>
+                            </ChartContainer>
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
         </div>
     );
 }
