@@ -13,8 +13,8 @@ export default function WelcomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Immediately redirect to the public catalog page for the main business.
-    router.replace(`/catalog/${MAIN_BUSINESS_ID}`);
+    // Immediately redirect to the public landing page for the main business.
+    router.replace(`/landing/${MAIN_BUSINESS_ID}`);
   }, [router]);
 
   // Display a loading state while the redirection occurs.
