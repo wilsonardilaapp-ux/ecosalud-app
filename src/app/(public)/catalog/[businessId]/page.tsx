@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -261,7 +260,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                             </div>
                             <div className="mt-6">
                                 <Button size="lg" className="w-full" onClick={handleOpenPurchaseModal}>
-                                    <WhatsAppIcon className="mr-2 h-5 w-5" /> Comprar por WhatsApp
+                                    <WhatsAppIcon className="mr-2 h-5 w-5" /> Comprar
                                 </Button>
                             </div>
                         </div>
@@ -375,4 +374,3 @@ export default function CatalogPage() {
         </div>
     );
 }
-

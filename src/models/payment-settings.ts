@@ -13,6 +13,7 @@ export type CashOnDeliveryData = {
 export type PaymentSettings = {
   id: string;
   userId: string;
+  businessId: string; // Add businessId to associate settings with a business
   nequi: QRFormData;
   bancolombia: QRFormData;
   daviplata: QRFormData;

@@ -23,6 +23,7 @@ import Image from "next/image";
 const initialSettings: PaymentSettings = {
   id: '',
   userId: '',
+  businessId: '',
   nequi: {
     enabled: false,
     qrImageUrl: null,
@@ -63,14 +64,21 @@ export default function PagosPage() {
   const { data: savedSettings, isLoading } = useDoc<PaymentSettings>(paymentSettingsDocRef);
 
   useEffect(() => {
-    if (savedSettings) {
-      // Ensure all payment methods are present in the loaded settings
-      const completeSettings = { ...initialSettings, ...savedSettings, id: savedSettings.id, userId: savedSettings.userId };
-      setSettings(completeSettings);
-    } else if(user) {
-      setSettings(prev => ({...prev, id: user.uid, userId: user.uid }));
+    if (user) {
+        if (savedSettings) {
+            const completeSettings = { 
+                ...initialSettings, 
+                ...savedSettings, 
+                id: user.uid, 
+                userId: user.uid,
+                businessId: user.uid, // Set businessId here
+            };
+            setSettings(completeSettings);
+        } else {
+            setSettings(prev => ({ ...prev, id: user.uid, userId: user.uid, businessId: user.uid }));
+        }
     }
-  }, [savedSettings, user]);
+}, [savedSettings, user]);
 
   const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata" | "pagoContraEntrega", enabled: boolean) => {
     setSettings((prev) => ({

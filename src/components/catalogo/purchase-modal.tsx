@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/models/product';
 import type { PaymentSettings } from '@/models/payment-settings';
 import type { Order } from '@/models/order';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 const purchaseSchema = z.object({
@@ -43,7 +42,11 @@ interface PurchaseModalProps {
 export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, paymentSettings }: PurchaseModalProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useUser();
+  
+  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
+  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
+  
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(defaultTab);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<z.infer<typeof purchaseSchema>>({
     resolver: zodResolver(purchaseSchema),
@@ -57,47 +60,69 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessPhone, pa
     },
   });
 
-  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
-  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
-  
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(defaultTab);
-
-
   const onSubmit = (data: z.infer<typeof purchaseSchema>) => {
-    if (!firestore || !user) return;
-    
-    const paymentMethodLabels: { [key: string]: string } = {
-        nequi: 'Nequi',
-        bancolombia: 'Bancolombia',
-        daviplata: 'Daviplata',
-        pagoContraEntrega: 'Pago Contra Entrega'
-    };
-    const paymentMethodText = paymentMethodLabels[selectedPaymentMethod] || 'No especificado';
+    // 1. Guardar el pedido en Firestore (si está disponible)
+    if (firestore && paymentSettings?.businessId) {
+      const paymentMethodLabels: { [key: string]: string } = {
+          nequi: 'Nequi',
+          bancolombia: 'Bancolombia',
+          daviplata: 'Daviplata',
+          pagoContraEntrega: 'Pago Contra Entrega'
+      };
+      const paymentMethodText = paymentMethodLabels[selectedPaymentMethod] || 'No especificado';
+      const subtotal = product.price * data.quantity;
+
+      const orderData: Omit<Order, 'id'> = {
+          businessId: paymentSettings.businessId,
+          customerName: data.fullName,
+          customerEmail: data.email,
+          customerPhone: data.whatsapp,
+          customerAddress: data.address || 'No especificada',
+          productId: product.id,
+          productName: product.name,
+          quantity: data.quantity,
+          unitPrice: product.price,
+          subtotal,
+          paymentMethod: paymentMethodText,
+          orderDate: new Date().toISOString(),
+          orderStatus: 'Pendiente',
+      };
+
+      const ordersCollection = collection(firestore, 'businesses', paymentSettings.businessId, 'orders');
+      addDocumentNonBlocking(ordersCollection, orderData);
+
+      toast({
+          title: "¡Pedido Registrado!",
+          description: "Tu pedido ha sido enviado al vendedor y guardado. Serás redirigido a WhatsApp.",
+      });
+    } else {
+        toast({
+            title: "Pedido listo para enviar",
+            description: "Serás redirigido a WhatsApp para completar tu pedido.",
+        });
+    }
+
+    // 2. Abrir WhatsApp con el mensaje
     const subtotal = product.price * data.quantity;
+    const paymentMethodText = selectedPaymentMethod === 'pagoContraEntrega' ? 'Pago Contra Entrega' : selectedPaymentMethod.charAt(0).toUpperCase() + selectedPaymentMethod.slice(1);
+    
+    let messageBody = `¡Hola! 👋 Estoy interesado en realizar un pedido:\n\n`
+    messageBody += `*Producto:* ${product.name}\n`;
+    messageBody += `*Cantidad:* ${data.quantity}\n`;
+    messageBody += `*Precio Unitario:* ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.price)}\n`;
+    messageBody += `*Subtotal:* ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(subtotal)}\n\n`;
+    messageBody += `*Mis Datos:*\n`;
+    messageBody += `*Nombre:* ${data.fullName}\n`;
+    messageBody += `*Email:* ${data.email}\n`;
+    messageBody += `*WhatsApp:* ${data.whatsapp}\n`;
+    if (data.address) messageBody += `*Dirección:* ${data.address}\n`;
+    messageBody += `*Método de pago elegido:* ${paymentMethodText}\n\n`;
+    if (data.message) messageBody += `*Mensaje adicional:* ${data.message}\n`;
+    messageBody += `¡Quedo atento a la confirmación! 👍`;
 
-    const orderData: Omit<Order, 'id'> = {
-        businessId: user.uid,
-        customerName: data.fullName,
-        customerEmail: data.email,
-        customerPhone: data.whatsapp,
-        customerAddress: data.address || 'No especificada',
-        productId: product.id,
-        productName: product.name,
-        quantity: data.quantity,
-        unitPrice: product.price,
-        subtotal,
-        paymentMethod: paymentMethodText,
-        orderDate: new Date().toISOString(),
-        orderStatus: 'Pendiente',
-    };
+    const whatsappUrl = `https://wa.me/${businessPhone.replace(/\D/g, '')}?text=${encodeURIComponent(messageBody)}`;
+    window.open(whatsappUrl, '_blank');
 
-    const ordersCollection = collection(firestore, 'businesses', user.uid, 'orders');
-    addDocumentNonBlocking(ordersCollection, orderData);
-
-    toast({
-        title: "¡Pedido Realizado!",
-        description: "Tu pedido ha sido enviado al vendedor. ¡Gracias por tu compra!",
-    });
     onOpenChange(false);
   };
 
@@ -232,5 +257,3 @@ const PaymentTabContent = ({methodName, accountNumber, qrImageUrl, onCopy }: { m
         )}
     </div>
 );
-
-    
