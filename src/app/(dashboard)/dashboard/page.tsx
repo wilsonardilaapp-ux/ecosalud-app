@@ -180,7 +180,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="line">
-                        <TabsList>
+                        <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="line">Ventas por Mes</TabsTrigger>
                             <TabsTrigger value="bar">Pedidos por Estado</TabsTrigger>
                             <TabsTrigger value="pie">Productos Vendidos</TabsTrigger>
