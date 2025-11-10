@@ -106,9 +106,46 @@ export default function LandingPageBuilder() {
   const { data: savedData, isLoading } = useDoc<LandingPageData>(landingPageDocRef);
 
   useEffect(() => {
-    // When data is loaded from Firestore, set it as the current state
     if (savedData) {
-      setLandingPageData(savedData);
+      // Create a mutable copy of the saved data
+      const dataCopy = JSON.parse(JSON.stringify(savedData));
+
+      // Ensure the form and fields exist
+      if (!dataCopy.form) {
+        dataCopy.form = { fields: [], destinationEmail: '' };
+      }
+      if (!dataCopy.form.fields) {
+        dataCopy.form.fields = [];
+      }
+
+      // Check if the WhatsApp field already exists by its label
+      const whatsAppFieldExists = dataCopy.form.fields.some(
+        (field: { label: string; }) => field.label.toLowerCase() === 'whatsapp'
+      );
+
+      // If it doesn't exist, add it
+      if (!whatsAppFieldExists) {
+        const whatsAppFieldIndex = dataCopy.form.fields.findIndex(
+            (field: { type: string; }) => field.type === 'textarea'
+        );
+        const newField = { 
+            id: uuidv4(), 
+            label: 'WhatsApp', 
+            type: 'tel', 
+            placeholder: 'ej. 3001234567', 
+            required: false 
+        };
+
+        if (whatsAppFieldIndex !== -1) {
+            // Insert before the message field
+            dataCopy.form.fields.splice(whatsAppFieldIndex, 0, newField);
+        } else {
+            // Or add at the end if message field is not found
+            dataCopy.form.fields.push(newField);
+        }
+      }
+
+      setLandingPageData(dataCopy);
     }
   }, [savedData]);
 
