@@ -128,3 +128,14 @@ body {
   color: #9ca3af; /* Color de placeholder */
   font-style: normal;
 }
+
+/* Forzar estilos de alineación de Quill */
+.ql-align-justify {
+  text-align: justify;
+}
+.ql-align-center {
+  text-align: center;
+}
+.ql-align-right {
+  text-align: right;
+}
