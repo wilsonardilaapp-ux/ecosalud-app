@@ -55,22 +55,25 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
   const onSubmit = (data: { [key: string]: string }) => {
     if (!firestore) return;
 
-    // Find the fields for name, email, and message based on common labels or types
+    // Find the fields for name, email, whatsapp, and message based on labels or types
     const nameField = formConfig.fields.find(f => f.label.toLowerCase().includes('nombre'))?.id;
     const emailField = formConfig.fields.find(f => f.type === 'email')?.id;
+    const whatsappField = formConfig.fields.find(f => f.label.toLowerCase().includes('whatsapp'))?.id;
     const messageField = formConfig.fields.find(f => f.type === 'textarea')?.id;
 
-    // Build the main message content from all fields
-    const fullMessage = formConfig.fields
+    // Build the main message content from all fields that are not the main message itself
+    const messageContent = formConfig.fields
+      .filter(field => field.id !== messageField)
       .map(field => `${field.label}: ${data[field.id] || 'N/A'}`)
       .join('\n');
-
+      
     const submission: Omit<ContactSubmission, 'id'> = {
       businessId: businessId,
       formId: 'main', // Static ID since there's one form per landing page
       sender: nameField ? data[nameField] : 'No especificado',
       email: emailField ? data[emailField] : 'no-reply@example.com',
-      message: messageField ? data[messageField] : fullMessage,
+      whatsapp: whatsappField ? data[whatsappField] : undefined,
+      message: messageField ? data[messageField] : messageContent,
       date: new Date().toISOString(),
     };
     

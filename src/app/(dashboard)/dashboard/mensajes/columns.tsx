@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Trash2, Mail } from "lucide-react"
+import { MoreHorizontal, Eye, Trash2, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -54,6 +54,15 @@ export const columns = ({ handleDeleteSubmission }: ColumnsProps): ColumnDef<Con
                 {submission.email}
               </a>
             </div>
+            {submission.whatsapp && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <span className="text-right font-semibold">WhatsApp:</span>
+                    <a href={`https://wa.me/${submission.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="col-span-3 text-primary hover:underline flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {submission.whatsapp}
+                    </a>
+                </div>
+            )}
             <div className="grid grid-cols-4 items-center gap-4">
               <span className="text-right font-semibold">Fecha:</span>
               <span className="col-span-3">{new Date(submission.date).toLocaleString()}</span>
