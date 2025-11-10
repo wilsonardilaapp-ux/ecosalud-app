@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, Eye, Trash2, Edit, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge";
 import {
@@ -78,11 +78,17 @@ export const columns = ({ handleDeleteOrder, handleUpdateStatus }: ColumnsProps)
                     </div>
                      <div className="grid grid-cols-3 gap-2">
                         <span className="font-semibold">Email:</span>
-                        <span className="col-span-2">{order.customerEmail}</span>
+                        <a href={`mailto:${order.customerEmail}`} className="col-span-2 text-primary hover:underline flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {order.customerEmail}
+                        </a>
                     </div>
                      <div className="grid grid-cols-3 gap-2">
                         <span className="font-semibold">Teléfono:</span>
-                        <span className="col-span-2">{order.customerPhone}</span>
+                        <a href={`https://wa.me/${order.customerPhone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="col-span-2 text-primary hover:underline flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {order.customerPhone}
+                        </a>
                     </div>
                      <div className="grid grid-cols-3 gap-2">
                         <span className="font-semibold">Dirección:</span>
