@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavLink, NavigationSection, ContentSection, TestimonialSection, FormField, SubSection } from '@/models/landing-page';
+import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
 import { Star, Copy, ExternalLink } from 'lucide-react';
@@ -216,14 +216,14 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  const publicUrl = user ? `${window.location.origin}/catalog/${user.uid}` : '';
+  const publicUrl = user ? `${window.location.origin}/landing/${user.uid}` : '';
 
   const copyToClipboard = () => {
     if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl);
     toast({
         title: "Enlace copiado",
-        description: "El enlace público de tu catálogo ha sido copiado al portapapeles.",
+        description: "El enlace público de tu landing page ha sido copiado al portapapeles.",
     });
   };
 
@@ -231,13 +231,13 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     <div className="space-y-6">
       <Card>
         <CardHeader>
-            <CardTitle>Acciones del Catálogo</CardTitle>
+            <CardTitle>Acciones de la Landing Page</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Enlace Público</CardTitle>
-                    <CardDescription className="text-xs">Comparte este enlace para mostrar tu catálogo.</CardDescription>
+                    <CardDescription className="text-xs">Comparte este enlace para mostrar tu landing page.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center space-x-2">
@@ -285,7 +285,7 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                           />
 
                           {hero.imageUrl && (
-                              <div className="mt-6 relative aspect-video w-full max-w-lg mx-auto rounded-md overflow-hidden">
+                              <div className="relative aspect-video w-full max-w-lg mx-auto rounded-md overflow-hidden">
                                   <Image
                                       src={hero.imageUrl}
                                       alt={hero.title}
