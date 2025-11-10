@@ -298,6 +298,88 @@
         "category"
       ]
     },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        "businessId": {
+          "type": "string",
+          "description": "The ID of the business this order belongs to."
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Name of the customer who placed the order."
+        },
+        "customerEmail": {
+          "type": "string",
+          "description": "Email of the customer.",
+          "format": "email"
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Phone number of the customer."
+        },
+        "customerAddress": {
+          "type": "string",
+          "description": "Shipping address for the order."
+        },
+        "productName": {
+          "type": "string",
+          "description": "Name of the product ordered."
+        },
+        "productId": {
+          "type": "string",
+          "description": "ID of the product ordered."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product ordered."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "Price of a single unit of the product."
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Total price for the ordered quantity (quantity * unitPrice)."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method chosen by the customer."
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date and time when the order was placed.",
+          "format": "date-time"
+        },
+        "orderStatus": {
+          "type": "string",
+          "description": "Current status of the order.",
+          "enum": ["Pendiente", "En proceso", "Enviado", "Entregado", "Cancelado"]
+        }
+      },
+      "required": [
+        "id",
+        "businessId",
+        "customerName",
+        "customerEmail",
+        "customerPhone",
+        "productName",
+        "productId",
+        "quantity",
+        "unitPrice",
+        "subtotal",
+        "paymentMethod",
+        "orderDate",
+        "orderStatus"
+      ]
+    },
     "ContactForm": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactForm",
@@ -564,6 +646,26 @@
         }
       },
       {
+        "path": "/businesses/{businessId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores customer orders for a specific business.",
+          "params": [
+            {
+              "name": "businessId",
+              "description": "The unique identifier for the business."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
         "path": "/businesses/{businessId}/contactForms/{formId}",
         "definition": {
           "entityName": "ContactForm",
@@ -639,3 +741,5 @@
     "reasoning": "The Firestore structure is designed to ensure Authorization Independence and support the application's QAPs (Queries are not Filters). Authorization Independence is achieved by avoiding `get()` calls in security rules through denormalization.  Specifically, the `LandingPage`, `Product`, `ContactForm`, and `ContactSubmission` subcollections under `/businesses/{businessId}` include the `businessId` field, which duplicates the parent document's ID, but allows security rules to validate access without requiring a `get()` call to the parent `business` document.\n\nStructural Segregation is applied by separating user-specific data (`/users/{userId}`) from business-related data (`/businesses/{businessId}/...`).  Each collection has a homogeneous security posture. Path-based ownership (`/users/{userId}`) is used for private user data like payment settings.\n\nThe membership model is implicitly supported through the businessId on resources linked to each business.\n\nGlobal roles are managed using content over existence, within the User document under role (e.g., `/users/{uid}` has `role: 'super_admin'`).\n\nQAPs (Rules are not Filters) are supported through structural segregation. Listing operations are secured based on the path and, where applicable, the denormalized `businessId` field in subcollections, allowing secure querying without filtering on potentially insecure data.\n\nExplicit state modeling is used through the `status` field in entities like `User` and `SystemService`."
   }
 }
+
+    

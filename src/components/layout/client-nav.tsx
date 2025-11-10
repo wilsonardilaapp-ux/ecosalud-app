@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   MessageSquare,
   CreditCard,
+  ShoppingBag,
 } from "lucide-react";
 
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/dashboard/landing-page", icon: FileText, label: "Landing Page" },
   { href: "/dashboard/catalogo", icon: ShoppingCart, label: "Catálogo" },
   { href: "/dashboard/mensajes", icon: MessageSquare, label: "Mensajes" },
+  { href: "/dashboard/pedidos", icon: ShoppingBag, label: "Pedidos" },
   { href: "/dashboard/pagos", icon: CreditCard, label: "Pagos" },
 ];
 
@@ -43,3 +45,5 @@ export function ClientNav() {
     </SidebarMenu>
   );
 }
+
+    

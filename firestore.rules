@@ -1,3 +1,4 @@
+
 /**
   * @fileOverview
   * Core Philosophy: This ruleset enforces a strict user-ownership model for user-specific data and a business-ownership model for business-related data. Global configurations and system services are restricted to super admins.
@@ -117,6 +118,12 @@ service cloud.firestore {
         match /contactSubmissions/{submissionId} {
             allow read, list, write: if isBusinessOwner(businessId);
         }
+
+        match /orders/{orderId} {
+           allow read, list, write: if isBusinessOwner(businessId);
+        }
     }
   }
 }
+
+    
