@@ -37,11 +37,14 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
         case 'textarea':
           zodType = z.string().min(10, { message: 'El mensaje es demasiado corto.' });
           break;
+        case 'tel':
+             zodType = z.string(); // Optional phone number
+             break;
         default:
           zodType = z.string().min(1, { message: `El campo ${field.label} es requerido.` });
       }
       if (!field.required) {
-        zodType = zodType.optional();
+        zodType = zodType.optional().or(z.literal(""));
       }
       schemaObject[field.id] = zodType;
     });
@@ -58,11 +61,11 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
     // Find the fields for name, email, whatsapp, and message based on labels or types
     const nameField = formConfig.fields.find(f => f.label.toLowerCase().includes('nombre'))?.id;
     const emailField = formConfig.fields.find(f => f.type === 'email')?.id;
-    const whatsappField = formConfig.fields.find(f => f.label.toLowerCase().includes('whatsapp'))?.id;
+    const whatsappField = formConfig.fields.find(f => f.type === 'tel' || f.label.toLowerCase().includes('whatsapp'))?.id;
     const messageField = formConfig.fields.find(f => f.type === 'textarea')?.id;
 
     // Build the main message content from all fields that are not the main message itself
-    const messageContent = formConfig.fields
+    const messageContent = messageField ? data[messageField] : formConfig.fields
       .filter(field => field.id !== messageField)
       .map(field => `${field.label}: ${data[field.id] || 'N/A'}`)
       .join('\n');
@@ -73,7 +76,7 @@ export function PublicContactForm({ formConfig, businessId }: PublicContactFormP
       sender: nameField ? data[nameField] : 'No especificado',
       email: emailField ? data[emailField] : 'no-reply@example.com',
       whatsapp: whatsappField ? data[whatsappField] : undefined,
-      message: messageField ? data[messageField] : messageContent,
+      message: messageContent,
       date: new Date().toISOString(),
     };
     
