@@ -8,14 +8,13 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Star, Loader2, Frown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
 import { CSSProperties } from 'react';
 import { useParams } from 'next/navigation';
+import { PublicContactForm } from '@/components/landing-page/public-contact-form';
+
 
 const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
   if (!navConfig.enabled) {
@@ -162,41 +161,6 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
     );
 };
 
-const PreviewForm = ({ fields }: { fields: FormField[] }) => {
-  return (
-    <section className="py-16 px-4 bg-background">
-      <div className="container mx-auto max-w-2xl">
-        <Card className="shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl">Formulario de Contacto</CardTitle>
-            <CardDescription>Ponte en contacto con nosotros.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {fields.map(field => {
-              if (field.type === 'textarea') {
-                return (
-                  <div key={field.id} className="space-y-2">
-                    <Label htmlFor={`preview-${field.id}`}>{field.label}{field.required && ' *'}</Label>
-                    <Textarea id={`preview-${field.id}`} placeholder={field.placeholder} required={field.required} className="text-base py-3 px-4" />
-                  </div>
-                );
-              }
-              return (
-                <div key={field.id} className="space-y-2">
-                  <Label htmlFor={`preview-${field.id}`}>{field.label}{field.required && ' *'}</Label>
-                  <Input id={`preview-${field.id}`} type={field.type} placeholder={field.placeholder} required={field.required} className="text-base py-3 px-4 h-12" />
-                </div>
-              );
-            })}
-            <Button className="w-full h-12 text-lg">Enviar Mensaje</Button>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  );
-};
-
-
 export default function PublicLandingPage() {
   const params = useParams();
   const businessId = params.businessId as string;
@@ -294,7 +258,7 @@ export default function PublicLandingPage() {
 
         <PreviewTestimonials testimonials={testimonials} />
         
-        <PreviewForm fields={form.fields} />
+        {form.fields.length > 0 && <PublicContactForm formConfig={form} businessId={businessId} />}
       </main>
 
       <footer className="w-full border-t bg-muted">
