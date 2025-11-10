@@ -30,6 +30,13 @@ type ColumnsProps = {
 export const columns = ({ handleDeleteSubmission }: ColumnsProps): ColumnDef<ContactSubmission>[] => {
   const ViewMessageDialog = ({ submission }: { submission: ContactSubmission }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    if (isOpen) {
+        console.log("📋 Submission completo:", submission);
+        console.log("📱 Campo whatsapp:", submission.whatsapp);
+        console.log("🔑 Todas las keys:", Object.keys(submission));
+    }
+
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsOpen(true); }}>
