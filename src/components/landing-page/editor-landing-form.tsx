@@ -39,7 +39,7 @@ const MediaUploader = ({
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
-    onUpload: (file: File) => Promise<void>;
+    onUpload: (file: File) => void;
     onRemove: () => void;
     aspectRatio?: string;
     dimensions?: string;
@@ -549,7 +549,18 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                                         mediaUrl={sub.imageUrl}
                                                                         mediaType={sub.mediaType}
                                                                         onUpload={(file) => handleSubSectionMediaUpload(section.id, sub.id, file)}
-                                                                        onRemove={() => updateSubSection(section.id, sub.id, 'imageUrl', null)}
+                                                                        onRemove={() => {
+                                                                            const updatedSections = data.sections.map(s => {
+                                                                                if (s.id === section.id) {
+                                                                                    const updatedSubsections = s.subsections.map(ss => 
+                                                                                        ss.id === sub.id ? { ...ss, imageUrl: null, mediaType: null } : ss
+                                                                                    );
+                                                                                    return { ...s, subsections: updatedSubsections };
+                                                                                }
+                                                                                return s;
+                                                                            });
+                                                                            setData({ ...data, sections: updatedSections });
+                                                                        }}
                                                                         aspectRatio="aspect-video"
                                                                         dimensions="600x400px (4:3)"
                                                                         description="Imagen para tarjeta"
