@@ -100,19 +100,6 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Próximos pasos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li>Configura tu información de negocio.</li>
-                        <li>Diseña tu Landing Page.</li>
-                        <li>Sube tus productos al catálogo.</li>
-                        <li>Define tus métodos de pago.</li>
-                    </ul>
-                </CardContent>
-            </Card>
         </div>
     );
 }
