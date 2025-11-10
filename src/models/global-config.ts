@@ -1,3 +1,4 @@
+
 export type GlobalConfig = {
     id: string;
     maintenance: boolean;
@@ -5,4 +6,5 @@ export type GlobalConfig = {
     theme: string;
     supportEmail: string;
     defaultLimits: number;
+    mainBusinessId?: string; // Add this line
 };
