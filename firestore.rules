@@ -80,8 +80,9 @@ service cloud.firestore {
      * @description Defines security rules for the business's private data and public data document.
      */
     match /businesses/{businessId} {
-        // Business owner can read and write their own business document.
-        allow read, write: if isBusinessOwner(businessId);
+        // Business owner can write their own document. Super admin can read all business documents.
+        allow read: if isBusinessOwner(businessId) || isSuperAdmin();
+        allow write: if isBusinessOwner(businessId);
 
         /**
          * @description The 'publicData' subcollection contains a single 'catalog' document.
