@@ -54,15 +54,21 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     toast({ title: "Cambios Descartados", description: "La configuración ha sido restablecida." });
   };
   
-    const handleSave = () => {
-        setData(data);
-        if (firestore && user) {
-            // Also update the business logo in the main business document
-            const businessDocRef = doc(firestore, 'businesses', user.uid);
+  const handleSave = () => {
+    // This function now correctly saves both the header config and updates the business logo.
+    if (firestore && user) {
+        // 1. Save the entire header configuration to its document
+        const headerConfigDocRef = doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
+        setDocumentNonBlocking(headerConfigDocRef, data, { merge: true });
+
+        // 2. Explicitly update the logoURL in the main business document
+        const businessDocRef = doc(firestore, 'businesses', user.uid);
+        if (data.businessInfo.logoURL) {
             setDocumentNonBlocking(businessDocRef, { logoURL: data.businessInfo.logoURL }, { merge: true });
         }
-        toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
-    };
+    }
+    toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
+};
   
   const MediaUploader = ({
     mediaUrl,
