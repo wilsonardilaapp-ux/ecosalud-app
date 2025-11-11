@@ -12,8 +12,9 @@ import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-pag
 import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
-import { useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import type { Business } from '@/models/business';
 
 
 interface CatalogHeaderFormProps {
@@ -26,6 +27,13 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   const [initialData] = useState<LandingHeaderConfigData>(JSON.parse(JSON.stringify(data)));
   const { user } = useUser();
   const firestore = useFirestore();
+
+  const businessDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'businesses', user.uid);
+  }, [firestore, user]);
+
+  const { data: business } = useDoc<Business>(businessDocRef);
   
   const handleInputChange = (section: keyof LandingHeaderConfigData, field: string, value: any) => {
     setData({
@@ -260,8 +268,8 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                 <div className="md:col-span-1">
                      <Label>Logo del Negocio</Label>
                       <div className="relative aspect-square w-full max-w-[200px] mx-auto border-2 border-dashed rounded-full flex items-center justify-center p-1">
-                        {data.businessInfo.logoURL ? (
-                          <Image src={data.businessInfo.logoURL} alt="Logo del negocio" layout="fill" className="object-cover rounded-full" />
+                        {business?.logoURL ? (
+                          <Image src={business.logoURL} alt="Logo del negocio" layout="fill" className="object-cover rounded-full" />
                         ) : (
                           <div className="text-center text-muted-foreground">
                             <ImageIcon className="h-10 w-10 mx-auto" />
