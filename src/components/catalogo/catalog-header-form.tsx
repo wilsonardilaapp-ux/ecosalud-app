@@ -58,11 +58,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     if (firestore && user) {
         const headerConfigDocRef = doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
         setDocumentNonBlocking(headerConfigDocRef, data, { merge: true });
-
-        const businessDocRef = doc(firestore, 'businesses', user.uid);
-        if (data.businessInfo.logoURL) {
-            setDocumentNonBlocking(businessDocRef, { logoURL: data.businessInfo.logoURL }, { merge: true });
-        }
+        // The business logo is saved directly on upload, so no need to save it here again
     }
     toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
   };
@@ -157,12 +153,14 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   const handleLogoUpload = (file: File) => {
     handleFileUpload(file, (mediaUrl, mediaType) => {
         if (mediaType === 'image') {
-            handleInputChange('businessInfo', 'logoURL', mediaUrl);
+            // Update the business document directly and immediately
             if (firestore && user) {
                 const businessDocRef = doc(firestore, 'businesses', user.uid);
                 setDocumentNonBlocking(businessDocRef, { logoURL: mediaUrl }, { merge: true });
-                toast({ title: "Avatar Actualizado", description: "La imagen de tu perfil se ha guardado."});
+                toast({ title: "Logo del Negocio Actualizado", description: "El logo se ha guardado y se reflejará en la aplicación."});
             }
+            // Also update the local form state for consistency
+            handleInputChange('businessInfo', 'logoURL', mediaUrl);
         } else {
             toast({ variant: 'destructive', title: 'Error de formato', description: 'El logo debe ser una imagen.' });
         }
@@ -182,12 +180,14 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   };
   
   const removeLogo = () => {
-    handleInputChange('businessInfo', 'logoURL', null);
+    // Update the business document directly
     if (firestore && user) {
         const businessDocRef = doc(firestore, 'businesses', user.uid);
         setDocumentNonBlocking(businessDocRef, { logoURL: null }, { merge: true });
-        toast({ title: "Avatar Eliminado", description: "Se ha eliminado tu imagen de perfil."});
+        toast({ title: "Logo Eliminado", description: "Se ha eliminado el logo de tu negocio."});
     }
+    // Also update the local form state
+    handleInputChange('businessInfo', 'logoURL', null);
   };
 
   const socialIcons: { [key: string]: React.ReactNode } = {
