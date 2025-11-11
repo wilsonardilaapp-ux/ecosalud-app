@@ -17,8 +17,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart, Pie, PieChart, Cell } from "recharts";
-import { Building, TestTube, Users, FileText, ShoppingCart, Loader2 } from "lucide-react";
+import { Building, TestTube, Users, FileText, ShoppingCart, Loader2, DollarSign } from "lucide-react";
 import type { User } from "@/models/user";
+import type { Order } from "@/models/order";
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+    }).format(value);
+};
 
 export default function AnalyticsPage() {
   const firestore = useFirestore();
@@ -28,21 +37,29 @@ export default function AnalyticsPage() {
   const landingPagesQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'landingPages'), [firestore]);
   const submissionsQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'contactSubmissions'), [firestore]);
   const productsQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'products'), [firestore]);
+  const ordersQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'orders'), [firestore]);
 
   const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
   const { data: businesses, isLoading: businessesLoading } = useCollection(businessesQuery);
   const { data: landingPages, isLoading: pagesLoading } = useCollection(landingPagesQuery);
   const { data: submissions, isLoading: submissionsLoading } = useCollection(submissionsQuery);
   const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
+  const { data: orders, isLoading: ordersLoading } = useCollection<Order>(ordersQuery);
   
-  const isLoading = usersLoading || businessesLoading || pagesLoading || submissionsLoading || productsLoading;
+  const isLoading = usersLoading || businessesLoading || pagesLoading || submissionsLoading || productsLoading || ordersLoading;
+
+  const totalSales = useMemoFirebase(() => {
+    if (!orders) return 0;
+    return orders.reduce((acc, order) => acc + order.subtotal, 0);
+  }, [orders]);
 
   const kpiData = [
       { title: "Empresas Registradas", value: businesses?.length.toString() ?? "0", icon: Building, change: "+15.2%", period: "el último mes" },
-      { title: "Landing Pages Activas", value: landingPages?.length.toString() ?? "0", icon: TestTube, change: "+8.9%", period: "esta semana" },
+      { title: "Landing Pages", value: landingPages?.length.toString() ?? "0", icon: TestTube, change: "+8.9%", period: "esta semana" },
       { title: "Envíos de Formularios", value: submissions?.length.toString() ?? "0", icon: FileText, change: "+112", period: "hoy" },
       { title: "Productos en Catálogo", value: products?.length.toString() ?? "0", icon: ShoppingCart, change: "+0", period: "esta semana" },
       { title: "Nuevos Usuarios", value: users?.length.toString() ?? "0", icon: Users, change: "+22.5%", period: "el último mes" },
+      { title: "Ventas Totales", value: formatCurrency(totalSales), icon: DollarSign, change: "+12%", period: "el último mes" },
   ];
 
   // --- Chart Data Processing ---
@@ -81,7 +98,17 @@ export default function AnalyticsPage() {
     return Object.entries(roleCounts).map(([name, value]) => ({ name, value }));
   }, [users]);
 
-  const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))"];
+  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"];
+  
+  const chartConfig = {
+      count: {
+        label: "Total",
+        color: "hsl(var(--chart-1))",
+      },
+      value: {
+        label: "Usuarios",
+      }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,7 +121,7 @@ export default function AnalyticsPage() {
             </CardHeader>
         </Card>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {kpiData.map(kpi => (
                 <Card key={kpi.title}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -133,7 +160,7 @@ export default function AnalyticsPage() {
                         <TabsTrigger value="user-roles">Distribución de Roles</TabsTrigger>
                     </TabsList>
                     <TabsContent value="user-growth">
-                        <ChartContainer config={{ count: { label: "Usuarios" } }} className="h-[300px] w-full">
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
                             <LineChart data={userGrowthData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                                 <CartesianGrid vertical={false} />
                                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
@@ -144,7 +171,7 @@ export default function AnalyticsPage() {
                         </ChartContainer>
                     </TabsContent>
                     <TabsContent value="content-overview">
-                        <ChartContainer config={{ count: { label: "Total" } }} className="h-[300px] w-full">
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
                             <BarChart data={contentOverviewData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                                 <CartesianGrid vertical={false} />
                                 <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
@@ -155,7 +182,7 @@ export default function AnalyticsPage() {
                         </ChartContainer>
                     </TabsContent>
                     <TabsContent value="user-roles" className="flex justify-center">
-                        <ChartContainer config={{ value: { label: "Usuarios" } }} className="h-[300px] w-full">
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
                             <PieChart>
                                 <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
                                 <Pie data={userRolesData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
