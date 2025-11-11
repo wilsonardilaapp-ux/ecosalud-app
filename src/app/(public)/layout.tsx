@@ -4,9 +4,9 @@ import Footer from "@/components/layout/footer";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen">
       <Header />
-      <main className="flex-grow">{children}</main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
       <Footer />
     </div>
   );

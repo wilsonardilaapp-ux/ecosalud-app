@@ -392,7 +392,7 @@ export default function CatalogPage() {
     }
     
     return (
-        <div id="catalog-page-root" className="bg-muted/40 min-h-screen">
+        <div id="catalog-page-root" className="bg-muted/40">
             {headerConfig ? (
                 <CatalogHeader config={headerConfig} />
             ) : (
