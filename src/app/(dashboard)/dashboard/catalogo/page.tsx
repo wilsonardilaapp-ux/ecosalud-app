@@ -9,6 +9,7 @@ import type { Product } from '@/models/product';
 import ProductForm from '@/components/catalogo/product-form';
 import ProductCard from '@/components/catalogo/product-card';
 import ShareCatalog from '@/components/catalogo/share-catalog';
+import CatalogQRGenerator from '@/components/catalogo/catalog-qr-generator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
@@ -140,6 +141,9 @@ export default function CatalogoPage() {
     return (
         <div className="flex flex-col gap-6">
             <CatalogHeaderForm data={headerConfig ?? initialHeaderConfig} setData={handleSaveHeader} />
+            
+            <CatalogQRGenerator />
+
             <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
                     <div>
