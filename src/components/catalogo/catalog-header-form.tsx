@@ -55,20 +55,17 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   };
   
   const handleSave = () => {
-    // This function now correctly saves both the header config and updates the business logo.
     if (firestore && user) {
-        // 1. Save the entire header configuration to its document
         const headerConfigDocRef = doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
         setDocumentNonBlocking(headerConfigDocRef, data, { merge: true });
 
-        // 2. Explicitly update the logoURL in the main business document
         const businessDocRef = doc(firestore, 'businesses', user.uid);
         if (data.businessInfo.logoURL) {
             setDocumentNonBlocking(businessDocRef, { logoURL: data.businessInfo.logoURL }, { merge: true });
         }
     }
     toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
-};
+  };
   
   const MediaUploader = ({
     mediaUrl,
@@ -161,6 +158,12 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     handleFileUpload(file, (mediaUrl, mediaType) => {
         if (mediaType === 'image') {
             handleInputChange('businessInfo', 'logoURL', mediaUrl);
+            // Fire-and-forget update to the main business document
+            if (firestore && user) {
+                const businessDocRef = doc(firestore, 'businesses', user.uid);
+                setDocumentNonBlocking(businessDocRef, { logoURL: mediaUrl }, { merge: true });
+                toast({ title: "Avatar Actualizado", description: "La imagen de tu perfil se ha guardado."});
+            }
         } else {
             toast({ variant: 'destructive', title: 'Error de formato', description: 'El logo debe ser una imagen.' });
         }
@@ -177,6 +180,15 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   const removeCarouselItemMedia = (id: string) => {
      const updatedItems = data.carouselItems.map(item => item.id === id ? {...item, mediaUrl: null, mediaType: null, slogan: ''} : item);
      setData({ ...data, carouselItems: updatedItems });
+  };
+  
+  const removeLogo = () => {
+    handleInputChange('businessInfo', 'logoURL', '');
+    if (firestore && user) {
+        const businessDocRef = doc(firestore, 'businesses', user.uid);
+        setDocumentNonBlocking(businessDocRef, { logoURL: '' }, { merge: true });
+        toast({ title: "Avatar Eliminado", description: "Se ha eliminado tu imagen de perfil."});
+    }
   };
 
   const socialIcons: { [key: string]: React.ReactNode } = {
@@ -279,7 +291,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                         mediaUrl={data.businessInfo.logoURL ?? null}
                         mediaType={data.businessInfo.logoURL ? 'image' : null}
                         onUpload={handleLogoUpload}
-                        onRemove={() => handleInputChange('businessInfo', 'logoURL', '')}
+                        onRemove={removeLogo}
                         aspectRatio="aspect-square"
                         dimensions="400x400px"
                         description="Logo/Avatar"
@@ -329,3 +341,5 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     </Card>
   );
 }
+
+    
