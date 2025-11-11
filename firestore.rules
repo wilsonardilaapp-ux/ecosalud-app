@@ -63,7 +63,7 @@ service cloud.firestore {
     * @description Defines the security rules for global configuration settings.
     */
     match /globalConfig/system {
-      allow get: if isSignedIn(); // Allow any signed in user to read config
+      allow get: if true; // Allow any user (authed or not) to read config
       allow list: if false;
       allow create, update, delete: if isSuperAdmin();
     }
@@ -73,7 +73,8 @@ service cloud.firestore {
      * Path-based ownership: only the user can read or write their own settings.
      */
     match /paymentSettings/{userId} {
-        allow read, write: if isOwner(userId);
+        allow read: if true;
+        allow write: if isOwner(userId);
     }
 
     /**
