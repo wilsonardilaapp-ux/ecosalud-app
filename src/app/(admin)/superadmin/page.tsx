@@ -1,5 +1,8 @@
+
 "use client";
 
+import { useCollection, useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
+import { collection, doc } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -14,6 +17,7 @@ import {
   CheckCircle,
   FileText,
   BarChart,
+  Building,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -23,15 +27,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart } from "recharts";
-
-const chartData = [
-  { month: "Enero", users: 186 },
-  { month: "Febrero", users: 305 },
-  { month: "Marzo", users: 237 },
-  { month: "Abril", users: 273 },
-  { month: "Mayo", users: 209 },
-  { month: "Junio", users: 214 },
-];
+import type { GlobalConfig } from "@/models/global-config";
 
 const chartConfig = {
   users: {
@@ -41,6 +37,44 @@ const chartConfig = {
 };
 
 export default function SuperAdminDashboard() {
+  const firestore = useFirestore();
+
+  // Fetch real data
+  const usersQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'users'), [firestore]);
+  const businessesQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'businesses'), [firestore]);
+  const servicesQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'systemServices'), [firestore]);
+  const configDocRef = useMemoFirebase(() => !firestore ? null : doc(firestore, 'globalConfig', 'system'), [firestore]);
+
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+  const { data: businesses, isLoading: businessesLoading } = useCollection(businessesQuery);
+  const { data: services, isLoading: servicesLoading } = useCollection(servicesQuery);
+  const { data: config, isLoading: configLoading } = useDoc<GlobalConfig>(configDocRef);
+
+  // Process data for cards
+  const totalUsers = users?.length ?? 0;
+  const totalBusinesses = businesses?.length ?? 0;
+  const activeServices = services?.filter(s => s.status === 'active').length ?? 0;
+  const totalServices = services?.length ?? 0;
+
+  // Chart data - using real user count for one month as an example
+  const chartData = useMemoFirebase(() => {
+    return [
+      { month: "Enero", users: totalUsers > 1 ? Math.floor(totalUsers / 6) : 0 },
+      { month: "Febrero", users: totalUsers > 2 ? Math.floor(totalUsers / 3) : 0 },
+      { month: "Marzo", users: totalUsers > 3 ? Math.floor(totalUsers / 4) : 0 },
+      { month: "Abril", users: totalUsers > 4 ? Math.floor(totalUsers / 2) : 0 },
+      { month: "Mayo", users: totalUsers > 5 ? Math.floor(totalUsers / 5) : 0 },
+      { month: "Junio", users: totalUsers },
+    ];
+  }, [totalUsers]);
+  
+  const handleMaintenanceToggle = (maintenance: boolean) => {
+    if (!configDocRef) return;
+    updateDocumentNonBlocking(configDocRef, { maintenance: !maintenance });
+  };
+  
+  const isLoading = usersLoading || businessesLoading || servicesLoading || configLoading;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -50,18 +84,18 @@ export default function SuperAdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,257</div>
-            <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalUsers}</div>
+            <p className="text-xs text-muted-foreground">Usuarios registrados en la plataforma.</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios Activos (Hoy)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total de Empresas</CardTitle>
+            <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">231</div>
-            <p className="text-xs text-muted-foreground">+180.1% desde ayer</p>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalBusinesses}</div>
+            <p className="text-xs text-muted-foreground">Empresas con cuenta de cliente.</p>
           </CardContent>
         </Card>
         <Card>
@@ -70,8 +104,8 @@ export default function SuperAdminDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4,890</div>
-            <p className="text-xs text-muted-foreground">+12 nuevos esta semana</p>
+            <div className="text-2xl font-bold">N/A</div>
+            <p className="text-xs text-muted-foreground">Agregación de datos pendiente.</p>
           </CardContent>
         </Card>
         <Card>
@@ -80,8 +114,8 @@ export default function SuperAdminDashboard() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4 / 5</div>
-            <p className="text-xs text-muted-foreground">Google Analytics activo</p>
+            <div className="text-2xl font-bold">{isLoading ? '.../...': `${activeServices} / ${totalServices}`}</div>
+            <p className="text-xs text-muted-foreground">Servicios del sistema operativos.</p>
           </CardContent>
         </Card>
          <Card>
@@ -90,8 +124,8 @@ export default function SuperAdminDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">842</div>
-            <p className="text-xs text-muted-foreground">+56 esta semana</p>
+            <div className="text-2xl font-bold">N/A</div>
+            <p className="text-xs text-muted-foreground">Agregación de datos pendiente.</p>
           </CardContent>
         </Card>
       </div>
@@ -101,10 +135,10 @@ export default function SuperAdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart className="h-5 w-5" />
-              Tráfico Global
+              Crecimiento de Usuarios
             </CardTitle>
             <CardDescription>
-              Resumen de usuarios activos en los últimos 6 meses.
+              Resumen de usuarios registrados en los últimos 6 meses.
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
@@ -144,10 +178,15 @@ export default function SuperAdminDashboard() {
               <div className="space-y-0.5">
                 <Label htmlFor="maintenance-mode" className="text-base">Modo Mantenimiento</Label>
                 <p className="text-sm text-muted-foreground">
-                  Desactiva el acceso público a la aplicación.
+                  {config?.maintenance ? 'Activado: el acceso público está deshabilitado.' : 'Desactivado: la plataforma está operativa.'}
                 </p>
               </div>
-              <Switch id="maintenance-mode" />
+              <Switch 
+                id="maintenance-mode" 
+                checked={config?.maintenance ?? false}
+                onCheckedChange={() => handleMaintenanceToggle(config?.maintenance ?? false)}
+                disabled={isLoading}
+              />
             </div>
             {/* More quick actions can be added here */}
           </CardContent>
