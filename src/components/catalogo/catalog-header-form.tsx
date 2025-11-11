@@ -66,6 +66,11 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     if (firestore && user) {
         const headerConfigDocRef = doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
         setDocumentNonBlocking(headerConfigDocRef, data, { merge: true });
+        
+        // Also update the main business name
+        if (businessDocRef && data.businessInfo.name !== business?.name) {
+            setDocumentNonBlocking(businessDocRef, { name: data.businessInfo.name }, { merge: true });
+        }
     }
     toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
   };
