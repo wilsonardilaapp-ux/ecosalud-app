@@ -158,7 +158,6 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     handleFileUpload(file, (mediaUrl, mediaType) => {
         if (mediaType === 'image') {
             handleInputChange('businessInfo', 'logoURL', mediaUrl);
-            // Fire-and-forget update to the main business document
             if (firestore && user) {
                 const businessDocRef = doc(firestore, 'businesses', user.uid);
                 setDocumentNonBlocking(businessDocRef, { logoURL: mediaUrl }, { merge: true });
@@ -183,10 +182,10 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   };
   
   const removeLogo = () => {
-    handleInputChange('businessInfo', 'logoURL', '');
+    handleInputChange('businessInfo', 'logoURL', null);
     if (firestore && user) {
         const businessDocRef = doc(firestore, 'businesses', user.uid);
-        setDocumentNonBlocking(businessDocRef, { logoURL: '' }, { merge: true });
+        setDocumentNonBlocking(businessDocRef, { logoURL: null }, { merge: true });
         toast({ title: "Avatar Eliminado", description: "Se ha eliminado tu imagen de perfil."});
     }
   };
@@ -341,5 +340,3 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     </Card>
   );
 }
-
-    

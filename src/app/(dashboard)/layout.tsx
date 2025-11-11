@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     {/* Use the business logo URL as the primary source, then fallback */}
-                    <AvatarImage src={business?.logoURL ?? user.photoURL ?? `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName ?? ""} />
+                    {business?.logoURL && <AvatarImage src={business.logoURL} alt={user.displayName ?? ""} />}
                     <AvatarFallback>{business?.name?.[0].toUpperCase() ?? user.email?.[0].toUpperCase() ?? 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="text-left">
