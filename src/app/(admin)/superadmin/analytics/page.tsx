@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, collectionGroup } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -9,24 +10,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Building, TestTube, Users, FileText, ShoppingCart } from "lucide-react";
+import { Building, TestTube, Users, FileText, ShoppingCart, Loader2 } from "lucide-react";
 
 export default function AnalyticsPage() {
   const firestore = useFirestore();
 
   const usersQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'users'), [firestore]);
   const businessesQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'businesses'), [firestore]);
-  // Nota: No podemos consultar eficientemente todos los productos de todos los negocios para análisis.
-  // Esta métrica se deja en 0 hasta que se implemente una estrategia de agregación.
+  const landingPagesQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'landingPages'), [firestore]);
+  const submissionsQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'contactSubmissions'), [firestore]);
+  const productsQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'products'), [firestore]);
 
-  const { data: users } = useCollection(usersQuery);
-  const { data: businesses } = useCollection(businessesQuery);
+  const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+  const { data: businesses, isLoading: businessesLoading } = useCollection(businessesQuery);
+  const { data: landingPages, isLoading: pagesLoading } = useCollection(landingPagesQuery);
+  const { data: submissions, isLoading: submissionsLoading } = useCollection(submissionsQuery);
+  const { data: products, isLoading: productsLoading } = useCollection(productsQuery);
   
+  const isLoading = usersLoading || businessesLoading || pagesLoading || submissionsLoading || productsLoading;
+
   const kpiData = [
       { title: "Empresas Registradas", value: businesses?.length.toString() ?? "0", icon: Building, change: "+15.2%", period: "el último mes" },
-      { title: "Landing Pages Activas", value: "289", icon: TestTube, change: "+8.9%", period: "esta semana" },
-      { title: "Envíos de Formularios", value: "1,204", icon: FileText, change: "+112", period: "hoy" },
-      { title: "Productos en Catálogo", value: "0", icon: ShoppingCart, change: "+0", period: "esta semana" },
+      { title: "Landing Pages Activas", value: landingPages?.length.toString() ?? "0", icon: TestTube, change: "+8.9%", period: "esta semana" },
+      { title: "Envíos de Formularios", value: submissions?.length.toString() ?? "0", icon: FileText, change: "+112", period: "hoy" },
+      { title: "Productos en Catálogo", value: products?.length.toString() ?? "0", icon: ShoppingCart, change: "+0", period: "esta semana" },
       { title: "Nuevos Usuarios", value: users?.length.toString() ?? "0", icon: Users, change: "+22.5%", period: "el último mes" },
   ];
 
@@ -49,8 +56,17 @@ export default function AnalyticsPage() {
                         <kpi.icon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{kpi.value}</div>
-                        <p className="text-xs text-muted-foreground">{kpi.change} {kpi.period}</p>
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                <span className="text-muted-foreground text-sm">...</span>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="text-2xl font-bold">{kpi.value}</div>
+                                <p className="text-xs text-muted-foreground">{kpi.change} {kpi.period}</p>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
             ))}
