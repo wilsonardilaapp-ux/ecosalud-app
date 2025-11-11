@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Button variant="ghost" className="justify-start w-full p-2 h-auto">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    {business?.logoURL && <AvatarImage src={business.logoURL} alt={user.displayName ?? ""} />}
+                    {business?.logoURL && <AvatarImage src={business.logoURL} alt={business.name} />}
                     <AvatarFallback>{business?.name?.[0].toUpperCase() ?? user.email?.[0].toUpperCase() ?? 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="text-left">
