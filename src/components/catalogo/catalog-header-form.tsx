@@ -58,7 +58,6 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     if (firestore && user) {
         const headerConfigDocRef = doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
         setDocumentNonBlocking(headerConfigDocRef, data, { merge: true });
-        // The business logo is saved directly on upload, so no need to save it here again
     }
     toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
   };
@@ -77,7 +76,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
     onUpload: (file: File) => void;
-    onRemove: () => void;
+    onRemove?: () => void; // Made optional
     aspectRatio?: string;
     uploadTrigger?: React.ReactNode;
     dimensions?: string;
@@ -108,10 +107,12 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <>
               {mediaType === 'image' && <Image src={mediaUrl} alt="Banner" layout="fill" className={isAvatar ? 'object-cover rounded-full' : 'object-cover rounded-md'} />}
               {mediaType === 'video' && <video src={mediaUrl} controls className="w-full h-full rounded-md" />}
-              <div className={`absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ${isAvatar ? 'justify-center items-center inset-0 bg-black/30 rounded-full' : ''}`}>
-                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
-              </div>
+              { onRemove && (
+                 <div className={`absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ${isAvatar ? 'justify-center items-center inset-0 bg-black/30 rounded-full' : ''}`}>
+                    <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              )}
             </>
           ) : (
             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -149,23 +150,6 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
         setData({ ...data, banner: { mediaUrl, mediaType } });
     });
   };
-
-  const handleLogoUpload = (file: File) => {
-    handleFileUpload(file, (mediaUrl, mediaType) => {
-        if (mediaType === 'image') {
-            // Update the business document directly and immediately
-            if (firestore && user) {
-                const businessDocRef = doc(firestore, 'businesses', user.uid);
-                setDocumentNonBlocking(businessDocRef, { logoURL: mediaUrl }, { merge: true });
-                toast({ title: "Logo del Negocio Actualizado", description: "El logo se ha guardado y se reflejará en la aplicación."});
-            }
-            // Also update the local form state for consistency
-            handleInputChange('businessInfo', 'logoURL', mediaUrl);
-        } else {
-            toast({ variant: 'destructive', title: 'Error de formato', description: 'El logo debe ser una imagen.' });
-        }
-    });
-  };
   
   const handleCarouselUpload = (id: string, file: File) => {
     handleFileUpload(file, (mediaUrl, mediaType) => {
@@ -179,17 +163,6 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
      setData({ ...data, carouselItems: updatedItems });
   };
   
-  const removeLogo = () => {
-    // Update the business document directly
-    if (firestore && user) {
-        const businessDocRef = doc(firestore, 'businesses', user.uid);
-        setDocumentNonBlocking(businessDocRef, { logoURL: null }, { merge: true });
-        toast({ title: "Logo Eliminado", description: "Se ha eliminado el logo de tu negocio."});
-    }
-    // Also update the local form state
-    handleInputChange('businessInfo', 'logoURL', null);
-  };
-
   const socialIcons: { [key: string]: React.ReactNode } = {
     tiktok: <TikTokIcon />,
     instagram: <InstagramIcon />,
@@ -286,16 +259,17 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1">
                      <Label>Logo del Negocio</Label>
-                      <MediaUploader
-                        mediaUrl={data.businessInfo.logoURL ?? null}
-                        mediaType={data.businessInfo.logoURL ? 'image' : null}
-                        onUpload={handleLogoUpload}
-                        onRemove={removeLogo}
-                        aspectRatio="aspect-square"
-                        dimensions="400x400px"
-                        description="Logo/Avatar"
-                        isAvatar={true}
-                    />
+                      <div className="relative aspect-square w-full max-w-[200px] mx-auto border-2 border-dashed rounded-full flex items-center justify-center p-1">
+                        {data.businessInfo.logoURL ? (
+                          <Image src={data.businessInfo.logoURL} alt="Logo del negocio" layout="fill" className="object-cover rounded-full" />
+                        ) : (
+                          <div className="text-center text-muted-foreground">
+                            <ImageIcon className="h-10 w-10 mx-auto" />
+                            <p className="text-sm mt-2">Sin logo</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground mt-2">Cambia el logo desde el menú de perfil en la barra lateral.</p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-min">
                      <div>
