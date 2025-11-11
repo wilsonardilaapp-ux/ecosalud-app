@@ -102,6 +102,7 @@ export type LandingHeaderConfigData = {
         address: string;
         phone: string;
         email?: string;
+        logoURL?: string; // Add logoURL here
     };
     socialLinks: {
         tiktok: string;

@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
-import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil } from "lucide-react";
+import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
 import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
+import { useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 
 interface CatalogHeaderFormProps {
@@ -22,6 +24,8 @@ interface CatalogHeaderFormProps {
 export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormProps) {
   const { toast } = useToast();
   const [initialData] = useState<LandingHeaderConfigData>(JSON.parse(JSON.stringify(data)));
+  const { user } = useUser();
+  const firestore = useFirestore();
   
   const handleInputChange = (section: keyof LandingHeaderConfigData, field: string, value: any) => {
     setData({
@@ -52,6 +56,11 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   
     const handleSave = () => {
         setData(data);
+        if (firestore && user) {
+            // Also update the business logo in the main business document
+            const businessDocRef = doc(firestore, 'businesses', user.uid);
+            setDocumentNonBlocking(businessDocRef, { logoURL: data.businessInfo.logoURL }, { merge: true });
+        }
         toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
     };
   
@@ -64,6 +73,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     uploadTrigger,
     dimensions,
     description,
+    isAvatar = false,
   }: {
     mediaUrl: string | null;
     mediaType: 'image' | 'video' | null;
@@ -73,6 +83,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     uploadTrigger?: React.ReactNode;
     dimensions?: string;
     description?: string;
+    isAvatar?: boolean;
   }) => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +99,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
 
     return (
       <div className="space-y-2">
-        <div className={`relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group ${aspectRatio}`}>
+        <div className={`relative w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center p-4 group ${aspectRatio} ${isAvatar ? 'rounded-full' : ''}`}>
           {isUploading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -96,17 +107,17 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             </div>
           ) : mediaUrl ? (
             <>
-              {mediaType === 'image' && <Image src={mediaUrl} alt="Banner" layout="fill" className="object-cover rounded-md" />}
+              {mediaType === 'image' && <Image src={mediaUrl} alt="Banner" layout="fill" className={isAvatar ? 'object-cover rounded-full' : 'object-cover rounded-md'} />}
               {mediaType === 'video' && <video src={mediaUrl} controls className="w-full h-full rounded-md" />}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className={`absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ${isAvatar ? 'justify-center items-center inset-0 bg-black/30 rounded-full' : ''}`}>
                 <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}><Pencil className="h-4 w-4" /></Button>
                 <Button variant="destructive" size="icon" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
               </div>
             </>
           ) : (
             <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
-              <p className="mt-2 font-semibold">Haz clic para subir una imagen o video</p>
+              { isAvatar ? <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground" /> : <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" /> }
+              <p className="mt-2 font-semibold">Haz clic para subir {isAvatar ? 'un logo' : 'una imagen o video'}</p>
               {dimensions && <p className="text-lg font-bold text-muted-foreground mt-2">{dimensions}</p>}
               {description && <p className="text-xs text-muted-foreground">{description}</p>}
             </div>
@@ -137,6 +148,16 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   const handleBannerUpload = (file: File) => {
     handleFileUpload(file, (mediaUrl, mediaType) => {
         setData({ ...data, banner: { mediaUrl, mediaType } });
+    });
+  };
+
+  const handleLogoUpload = (file: File) => {
+    handleFileUpload(file, (mediaUrl, mediaType) => {
+        if (mediaType === 'image') {
+            handleInputChange('businessInfo', 'logoURL', mediaUrl);
+        } else {
+            toast({ variant: 'destructive', title: 'Error de formato', description: 'El logo debe ser una imagen.' });
+        }
     });
   };
   
@@ -245,22 +266,37 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
         {/* Business Info Section */}
         <div className="space-y-4">
             <Label className="text-lg font-semibold">Información del Negocio</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label htmlFor="business-name">Nombre del Negocio</Label>
-                    <Input id="business-name" value={data.businessInfo.name} onChange={e => handleInputChange('businessInfo', 'name', e.target.value)} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                     <Label>Logo del Negocio</Label>
+                      <MediaUploader
+                        mediaUrl={data.businessInfo.logoURL ?? null}
+                        mediaType={data.businessInfo.logoURL ? 'image' : null}
+                        onUpload={handleLogoUpload}
+                        onRemove={() => handleInputChange('businessInfo', 'logoURL', '')}
+                        aspectRatio="aspect-square"
+                        dimensions="400x400px"
+                        description="Logo/Avatar"
+                        isAvatar={true}
+                    />
                 </div>
-                 <div>
-                    <Label htmlFor="business-phone">Teléfono / WhatsApp</Label>
-                    <Input id="business-phone" value={data.businessInfo.phone} onChange={e => handleInputChange('businessInfo', 'phone', e.target.value)} />
-                </div>
-                <div>
-                    <Label htmlFor="business-address">Dirección</Label>
-                    <Input id="business-address" value={data.businessInfo.address} onChange={e => handleInputChange('businessInfo', 'address', e.target.value)} />
-                </div>
-                 <div>
-                    <Label htmlFor="business-email">Correo Electrónico (opcional)</Label>
-                    <Input id="business-email" type="email" value={data.businessInfo.email} onChange={e => handleInputChange('businessInfo', 'email', e.target.value)} />
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-min">
+                     <div>
+                        <Label htmlFor="business-name">Nombre del Negocio</Label>
+                        <Input id="business-name" value={data.businessInfo.name} onChange={e => handleInputChange('businessInfo', 'name', e.target.value)} />
+                    </div>
+                    <div>
+                        <Label htmlFor="business-phone">Teléfono / WhatsApp</Label>
+                        <Input id="business-phone" value={data.businessInfo.phone} onChange={e => handleInputChange('businessInfo', 'phone', e.target.value)} />
+                    </div>
+                    <div className="sm:col-span-2">
+                        <Label htmlFor="business-address">Dirección</Label>
+                        <Input id="business-address" value={data.businessInfo.address} onChange={e => handleInputChange('businessInfo', 'address', e.target.value)} />
+                    </div>
+                    <div className="sm:col-span-2">
+                        <Label htmlFor="business-email">Correo Electrónico (opcional)</Label>
+                        <Input id="business-email" type="email" value={data.businessInfo.email} onChange={e => handleInputChange('businessInfo', 'email', e.target.value)} />
+                    </div>
                 </div>
             </div>
         </div>
