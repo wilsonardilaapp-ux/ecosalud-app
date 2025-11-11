@@ -6,4 +6,5 @@ export type GlobalConfig = {
     theme: string;
     supportEmail: string;
     defaultLimits: number;
+    allowUserRegistration: boolean; // Nuevo campo para controlar el registro
 };

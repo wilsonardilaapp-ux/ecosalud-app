@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,9 +25,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useUser, initiateEmailSignIn } from "@/firebase";
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, initiateEmailSignIn } from "@/firebase";
+import { doc } from 'firebase/firestore';
+import type { GlobalConfig } from "@/models/global-config";
 import { useEffect } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 
 const SUPER_ADMIN_EMAIL = "allseosoporte@gmail.com";
 
@@ -39,7 +43,15 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+
+  const configDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'globalConfig', 'system');
+  }, [firestore]);
+
+  const { data: config, isLoading: isConfigLoading } = useDoc<GlobalConfig>(configDocRef);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -77,11 +89,14 @@ export default function LoginPage() {
     }
   }
 
-  if (isUserLoading || user) {
+  const isLoading = isUserLoading || isConfigLoading;
+
+  if (isLoading || user) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <p>Cargando y verificando sesión...</p>
+        <div className="text-center flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando y verificando sesión...</p>
         </div>
       </div>
     );
@@ -129,18 +144,18 @@ export default function LoginPage() {
             <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Accediendo..." : "Acceder"}
             </Button>
-            <div className="text-sm text-muted-foreground">
-              ¿No tienes una cuenta?{" "}
-              <Link href="/register" className="underline text-primary hover:text-primary/80">
-                Regístrate aquí
-              </Link>
-              .
-            </div>
+            {config?.allowUserRegistration && (
+              <div className="text-sm text-muted-foreground">
+                ¿No tienes una cuenta?{" "}
+                <Link href="/register" className="underline text-primary hover:text-primary/80">
+                  Regístrate aquí
+                </Link>
+                .
+              </div>
+            )}
           </CardFooter>
         </form>
       </Form>
     </Card>
   );
 }
-
-    

@@ -56,9 +56,9 @@ export default function SettingsPage() {
     });
   };
 
-  const handleMaintenanceToggle = (maintenance: boolean) => {
+  const handleSwitchChange = (field: keyof GlobalConfig, value: boolean) => {
     if (!configDocRef) return;
-    updateDocumentNonBlocking(configDocRef, { maintenance: !maintenance });
+    updateDocumentNonBlocking(configDocRef, { [field]: value });
   };
   
   if (isLoading) {
@@ -67,37 +67,54 @@ export default function SettingsPage() {
 
   return (
     <div className="grid gap-6">
-        <Card>
-            <CardHeader>
-                <CardTitle>Configuración Global</CardTitle>
-                <CardDescription>Ajusta la configuración general de la plataforma EcoSalud.</CardDescription>
-            </CardHeader>
-        </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Modo Mantenimiento</CardTitle>
+          <CardTitle>Configuración Global</CardTitle>
+          <CardDescription>Ajusta la configuración general de la plataforma EcoSalud.</CardDescription>
+        </CardHeader>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Controles de Acceso y Registro</CardTitle>
           <CardDescription>
-            Activa este modo para deshabilitar temporalmente el acceso público a la plataforma.
+            Gestiona cómo los usuarios acceden y se registran en la plataforma.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 rounded-md border p-4">
+        <CardContent className="grid gap-6">
+          <div className="flex items-center justify-between space-x-4 rounded-md border p-4">
             <div className="flex-1 space-y-1">
               <p className="text-sm font-medium leading-none">
-                Mantenimiento
+                Modo Mantenimiento
               </p>
               <p className="text-sm text-muted-foreground">
-                {config?.maintenance ? 'El modo mantenimiento está activado.' : 'La plataforma está operativa.'}
+                {config?.maintenance ? 'Activado: El acceso público está deshabilitado.' : 'Desactivado: La plataforma está operativa.'}
               </p>
             </div>
             <Switch
               checked={config?.maintenance ?? false}
-              onCheckedChange={() => handleMaintenanceToggle(config?.maintenance ?? false)}
+              onCheckedChange={(checked) => handleSwitchChange('maintenance', checked)}
+              aria-readonly
+            />
+          </div>
+          <div className="flex items-center justify-between space-x-4 rounded-md border p-4">
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-medium leading-none">
+                Habilitar Registro de Nuevos Usuarios
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {config?.allowUserRegistration ? 'Activado: Los nuevos usuarios pueden registrarse.' : 'Desactivado: El registro está cerrado.'}
+              </p>
+            </div>
+            <Switch
+              checked={config?.allowUserRegistration ?? false}
+              onCheckedChange={(checked) => handleSwitchChange('allowUserRegistration', checked)}
               aria-readonly
             />
           </div>
         </CardContent>
       </Card>
+      
       <Card>
         <CardHeader>
           <CardTitle>Ajustes Generales</CardTitle>
