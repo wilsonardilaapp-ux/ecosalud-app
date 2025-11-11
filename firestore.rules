@@ -101,7 +101,8 @@ service cloud.firestore {
          * Only the business owner can read, list, and write to these collections.
          */
         match /products/{productId} {
-           allow get, write: if isBusinessOwner(businessId);
+           allow get: if true;
+           allow write: if isBusinessOwner(businessId);
            allow list: if isBusinessOwner(businessId) || isSuperAdmin();
         }
 
@@ -137,6 +138,9 @@ service cloud.firestore {
       allow list: if isSuperAdmin();
     }
      match /{path=**}/contactSubmissions/{submissionId} {
+      allow list: if isSuperAdmin();
+    }
+     match /{path=**}/orders/{orderId} {
       allow list: if isSuperAdmin();
     }
   }
