@@ -128,5 +128,16 @@ service cloud.firestore {
            allow read, list, write: if isBusinessOwner(businessId);
         }
     }
+
+    // Rules for Collection Group Queries needed for Super Admin Analytics
+    match /{path=**}/products/{productId} {
+      allow list: if isSuperAdmin();
+    }
+     match /{path=**}/landingPages/{pageId} {
+      allow list: if isSuperAdmin();
+    }
+     match /{path=**}/contactSubmissions/{submissionId} {
+      allow list: if isSuperAdmin();
+    }
   }
 }
