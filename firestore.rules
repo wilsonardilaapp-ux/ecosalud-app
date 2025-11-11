@@ -63,7 +63,7 @@ service cloud.firestore {
     * @description Defines the security rules for global configuration settings.
     */
     match /globalConfig/system {
-      allow get: if true; // Allow any user (authed or not) to read config
+      allow get: if true;
       allow list: if false;
       allow create, update, delete: if isSuperAdmin();
     }
@@ -122,8 +122,9 @@ service cloud.firestore {
         }
 
         match /contactSubmissions/{submissionId} {
-            allow read, write: if isBusinessOwner(businessId);
-            allow list: if isBusinessOwner(businessId) || isSuperAdmin();
+            allow create: if true;
+            allow read, list, delete: if isBusinessOwner(businessId);
+            allow update: if false;
         }
 
         match /orders/{orderId} {
