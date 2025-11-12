@@ -134,12 +134,12 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Realizar Pedido</DialogTitle>
           <DialogDescription>Completa el formulario para enviar tu pedido y consulta las opciones de pago.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-grow overflow-y-auto pr-2">
           <div className="grid md:grid-cols-2 gap-8 py-4">
             {/* Columna del Formulario */}
             <div className="space-y-4">
@@ -230,7 +230,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
               )}
             </div>
           </div>
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 sticky bottom-0 bg-background pb-4">
              <Button type="submit" className="w-full md:w-auto" disabled={isSubmitting}>
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 {isSubmitting ? 'Enviando Pedido...' : 'Confirmar y Enviar Pedido'}

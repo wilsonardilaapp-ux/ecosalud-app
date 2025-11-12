@@ -214,8 +214,8 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-4xl p-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2">
+                <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
                         {/* Galería de Imágenes (columna izquierda) */}
                          <div className="p-4 md:p-6 flex flex-col-reverse sm:flex-row gap-4">
                             {/* Miniaturas */}
