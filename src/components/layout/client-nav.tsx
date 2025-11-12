@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -12,7 +11,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -25,6 +24,11 @@ const navItems = [
 
 export function ClientNav() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
 
   return (
     <SidebarMenu>
@@ -34,6 +38,7 @@ export function ClientNav() {
             asChild
             isActive={pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard")}
             tooltip={item.label}
+            onClick={handleLinkClick}
           >
             <Link href={item.href}>
               <item.icon />
@@ -45,5 +50,3 @@ export function ClientNav() {
     </SidebarMenu>
   );
 }
-
-    
