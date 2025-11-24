@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Building2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/models/product';
@@ -44,8 +44,8 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
   const { toast } = useToast();
   const firestore = useFirestore();
   
-  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.pagoContraEntrega?.enabled);
-  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : "pagoContraEntrega";
+  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.breB?.enabled || paymentSettings.pagoContraEntrega?.enabled);
+  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : paymentSettings?.breB?.enabled ? "breB" : "pagoContraEntrega";
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(defaultTab);
 
@@ -68,6 +68,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
           nequi: 'Nequi',
           bancolombia: 'Bancolombia',
           daviplata: 'Daviplata',
+          breB: 'Bre-B',
           pagoContraEntrega: 'Pago Contra Entrega'
       };
       const paymentMethodText = paymentMethodLabels[selectedPaymentMethod] || 'No especificado';
@@ -181,10 +182,11 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
               <h3 className="font-semibold text-lg">2. Realiza el pago</h3>
               {hasPaymentMethods ? (
                 <Tabs defaultValue={defaultTab} value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     {paymentSettings?.nequi?.enabled && <TabsTrigger value="nequi">Nequi</TabsTrigger>}
                     {paymentSettings?.bancolombia?.enabled && <TabsTrigger value="bancolombia">Bancolombia</TabsTrigger>}
                     {paymentSettings?.daviplata?.enabled && <TabsTrigger value="daviplata">Daviplata</TabsTrigger>}
+                    {paymentSettings?.breB?.enabled && <TabsTrigger value="breB">Bre-B</TabsTrigger>}
                     {paymentSettings?.pagoContraEntrega?.enabled && <TabsTrigger value="pagoContraEntrega">Contra Entrega</TabsTrigger>}
                   </TabsList>
                   {paymentSettings?.nequi?.enabled && (
@@ -216,6 +218,14 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
                               onCopy={copyToClipboard}
                           />
                       </TabsContent>
+                  )}
+                  {paymentSettings?.breB?.enabled && (
+                    <TabsContent value="breB">
+                        <BreBPaymentTabContent
+                            data={paymentSettings.breB}
+                            onCopy={copyToClipboard}
+                        />
+                    </TabsContent>
                   )}
                   {paymentSettings?.pagoContraEntrega?.enabled && (
                     <TabsContent value="pagoContraEntrega">
@@ -256,5 +266,37 @@ const PaymentTabContent = ({methodName, accountNumber, qrImageUrl, onCopy }: { m
                 <Button variant="outline" size="sm" onClick={() => onCopy(accountNumber)}>Copiar número</Button>
             </div>
         )}
+    </div>
+);
+
+const BreBPaymentTabContent = ({ data, onCopy }: { data: PaymentSettings['breB'], onCopy: (text: string) => void }) => (
+    <div className="mt-4 space-y-4 text-center p-4 border rounded-lg">
+        <p className="text-sm text-muted-foreground">Usa el código QR o los datos de la llave para pagar con Bre-B.</p>
+        
+        {data.qrImageUrl && (
+            <div className="relative aspect-square w-48 mx-auto">
+                <Image src={data.qrImageUrl} alt="QR Bre-B" layout="fill" className="rounded-md object-contain" />
+            </div>
+        )}
+        
+        <div className="space-y-2 text-left bg-muted/50 p-3 rounded-md">
+            <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Titular:</span>
+                <span className="text-sm">{data.holderName}</span>
+            </div>
+            <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Llave ({data.keyType}):</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{data.keyValue}</span>
+                    <Button variant="outline" size="sm" onClick={() => onCopy(data.keyValue)}>Copiar</Button>
+                </div>
+            </div>
+             {data.commerceCode && (
+                <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Cód. Comercio:</span>
+                    <span className="text-sm">{data.commerceCode}</span>
+                </div>
+             )}
+        </div>
     </div>
 );
