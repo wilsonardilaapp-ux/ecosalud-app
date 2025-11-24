@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -48,7 +49,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                     {config.banner.mediaType === 'image' ? (
                         <Image src={config.banner.mediaUrl} alt="Banner" fill className="object-cover"/>
                     ) : (
-                        <video src={config.banner.mediaUrl} autoPlay loop muted className="w-full h-full object-cover" />
+                        <video src={config.banner.mediaUrl} autoPlay loop muted controls className="w-full h-full object-cover" />
                     )}
                 </div>
             )}
@@ -96,7 +97,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                                     {item.mediaType === 'image' ? (
                                         <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
                                     ) : (
-                                        <video src={item.mediaUrl} autoPlay loop muted className="w-full h-full object-cover"/>
+                                        <video src={item.mediaUrl} autoPlay loop muted controls className="w-full h-full object-cover"/>
                                     )}
                                     {item.slogan && (
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -444,3 +445,5 @@ export default function CatalogPage() {
         </div>
     );
 }
+
+    
