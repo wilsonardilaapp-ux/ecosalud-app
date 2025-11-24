@@ -241,22 +241,33 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                          <div className="p-4 md:p-6 flex flex-col-reverse sm:flex-row gap-4">
                             {/* Miniaturas */}
                             <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto pr-2 -mr-2 sm:pr-0 sm:mr-0">
-                                {product.images.map((img, index) => (
-                                    <button 
-                                        key={index} 
-                                        onClick={() => setMainImage(img)} 
-                                        className={cn(
-                                            "relative aspect-square w-16 sm:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
-                                            mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
-                                        )}
-                                    >
-                                        <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
-                                    </button>
-                                ))}
+                                {product.images.map((img, index) => {
+                                    const isThumbVideo = isVideo(img);
+                                    return (
+                                        <button 
+                                            key={index} 
+                                            onClick={() => setMainImage(img)} 
+                                            className={cn(
+                                                "relative aspect-square w-16 sm:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                                mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
+                                            )}
+                                        >
+                                            {isThumbVideo ? (
+                                                <video src={img} muted className="object-cover w-full h-full"/>
+                                            ) : (
+                                                <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             {/* Imagen Principal */}
                             <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
-                                 <Image src={mainImage} alt={product.name} fill className="object-cover"/>
+                                 {isVideo(mainImage) ? (
+                                    <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
+                                 ) : (
+                                    <Image src={mainImage} alt={product.name} fill className="object-cover"/>
+                                 )}
                             </div>
                         </div>
                         {/* Detalles del Producto (columna derecha) */}
@@ -265,7 +276,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                                 <Badge className="w-fit mb-2">{product.category}</Badge>
                                 <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
                             </DialogHeader>
-                            <div className="flex-grow space-y-4">
+                            <div className="flex-grow space-y-4 overflow-y-auto pr-2">
                                 <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
                                 <p><span className="font-semibold">Disponibles:</span> {product.stock} unidades</p>
                                 <div className="flex flex-col gap-2">
@@ -413,7 +424,7 @@ export default function CatalogPage() {
     }
     
     return (
-        <div id="catalog-page-root" className="bg-muted/40 min-h-screen">
+        <div id="catalog-page-root" className="bg-muted/40">
             {headerConfig ? (
                 <CatalogHeader config={headerConfig} />
             ) : (
