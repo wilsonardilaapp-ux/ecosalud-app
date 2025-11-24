@@ -129,7 +129,7 @@ const PublicProductCard = ({ product, onOpenModal }: { product: Product, onOpenM
     return (
         <Card className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg h-full">
             <CardHeader className="p-0">
-                <div className="relative aspect-[4/3] w-full">
+                <div className="relative aspect-video w-full">
                     <Image
                         src={product.images[0] || 'https://picsum.photos/seed/placeholder/600/400'}
                         alt={product.name}

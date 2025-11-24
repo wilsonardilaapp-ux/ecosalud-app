@@ -93,7 +93,7 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
                     sub.mediaType === 'image' ? (
                       <Image src={sub.imageUrl} alt={sub.title} fill className="object-cover" />
                     ) : (
-                      <video src={sub.imageUrl} autoPlay loop muted className="w-full h-full object-cover" />
+                      <video src={sub.imageUrl} autoPlay loop muted controls className="w-full h-full object-cover" />
                     )
                   )}
                 </div>

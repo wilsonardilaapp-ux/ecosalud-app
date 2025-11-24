@@ -87,8 +87,9 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 const newImageUrls = [...imageUrls];
                 newImageUrls[index] = result.secure_url;
                 setImageUrls(newImageUrls);
-                toast({ title: "Imagen subida", description: "La imagen ha sido cargada a Cloudinary." });
-            } catch (error: any) {
+                toast({ title: "Archivo subido", description: "El archivo ha sido cargado a Cloudinary." });
+            } catch (error: any)
+{
                 toast({ variant: 'destructive', title: "Error al subir", description: error.message });
             } finally {
                 setIsUploading(null);
@@ -110,7 +111,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 
                 {/* Columna Izquierda: Imágenes */}
                 <div className="space-y-2">
-                    <Label>Imágenes del Producto (Principal primero, hasta 5)</Label>
+                    <Label>Imágenes/Videos del Producto (Principal primero, hasta 5)</Label>
                     <div className="flex gap-2">
                         {/* Columna de miniaturas */}
                         <div className="flex flex-col gap-2">
@@ -142,7 +143,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                                 type="file" 
                                                 className="hidden" 
                                                 onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], imageIndex)} 
-                                                accept="image/*" 
+                                                accept="image/*,video/*" 
                                             />
                                         </label>
                                     )}
@@ -151,7 +152,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                         </div>
                         
                         {/* Imagen Principal */}
-                        <div className="flex-1 relative aspect-[4/3] w-full">
+                        <div className="flex-1 relative aspect-video w-full">
                              {isUploading === 0 ? (
                                 <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
                                     <Loader2 className="h-8 w-8 animate-spin" />
@@ -172,13 +173,14 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                             ) : (
                                 <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed rounded-md cursor-pointer hover:bg-muted p-4">
                                     <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                    <span className="text-sm text-center font-semibold text-muted-foreground mt-2">Imagen Principal</span>
-                                    <span className="text-xs text-center text-muted-foreground mt-1">1200x900px (4:3)</span>
+                                    <span className="text-sm text-center font-semibold text-muted-foreground mt-2">Haz clic para subir una imagen o video</span>
+                                    <span className="text-xs text-center text-muted-foreground mt-1">1280 × 720 px (720p)</span>
+                                    <span className="text-xs text-center text-muted-foreground mt-1">Formato 16:9 (Carrusel)</span>
                                     <Input 
                                         type="file" 
                                         className="hidden" 
                                         onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], 0)} 
-                                        accept="image/*" 
+                                        accept="image/*,video/*"
                                     />
                                 </label>
                             )}

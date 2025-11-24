@@ -217,7 +217,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
         {/* Carousel Section */}
         <div className="space-y-4">
             <Label className="text-lg font-semibold">Imágenes del Carrusel</Label>
-            <p className="text-sm text-muted-foreground">Sube aquí las imágenes que se mostrarán en el carrusel de tu catálogo (máximo 3).</p>
+            <p className="text-sm text-muted-foreground">Sube aquí las imágenes o videos que se mostrarán en el carrusel de tu catálogo (máximo 3).</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {data.carouselItems.map((item, index) => {
                     const replaceInputRef = useRef<HTMLInputElement>(null);
