@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShoppingBag, Building2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsTrigger } from '@/components/ui/tabs';
+import { ShoppingBag, Building2, HandCoins } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/models/product';
@@ -18,6 +18,9 @@ import type { PaymentSettings } from '@/models/payment-settings';
 import type { Order } from '@/models/order';
 import { useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
+import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
+
 
 const purchaseSchema = z.object({
   fullName: z.string().min(3, { message: 'El nombre es requerido.' }),
@@ -40,12 +43,27 @@ interface PurchaseModalProps {
   paymentSettings: PaymentSettings | null;
 }
 
+const paymentMethodsConfig = {
+    nequi: { label: "Nequi", icon: "/iconos/nequi.png" },
+    bancolombia: { label: "Bancolombia", icon: "/iconos/bancolombia.png" },
+    daviplata: { label: "Daviplata", icon: "/iconos/daviplata.png" },
+    breB: { label: "Bre-B", icon: <Building2 className="h-6 w-6" /> },
+    pagoContraEntrega: { label: "Contra Entrega", icon: <HandCoins className="h-6 w-6" /> },
+};
+
 export function PurchaseModal({ isOpen, onOpenChange, product, businessId, businessPhone, paymentSettings }: PurchaseModalProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   
-  const hasPaymentMethods = paymentSettings && (paymentSettings.nequi?.enabled || paymentSettings.bancolombia?.enabled || paymentSettings.daviplata?.enabled || paymentSettings.breB?.enabled || paymentSettings.pagoContraEntrega?.enabled);
-  const defaultTab = paymentSettings?.nequi?.enabled ? "nequi" : paymentSettings?.bancolombia?.enabled ? "bancolombia" : paymentSettings?.daviplata?.enabled ? "daviplata" : paymentSettings?.breB?.enabled ? "breB" : "pagoContraEntrega";
+  const availableMethods = Object.entries(paymentMethodsConfig)
+        .map(([key, config]) => ({
+            key,
+            ...config,
+            enabled: paymentSettings?.[key as keyof PaymentSettings]?.enabled ?? false
+        }))
+        .filter(method => method.enabled);
+
+  const defaultTab = availableMethods.length > 0 ? availableMethods[0].key : "";
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(defaultTab);
 
@@ -180,15 +198,30 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
             {/* Columna de Pagos */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">2. Realiza el pago</h3>
-              {hasPaymentMethods ? (
+              {availableMethods.length > 0 ? (
                 <Tabs defaultValue={defaultTab} value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    {paymentSettings?.nequi?.enabled && <TabsTrigger value="nequi">Nequi</TabsTrigger>}
-                    {paymentSettings?.bancolombia?.enabled && <TabsTrigger value="bancolombia">Bancolombia</TabsTrigger>}
-                    {paymentSettings?.daviplata?.enabled && <TabsTrigger value="daviplata">Daviplata</TabsTrigger>}
-                    {paymentSettings?.breB?.enabled && <TabsTrigger value="breB">Bre-B</TabsTrigger>}
-                    {paymentSettings?.pagoContraEntrega?.enabled && <TabsTrigger value="pagoContraEntrega">Contra Entrega</TabsTrigger>}
-                  </TabsList>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {availableMethods.map((method) => (
+                      <TabsTrigger
+                        key={method.key}
+                        value={method.key}
+                        className={cn(
+                            "flex flex-col items-center justify-center gap-2 p-4 h-auto border rounded-lg transition-colors",
+                            selectedPaymentMethod === method.key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-foreground hover:bg-accent"
+                        )}
+                      >
+                         {typeof method.icon === 'string' ? (
+                            <Image src={method.icon} alt={method.label} width={24} height={24} className="object-contain" />
+                         ) : (
+                            method.icon
+                         )}
+                        <span className="text-sm font-medium">{method.label}</span>
+                      </TabsTrigger>
+                    ))}
+                  </div>
+                  
                   {paymentSettings?.nequi?.enabled && (
                       <TabsContent value="nequi">
                           <PaymentTabContent
