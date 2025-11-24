@@ -10,6 +10,14 @@ interface ProductCardProps {
     children?: React.ReactNode;
 }
 
+// Helper to check if a URL is for a video file
+const isVideo = (url: string) => {
+    if (!url) return false;
+    const videoExtensions = ['.mp4', '.webm', '.ogg'];
+    return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+};
+
+
 export default function ProductCard({ product, children }: ProductCardProps) {
 
     const formatCurrency = (value: number) => {
@@ -20,16 +28,29 @@ export default function ProductCard({ product, children }: ProductCardProps) {
         }).format(value);
     };
 
+    const mediaUrl = product.images[0] || 'https://picsum.photos/seed/placeholder/600/400';
+    const isMediaVideo = isVideo(mediaUrl);
+
     return (
         <Card className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
             <CardHeader className="p-0">
-                <div className="relative aspect-[4/3] w-full">
-                    <Image
-                        src={product.images[0] || 'https://picsum.photos/seed/placeholder/600/400'}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                    />
+                <div className="relative aspect-video w-full">
+                    {isMediaVideo ? (
+                        <video
+                            src={mediaUrl}
+                            autoPlay
+                            loop
+                            muted
+                            className="object-cover w-full h-full"
+                        />
+                    ) : (
+                        <Image
+                            src={mediaUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                        />
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="p-4 flex-grow">
