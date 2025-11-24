@@ -14,10 +14,11 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save, HandCoins } from "lucide-react";
+import { Save, HandCoins, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { PaymentSettings } from "@/models/payment-settings";
+import type { PaymentSettings, BreBKeyType } from "@/models/payment-settings";
 import { QRForm } from "@/components/pagos/qr-form";
+import BreBForm from "@/components/pagos/breb-form";
 import Image from "next/image";
 
 const initialSettings: PaymentSettings = {
@@ -41,6 +42,14 @@ const initialSettings: PaymentSettings = {
     qrImageUrl: null,
     accountNumber: "",
     holderName: "",
+  },
+  breB: {
+    enabled: false,
+    holderName: "",
+    keyType: "Celular",
+    keyValue: "",
+    commerceCode: "",
+    qrImageUrl: null,
   },
   pagoContraEntrega: {
     enabled: false,
@@ -80,7 +89,7 @@ export default function PagosPage() {
     }
 }, [savedSettings, user]);
 
-  const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata" | "pagoContraEntrega", enabled: boolean) => {
+  const handleEnabledChange = (method: "nequi" | "bancolombia" | "daviplata" | "breB" | "pagoContraEntrega", enabled: boolean) => {
     setSettings((prev) => ({
       ...prev,
       [method]: { ...prev[method], enabled },
@@ -177,6 +186,20 @@ export default function PagosPage() {
                     onClick={(e) => e.stopPropagation()}
                   />
                 </Label>
+
+                {/* Bre-B Option */}
+                <Label htmlFor="breB" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
+                   <div className="flex items-center gap-3">
+                    <RadioGroupItem value="breB" id="breB" />
+                    <Building className="h-6 w-6 text-muted-foreground" />
+                    <span className="font-medium">Paga con Bre-B</span>
+                  </div>
+                  <Switch
+                    checked={settings.breB.enabled}
+                    onCheckedChange={(checked) => handleEnabledChange("breB", checked)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Label>
                 
                 {/* Pago Contra Entrega */}
                 <Label htmlFor="pagoContraEntrega" className="flex items-center justify-between rounded-lg border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary">
@@ -220,6 +243,12 @@ export default function PagosPage() {
                     data={settings.daviplata}
                     setData={(formData) => setSettings(prev => ({...prev, daviplata: formData}))}
                     accountLabel="Número de Teléfono"
+                />
+            )}
+            {selectedMethod === 'breB' && (
+                <BreBForm
+                    data={settings.breB}
+                    setData={(formData) => setSettings(prev => ({...prev, breB: formData}))}
                 />
             )}
             {selectedMethod === 'pagoContraEntrega' && (
