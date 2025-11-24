@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsTrigger, TabsList } from '@/components/ui/tabs';
 import { ShoppingBag, Building2, HandCoins } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -200,16 +200,14 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
               <h3 className="font-semibold text-lg">2. Realiza el pago</h3>
               {availableMethods.length > 0 ? (
                 <Tabs defaultValue={defaultTab} value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="w-full">
-                  <div className="grid grid-cols-2 gap-3 mb-4">
+                  <TabsList className="grid grid-cols-2 gap-3 mb-4 h-auto bg-transparent p-0">
                     {availableMethods.map((method) => (
                       <TabsTrigger
                         key={method.key}
                         value={method.key}
                         className={cn(
-                            "flex flex-col items-center justify-center gap-2 p-4 h-auto border rounded-lg transition-colors",
-                            selectedPaymentMethod === method.key
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-foreground hover:bg-accent"
+                          "flex flex-col items-center justify-center gap-2 p-4 h-auto border rounded-lg transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary",
+                          "bg-background text-foreground hover:bg-accent"
                         )}
                       >
                          {typeof method.icon === 'string' ? (
@@ -220,7 +218,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
                         <span className="text-sm font-medium">{method.label}</span>
                       </TabsTrigger>
                     ))}
-                  </div>
+                  </TabsList>
                   
                   {paymentSettings?.nequi?.enabled && (
                       <TabsContent value="nequi">
