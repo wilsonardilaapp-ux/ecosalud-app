@@ -35,12 +35,17 @@ interface ProductFormProps {
     onCancel: () => void;
 }
 
+type MediaItem = {
+    url: string;
+    type: 'image' | 'video';
+};
+
 export default function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     const { register, handleSubmit, control, reset, formState: { errors } } = useForm<z.infer<typeof productSchema>>({
         resolver: zodResolver(productSchema),
     });
 
-    const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [mediaItems, setMediaItems] = useState<Array<MediaItem | null>>([]);
     const [isUploading, setIsUploading] = useState<number | null>(null);
     const { toast } = useToast();
 
@@ -53,7 +58,9 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 category: product.category,
                 description: product.description,
             });
-            setImageUrls(product.images || []);
+            // Asumimos que las imágenes viejas son 'image'. Si se necesita soportar videos viejos,
+            // se necesitaría un campo 'mediaType' en el modelo Product.
+            setMediaItems(product.images.map(url => (url ? { url, type: 'image' } : null)));
         } else {
             reset({
                 name: '',
@@ -62,21 +69,21 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 category: '',
                 description: '',
             });
-            setImageUrls([]);
+            setMediaItems([]);
         }
     }, [product, reset]);
     
     const onSubmit = (data: z.infer<typeof productSchema>) => {
         const productData: Omit<Product, 'id' | 'businessId'> = {
             ...data,
-            images: imageUrls.filter(url => url), // Filtra los slots vacíos
+            images: mediaItems.filter(item => item).map(item => item!.url), // Guardamos solo las URLs
             rating: product?.rating || 0,
             ratingCount: product?.ratingCount || 0,
         };
         onSave(productData);
     };
 
-    const handleImageUpload = async (file: File, index: number) => {
+    const handleMediaUpload = async (file: File, index: number) => {
         setIsUploading(index);
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -84,10 +91,13 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
             const mediaDataUri = reader.result as string;
             try {
                 const result = await uploadMedia({ mediaDataUri });
-                const newImageUrls = [...imageUrls];
-                newImageUrls[index] = result.secure_url;
-                setImageUrls(newImageUrls);
-                toast({ title: "Archivo subido", description: "El archivo ha sido cargado a Cloudinary." });
+                const mediaType = file.type.startsWith('image') ? 'image' : 'video';
+                
+                const newMediaItems = [...mediaItems];
+                newMediaItems[index] = { url: result.secure_url, type: mediaType };
+                setMediaItems(newMediaItems);
+
+                toast({ title: "Archivo subido", description: "El medio ha sido cargado a Cloudinary." });
             } catch (error: any)
 {
                 toast({ variant: 'destructive', title: "Error al subir", description: error.message });
@@ -97,41 +107,47 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
         };
     };
     
-    const removeImage = (index: number) => {
-        const newImageUrls = [...imageUrls];
-        // Al eliminar, simplemente dejamos un slot vacío para no cambiar los índices de las demás
-        // Esto previene que las imágenes "salten" a una nueva posición.
-        newImageUrls[index] = '';
-        setImageUrls(newImageUrls.filter(url => url)); // Limpiamos los vacíos al final
+    const removeMedia = (index: number) => {
+        const newMediaItems = [...mediaItems];
+        newMediaItems[index] = null;
+        setMediaItems(newMediaItems.filter(item => item !== null)); // Limpiamos los nulos
+    };
+
+    const MediaPreview = ({ item, alt }: { item: MediaItem, alt: string }) => {
+        if (item.type === 'video') {
+            return <video src={item.url} className="rounded-md object-cover w-full h-full" autoPlay loop muted />;
+        }
+        return <Image src={item.url} alt={alt} layout="fill" className="rounded-md object-cover" />;
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-1 max-h-[80vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* Columna Izquierda: Imágenes */}
+                {/* Columna Izquierda: Imágenes/Videos */}
                 <div className="space-y-2">
                     <Label>Imágenes/Videos del Producto (Principal primero, hasta 5)</Label>
                     <div className="flex gap-2">
                         {/* Columna de miniaturas */}
                         <div className="flex flex-col gap-2">
                             {Array.from({ length: 4 }).map((_, index) => {
-                                const imageIndex = index + 1;
+                                const mediaIndex = index + 1;
+                                const currentItem = mediaItems[mediaIndex];
                                 return (
-                                <div key={imageIndex} className="relative aspect-square w-16">
-                                    {isUploading === imageIndex ? (
+                                <div key={mediaIndex} className="relative aspect-square w-16">
+                                    {isUploading === mediaIndex ? (
                                         <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
                                             <Loader2 className="h-6 w-6 animate-spin" />
                                         </div>
-                                    ) : imageUrls[imageIndex] ? (
+                                    ) : currentItem ? (
                                         <div className="group relative w-full h-full">
-                                            <Image src={imageUrls[imageIndex]} alt={`Producto ${imageIndex + 1}`} layout="fill" className="rounded-md object-cover" />
+                                            <MediaPreview item={currentItem} alt={`Producto ${mediaIndex + 1}`} />
                                             <Button
                                                 type="button"
                                                 variant="destructive"
                                                 size="icon"
                                                 className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100"
-                                                onClick={() => removeImage(imageIndex)}
+                                                onClick={() => removeMedia(mediaIndex)}
                                             >
                                                 <X className="h-3 w-3" />
                                             </Button>
@@ -142,7 +158,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                             <Input 
                                                 type="file" 
                                                 className="hidden" 
-                                                onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], imageIndex)} 
+                                                onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], mediaIndex)} 
                                                 accept="image/*,video/*" 
                                             />
                                         </label>
@@ -151,21 +167,21 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                             )})}
                         </div>
                         
-                        {/* Imagen Principal */}
+                        {/* Media Principal */}
                         <div className="flex-1 relative aspect-video w-full">
                              {isUploading === 0 ? (
                                 <div className="flex items-center justify-center w-full h-full border-2 border-dashed rounded-md bg-muted">
                                     <Loader2 className="h-8 w-8 animate-spin" />
                                 </div>
-                            ) : imageUrls[0] ? (
+                            ) : mediaItems[0] ? (
                                 <div className="group relative w-full h-full">
-                                    <Image src={imageUrls[0]} alt="Producto Principal" layout="fill" className="rounded-md object-cover" />
+                                    <MediaPreview item={mediaItems[0]} alt="Producto Principal" />
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
                                         className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                        onClick={() => removeImage(0)}
+                                        onClick={() => removeMedia(0)}
                                     >
                                         <X className="h-4 w-4" />
                                     </Button>
@@ -179,7 +195,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                     <Input 
                                         type="file" 
                                         className="hidden" 
-                                        onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], 0)} 
+                                        onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], 0)} 
                                         accept="image/*,video/*"
                                     />
                                 </label>
