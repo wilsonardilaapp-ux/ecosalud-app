@@ -11,11 +11,22 @@ import ProductCard from '@/components/catalogo/product-card';
 import ShareCatalog from '@/components/catalogo/share-catalog';
 import CatalogQRGenerator from '@/components/catalogo/catalog-qr-generator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
 import { doc, collection, writeBatch } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
     banner: {
@@ -45,6 +56,9 @@ const initialHeaderConfig: LandingHeaderConfigData = {
 export default function CatalogoPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
+    const { toast } = useToast();
     
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
@@ -114,12 +128,24 @@ export default function CatalogoPage() {
         setIsFormOpen(true);
     };
 
-    const handleDelete = (productId: string) => {
-        if (!firestore || !user) return;
-        if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-            const productDocRef = doc(firestore, 'businesses', user.uid, 'products', productId);
-            deleteDocumentNonBlocking(productDocRef);
-        }
+    const openDeleteDialog = (productId: string) => {
+        setProductToDelete(productId);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (!firestore || !user || !productToDelete) return;
+        
+        const productDocRef = doc(firestore, 'businesses', user.uid, 'products', productToDelete);
+        deleteDocumentNonBlocking(productDocRef);
+        
+        toast({
+            title: "Producto Eliminado",
+            description: "El producto ha sido eliminado de tu catálogo.",
+        });
+
+        setProductToDelete(null);
+        setIsDeleteDialogOpen(false);
     };
     
     const openNewProductForm = () => {
@@ -194,7 +220,7 @@ export default function CatalogoPage() {
                                 <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(product)}>
                                     <Edit className="mr-2 h-4 w-4" /> Editar
                                 </Button>
-                                <Button variant="destructive" size="sm" className="w-full" onClick={() => handleDelete(product.id)}>
+                                <Button variant="destructive" size="sm" className="w-full" onClick={() => openDeleteDialog(product.id)}>
                                     <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                 </Button>
                             </div>
@@ -216,6 +242,23 @@ export default function CatalogoPage() {
             </div>
             
             <ShareCatalog />
+
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás seguro de que quieres eliminar este producto?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Esta acción no se puede deshacer. El producto será eliminado permanentemente de tu catálogo.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+                        Eliminar
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
