@@ -25,6 +25,7 @@ const configSchema = z.object({
   supportEmail: z.string().email({ message: "Email de soporte no válido." }),
   defaultLimits: z.number().min(0, { message: "El límite debe ser positivo." }),
   theme: z.string().min(1, { message: "El tema no puede estar vacío." }),
+  mainBusinessId: z.string().min(1, { message: "El ID del negocio principal no puede estar vacío." }), // Añadido
 });
 
 export default function SettingsPage() {
@@ -44,6 +45,7 @@ export default function SettingsPage() {
         supportEmail: config?.supportEmail ?? '',
         defaultLimits: config?.defaultLimits ?? 100,
         theme: config?.theme ?? 'default',
+        mainBusinessId: config?.mainBusinessId ?? '', // Añadido
     }
   });
 
@@ -124,6 +126,17 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="mainBusinessId">ID del Negocio Principal</Label>
+              <Controller
+                name="mainBusinessId"
+                control={control}
+                render={({ field }) => (
+                    <Input id="mainBusinessId" placeholder="Pega aquí el ID del negocio" {...field} />
+                )}
+              />
+              {errors.mainBusinessId && <p className="text-sm text-destructive">{errors.mainBusinessId.message}</p>}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="supportEmail">Email de Soporte</Label>
               <Controller

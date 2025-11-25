@@ -6,5 +6,6 @@ export type GlobalConfig = {
     theme: string;
     supportEmail: string;
     defaultLimits: number;
-    allowUserRegistration: boolean; // Nuevo campo para controlar el registro
+    allowUserRegistration: boolean;
+    mainBusinessId?: string; // ID del negocio a mostrar en la landing principal
 };
