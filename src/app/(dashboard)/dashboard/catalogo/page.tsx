@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { PlusCircle, ShoppingBag, Edit, Trash2, Printer, FileDown, Info } from 'lucide-react';
 import type { Product } from '@/models/product';
 import ProductForm from '@/components/catalogo/product-form';
+import ProductCard from '@/components/catalogo/product-card';
 import ShareCatalog from '@/components/catalogo/share-catalog';
 import CatalogQRGenerator from '@/components/catalogo/catalog-qr-generator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
@@ -32,7 +33,7 @@ import type { LandingHeaderConfigData } from '@/models/landing-page';
 import type { SystemService } from '@/models/system-service';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, writeBatch } from 'firebase/firestore';
+import { doc, collection, writeBatch, query } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 const initialHeaderConfig: LandingHeaderConfigData = {
@@ -314,3 +315,5 @@ export default function CatalogoPage() {
         </div>
     );
 }
+
+    
