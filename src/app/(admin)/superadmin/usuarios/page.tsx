@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -118,11 +119,19 @@ export default function UsersPage() {
       reset();
       setDialogOpen(false);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error al crear usuario",
-        description: error.message || "No se pudo crear el usuario. Verifique el correo o la contraseña.",
-      });
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Correo ya registrado",
+          description: "El correo electrónico que ingresaste ya pertenece a otro usuario. Por favor, utiliza uno diferente."
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error al crear usuario",
+          description: error.message || "No se pudo crear el usuario. Verifique el correo o la contraseña.",
+        });
+      }
     }
   };
 
@@ -327,3 +336,5 @@ export default function UsersPage() {
     </Card>
   );
 }
+
+    
