@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useState, useMemo } from 'react';
+import { useCollection, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import {
   Table,
@@ -28,13 +28,51 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import type { User } from '@/models/user';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from "@/hooks/use-toast";
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+
+const userSchema = z.object({
+  name: z.string().min(3, "El nombre es requerido."),
+  email: z.string().email("El correo no es válido."),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres."),
+  role: z.enum(['cliente_admin', 'staff', 'super_admin']),
+  status: z.enum(['active', 'inactive']),
+});
 
 export default function UsersPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setDialogOpen] = useState(false);
+
+  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<z.infer<typeof userSchema>>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      role: 'cliente_admin',
+      status: 'active',
+    }
+  });
 
   const usersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -49,6 +87,44 @@ export default function UsersPage() {
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
     ) ?? [];
   }, [users, searchTerm]);
+
+  const onSubmit = async (data: z.infer<typeof userSchema>) => {
+    try {
+      const auth = getAuth();
+      // Step 1: Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const newUser = userCredential.user;
+
+      // Step 2: Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', newUser.uid);
+      const userData: Omit<User, 'id'> = {
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+
+      // We use setDocumentNonBlocking but could await if we need to guarantee it's set before closing
+      await setDocumentNonBlocking(userDocRef, {id: newUser.uid, ...userData});
+
+      toast({
+        title: "Usuario Creado",
+        description: `El usuario ${data.name} ha sido creado con éxito.`,
+      });
+
+      reset();
+      setDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error al crear usuario",
+        description: error.message || "No se pudo crear el usuario. Verifique el correo o la contraseña.",
+      });
+    }
+  };
+
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -84,10 +160,91 @@ export default function UsersPage() {
                 Gestiona los usuarios de la plataforma.
                 </CardDescription>
             </div>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Añadir Usuario
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Usuario
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                    <DialogTitle>Añadir Nuevo Usuario</DialogTitle>
+                    <DialogDescription>
+                        Completa el formulario para crear una nueva cuenta de usuario.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">Nombre</Label>
+                        <Input id="name" {...register("name")} className="col-span-3" />
+                    </div>
+                    {errors.name && <p className="col-start-2 col-span-3 text-sm text-destructive">{errors.name.message}</p>}
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="email" className="text-right">Email</Label>
+                        <Input id="email" type="email" {...register("email")} className="col-span-3" />
+                    </div>
+                     {errors.email && <p className="col-start-2 col-span-3 text-sm text-destructive">{errors.email.message}</p>}
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password" className="text-right">Contraseña</Label>
+                        <Input id="password" type="password" {...register("password")} className="col-span-3" />
+                    </div>
+                     {errors.password && <p className="col-start-2 col-span-3 text-sm text-destructive">{errors.password.message}</p>}
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="role" className="text-right">Rol</Label>
+                        <Controller
+                            name="role"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Seleccionar rol" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cliente_admin">Cliente Admin</SelectItem>
+                                        <SelectItem value="staff">Staff</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
+
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="status" className="text-right">Estado</Label>
+                         <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Seleccionar estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Activo</SelectItem>
+                                        <SelectItem value="inactive">Inactivo</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Creando...' : 'Crear Usuario'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
         </div>
       </CardHeader>
       <CardContent>
