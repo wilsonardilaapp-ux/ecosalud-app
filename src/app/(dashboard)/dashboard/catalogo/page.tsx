@@ -1,13 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { PlusCircle, ShoppingBag, Edit, Trash2, Printer, FileDown } from 'lucide-react';
+import { PlusCircle, ShoppingBag, Edit, Trash2, Printer, FileDown, Info } from 'lucide-react';
 import type { Product } from '@/models/product';
 import ProductForm from '@/components/catalogo/product-form';
-import ProductCard from '@/components/catalogo/product-card';
 import ShareCatalog from '@/components/catalogo/share-catalog';
 import CatalogQRGenerator from '@/components/catalogo/catalog-qr-generator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
@@ -21,8 +20,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import CatalogHeaderForm from '@/components/catalogo/catalog-header-form';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
+import type { SystemService } from '@/models/system-service';
 import { v4 as uuidv4 } from 'uuid';
 import { useDoc, useFirestore, useUser, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useCollection } from '@/firebase';
 import { doc, collection, writeBatch } from 'firebase/firestore';
@@ -63,37 +70,52 @@ export default function CatalogoPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
 
-    // This function updates the denormalized public data document
     const updatePublicCatalog = async (updatedProducts: Product[], updatedConfig: LandingHeaderConfigData) => {
         if (!firestore || !user) return;
         const publicCatalogRef = doc(firestore, 'businesses', user.uid, 'publicData', 'catalog');
-        
-        // Non-blocking write to update the public catalog
         setDocumentNonBlocking(publicCatalogRef, { products: updatedProducts, headerConfig: updatedConfig }, { merge: true });
     };
 
-    // CRITICAL FIX: Ensure user and firestore are available before creating the query.
     const productsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return collection(firestore, 'businesses', user.uid, 'products');
     }, [firestore, user]);
-
-    const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
     const headerConfigDocRef = useMemoFirebase(() => {
         if (!firestore || !user) return null; 
         return doc(firestore, 'businesses', user.uid, 'landingConfig', 'header');
     }, [firestore, user]);
     
-    const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
+    const servicesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'systemServices');
+    }, [firestore]);
 
-    // When products or headerConfig change, update the public catalog
+    const { data: products, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
+    const { data: headerConfig, isLoading: isConfigLoading } = useDoc<LandingHeaderConfigData>(headerConfigDocRef);
+    const { data: services, isLoading: isServicesLoading } = useCollection<SystemService>(servicesQuery);
+
+    const productLimitService = useMemo(() => {
+        return services?.find(s => s.name === "Limite de Productos");
+    }, [services]);
+
+    const { canCreateProduct, tooltipMessage } = useMemo(() => {
+        if (!productLimitService || productLimitService.status !== 'active') {
+            return { canCreateProduct: false, tooltipMessage: "La creación de productos está desactivada por el administrador." };
+        }
+        const currentCount = products?.length ?? 0;
+        const limit = productLimitService.limit;
+        if (currentCount >= limit) {
+            return { canCreateProduct: false, tooltipMessage: `Has alcanzado el límite de ${limit} productos.` };
+        }
+        return { canCreateProduct: true, tooltipMessage: '' };
+    }, [productLimitService, products]);
+
     useEffect(() => {
-        // This effect should only run when there's actual data to process.
         if (products && headerConfig && user) {
             updatePublicCatalog(products, headerConfig);
         }
-    }, [products, headerConfig, user]); // Added user dependency
+    }, [products, headerConfig, user]);
 
 
     const handleSaveProduct = async (productData: Omit<Product, 'id' | 'businessId'>) => {
@@ -110,7 +132,6 @@ export default function CatalogoPage() {
             batch.set(newProductRef, dataToSave);
         }
 
-        // We commit the batch non-blockingly, errors will be caught by the global handler
         batch.commit();
 
         setIsFormOpen(false);
@@ -159,8 +180,7 @@ export default function CatalogoPage() {
         window.open(url, '_blank');
     };
     
-    // Improved loading state to wait for auth and data
-    if (isUserLoading || isConfigLoading || isProductsLoading) {
+    if (isUserLoading || isConfigLoading || isProductsLoading || isServicesLoading) {
         return <div>Cargando tu catálogo...</div>
     }
 
@@ -169,6 +189,24 @@ export default function CatalogoPage() {
             <CatalogHeaderForm data={headerConfig ?? initialHeaderConfig} setData={handleSaveHeader} />
             
             <CatalogQRGenerator />
+            
+            {productLimitService && productLimitService.status === 'active' && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Límite de Productos</CardTitle>
+                        <CardDescription>Uso de tu plan de productos actual.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center gap-4">
+                            <Progress value={((products?.length ?? 0) / productLimitService.limit) * 100} className="flex-1" />
+                            <span className="font-bold text-lg">{products?.length ?? 0} / {productLimitService.limit}</span>
+                        </div>
+                         <p className="text-sm text-muted-foreground mt-2">
+                           Has utilizado {products?.length ?? 0} de los {productLimitService.limit} productos disponibles en tu plan.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
             <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
@@ -188,12 +226,26 @@ export default function CatalogoPage() {
                             Descargar PDF
                         </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                            <DialogTrigger asChild>
-                                <Button onClick={openNewProductForm}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Añadir Producto
-                                </Button>
-                            </DialogTrigger>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div tabIndex={0}> 
+                                            <DialogTrigger asChild>
+                                                <Button onClick={openNewProductForm} disabled={!canCreateProduct}>
+                                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                                    Añadir Producto
+                                                </Button>
+                                            </DialogTrigger>
+                                        </div>
+                                    </TooltipTrigger>
+                                    {!canCreateProduct && (
+                                        <TooltipContent>
+                                            <p>{tooltipMessage}</p>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
+
                             <DialogContent className="max-w-4xl">
                                 <DialogHeader>
                                     <DialogTitle>{editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
