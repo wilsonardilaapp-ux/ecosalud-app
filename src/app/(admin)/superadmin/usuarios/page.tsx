@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import {
   Table,
   TableHeader,
@@ -89,6 +89,7 @@ export default function UsersPage() {
   }, [users, searchTerm]);
 
   const onSubmit = async (data: z.infer<typeof userSchema>) => {
+    if (!firestore) return;
     try {
       const auth = getAuth();
       // Step 1: Create user in Firebase Auth
