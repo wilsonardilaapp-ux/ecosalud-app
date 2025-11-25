@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import {
   Table,
   TableHeader,
@@ -97,7 +97,7 @@ export default function UsersPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const newUser = userCredential.user;
 
-      // Step 2: Create user document in Firestore
+      // Step 2: Create user document in Firestore, now using await to ensure it's created
       const userDocRef = doc(firestore, 'users', newUser.uid);
       const userData: Omit<User, 'id'> = {
         name: data.name,
@@ -108,8 +108,7 @@ export default function UsersPage() {
         lastLogin: new Date().toISOString(),
       };
 
-      // We use setDocumentNonBlocking but could await if we need to guarantee it's set before closing
-      await setDocumentNonBlocking(userDocRef, {id: newUser.uid, ...userData});
+      await setDoc(userDocRef, {id: newUser.uid, ...userData});
 
       toast({
         title: "Usuario Creado",
@@ -336,5 +335,3 @@ export default function UsersPage() {
     </Card>
   );
 }
-
-    
