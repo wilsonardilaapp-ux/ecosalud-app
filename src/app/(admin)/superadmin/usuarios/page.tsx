@@ -82,7 +82,7 @@ export default function UsersPage() {
 
   const { data: users, isLoading } = useCollection<User>(usersQuery);
 
-  const filteredUsers = useMemoFirebase(() => {
+  const filteredUsers = useMemo(() => {
     return users?.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
