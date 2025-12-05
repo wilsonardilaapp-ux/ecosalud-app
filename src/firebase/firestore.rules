@@ -64,11 +64,11 @@ service cloud.firestore {
     * @description Defines the security rules for global configuration settings.
     */
     match /globalConfig/system {
-      allow get: if true; // Allow any user (authed or not) to read config
+      allow get: if true;
       allow list: if false;
-      // Allow any signed-in user to write (specifically for setting mainBusinessId on register)
-      // and allow super admin to do any write operation.
-      allow write: if isSignedIn() || isSuperAdmin();
+      // Allow super admin to perform any write operation (create, update).
+      // Allow any signed-in user to write for the initial mainBusinessId setup during registration.
+      allow write: if isSuperAdmin() || isSignedIn();
     }
     
     /**
