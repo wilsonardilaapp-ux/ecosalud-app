@@ -66,6 +66,7 @@ export default function RegisterPage() {
       const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
       const newUser = userCredential.user;
 
+      // 1. Create user document
       const userDocRef = doc(firestore, 'users', newUser.uid);
       const userData: AppUser = {
         id: newUser.uid,
@@ -78,6 +79,7 @@ export default function RegisterPage() {
       };
       setDocumentNonBlocking(userDocRef, userData);
       
+      // 2. Create business document
       const businessDocRef = doc(firestore, 'businesses', newUser.uid);
       const businessData: Business = {
         id: newUser.uid,
@@ -86,6 +88,10 @@ export default function RegisterPage() {
         description: 'Bienvenido a mi negocio en EcoSalud.',
       };
       setDocumentNonBlocking(businessDocRef, businessData);
+      
+      // 3. Set this new business as the main landing page automatically
+      const configDocRef = doc(firestore, 'globalConfig', 'system');
+      setDocumentNonBlocking(configDocRef, { mainBusinessId: newUser.uid }, { merge: true });
       
       toast({
         title: "Cuenta Creada con Éxito",
@@ -180,5 +186,3 @@ export default function RegisterPage() {
     </Card>
   );
 }
-
-    
