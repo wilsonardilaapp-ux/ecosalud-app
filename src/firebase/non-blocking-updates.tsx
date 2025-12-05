@@ -57,9 +57,10 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
 /**
  * Initiates an updateDoc operation for a document reference.
  * Does NOT await the write operation internally.
+ * Uses setDoc with merge:true to handle both create and update cases.
  */
 export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
-  updateDoc(docRef, data)
+  setDoc(docRef, data, { merge: true })
     .catch(error => {
       errorEmitter.emit(
         'permission-error',
