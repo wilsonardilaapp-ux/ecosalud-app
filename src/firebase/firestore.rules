@@ -66,7 +66,8 @@ service cloud.firestore {
     match /globalConfig/system {
       allow get: if true; // Allow any user (authed or not) to read config
       allow list: if false;
-      // Allow any signed-in user to write (specifically for setting mainBusinessId on register), but super admin can do anything.
+      // Allow any signed-in user to write (specifically for setting mainBusinessId on register)
+      // and allow super admin to do any write operation.
       allow write: if isSignedIn() || isSuperAdmin();
     }
     
