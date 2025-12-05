@@ -26,10 +26,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking, initiateEmailSignUp } from "@/firebase";
 import { useEffect } from "react";
-import { doc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
 import type { User as AppUser } from "@/models/user";
 import Link from "next/link";
+import type { GlobalConfig } from "@/models/global-config";
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: "Por favor, introduce tu nombre." }),
@@ -77,7 +78,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
-      setDocumentNonBlocking(userDocRef, userData);
+      await setDoc(userDocRef, userData);
       
       // 2. Create business document
       const businessDocRef = doc(firestore, 'businesses', newUser.uid);
@@ -87,11 +88,16 @@ export default function RegisterPage() {
         logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
         description: 'Bienvenido a mi negocio en EcoSalud.',
       };
-      setDocumentNonBlocking(businessDocRef, businessData);
+      await setDoc(businessDocRef, businessData);
       
-      // 3. Set this new business as the main landing page automatically
+      // 3. Set this new business as the main landing page IF no other is set
       const configDocRef = doc(firestore, 'globalConfig', 'system');
-      setDocumentNonBlocking(configDocRef, { mainBusinessId: newUser.uid }, { merge: true });
+      const configSnap = await getDoc(configDocRef);
+      
+      if (!configSnap.exists() || !configSnap.data()?.mainBusinessId) {
+        // Only set it if it doesn't exist or is empty
+         await setDoc(configDocRef, { mainBusinessId: newUser.uid }, { merge: true });
+      }
       
       toast({
         title: "Cuenta Creada con Éxito",
