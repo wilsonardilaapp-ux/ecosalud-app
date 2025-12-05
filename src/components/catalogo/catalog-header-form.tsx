@@ -310,14 +310,14 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
         <div className="space-y-4">
             <Label className="text-lg font-semibold">Redes Sociales</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.keys(data.socialLinks).map((key) => (
+                {Object.keys(socialIcons).map((key) => (
                     <div key={key} className="flex items-center gap-2">
                         <div className="h-9 w-9 flex items-center justify-center bg-muted rounded-md text-muted-foreground">
                             {socialIcons[key as keyof typeof socialIcons]}
                         </div>
                         <Input 
                             placeholder={`URL de ${key.charAt(0).toUpperCase() + key.slice(1)}`}
-                            value={data.socialLinks[key as keyof typeof data.socialLinks]}
+                            value={data.socialLinks[key as keyof typeof data.socialLinks] || ''}
                             onChange={(e) => handleSocialLinkChange(key as keyof typeof data.socialLinks, e.target.value)}
                         />
                     </div>
