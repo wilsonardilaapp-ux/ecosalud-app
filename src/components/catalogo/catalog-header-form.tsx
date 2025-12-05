@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { LandingHeaderConfigData, CarouselItem } from '@/models/landing-page';
 import { Loader2, UploadCloud, RotateCcw, Save, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
-import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
+import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon, YoutubeIcon } from '@/components/icons';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
 import { useFirestore, useUser, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -182,6 +182,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     facebook: <FacebookIcon />,
     whatsapp: <WhatsAppIcon />,
     twitter: <XIcon />,
+    youtube: <YoutubeIcon />,
   };
 
   return (

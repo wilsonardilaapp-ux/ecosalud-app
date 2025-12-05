@@ -110,6 +110,7 @@ export type LandingHeaderConfigData = {
         facebook: string;
         whatsapp: string;
         twitter: string;
+        youtube: string;
     };
     carouselItems: CarouselItem[];
 };

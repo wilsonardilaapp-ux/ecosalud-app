@@ -15,7 +15,7 @@ import { Star, Loader2, PackageSearch, Mail, Printer, FileDown } from 'lucide-re
 import { cn } from '@/lib/utils';
 import type { Product } from '@/models/product';
 import type { LandingHeaderConfigData } from '@/models/landing-page';
-import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon } from '@/components/icons';
+import { TikTokIcon, WhatsAppIcon, XIcon, FacebookIcon, InstagramIcon, YoutubeIcon } from '@/components/icons';
 import { useParams, useSearchParams } from 'next/navigation';
 import { rateProduct } from '@/ai/flows/rate-product-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
         facebook: <FacebookIcon className="h-5 w-5" />,
         whatsapp: <WhatsAppIcon className="h-5 w-5" />,
         twitter: <XIcon className="h-5 w-5" />,
+        youtube: <YoutubeIcon className="h-5 w-5" />,
     };
 
     return (
