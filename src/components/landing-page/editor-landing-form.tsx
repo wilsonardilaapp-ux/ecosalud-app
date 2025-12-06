@@ -416,10 +416,6 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                                     <Input placeholder="Texto del enlace" value={link.text} onChange={(e) => handleNavLinkChange(link.id, 'text', e.target.value)} />
                                                     <Input placeholder="URL" value={link.url} onChange={(e) => handleNavLinkChange(link.id, 'url', e.target.value)} />
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Label htmlFor={`new-tab-${link.id}`} className="text-xs">Nueva Pestaña</Label>
-                                                    <Switch id={`new-tab-${link.id}`} checked={link.openInNewTab} onCheckedChange={(checked) => handleNavLinkChange(link.id, 'openInNewTab', checked)} />
-                                                </div>
                                                 <Button variant="ghost" size="icon" onClick={() => removeNavLink(link.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                             </div>
                                         ))}
