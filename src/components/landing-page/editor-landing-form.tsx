@@ -156,7 +156,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
     };
 
     const addNavLink = () => {
-        const newLink: NavLink = { id: uuidv4(), text: 'Nuevo Enlace', url: '#', openInNewTab: false };
+        const newLink: NavLink = { id: uuidv4(), text: 'Nuevo Enlace', url: '#', openInNewTab: false, enabled: true };
         handleInputChange('navigation', 'links', [...data.navigation.links, newLink]);
     };
 
@@ -411,7 +411,8 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                         {data.navigation.links.map((link) => (
                                             <div key={link.id} className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
                                                 <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                                                <div className="grid grid-cols-2 gap-2 flex-1">
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <Switch id={`enabled-${link.id}`} checked={link.enabled} onCheckedChange={(checked) => handleNavLinkChange(link.id, 'enabled', checked)} />
                                                     <Input placeholder="Texto del enlace" value={link.text} onChange={(e) => handleNavLinkChange(link.id, 'text', e.target.value)} />
                                                     <Input placeholder="URL" value={link.url} onChange={(e) => handleNavLinkChange(link.id, 'url', e.target.value)} />
                                                 </div>

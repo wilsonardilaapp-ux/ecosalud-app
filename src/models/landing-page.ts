@@ -43,6 +43,7 @@ export type NavLink = {
   text: string;
   url: string;
   openInNewTab: boolean;
+  enabled: boolean;
 };
 
 export type ContentSection = {

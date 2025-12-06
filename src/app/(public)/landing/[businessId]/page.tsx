@@ -55,7 +55,7 @@ const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
           )}
         </div>
         <nav className="hidden md:flex items-center" style={{ gap: `${navConfig.spacing * 4}px`}}>
-          {navConfig.links.map((link) => (
+          {navConfig.links.filter(link => link.enabled).map((link) => (
             <a key={link.id} href={link.url} target={link.openInNewTab ? '_blank' : '_self'} rel={link.openInNewTab ? 'noopener noreferrer' : ''} style={linkStyle} className="nav-link transition-colors">
               {link.text}
             </a>
