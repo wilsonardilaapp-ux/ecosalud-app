@@ -23,7 +23,7 @@ export default function WelcomePage() {
     if (!isLoading && config?.mainBusinessId) {
       router.replace(`/landing/${config.mainBusinessId}`);
     }
-  }, [config, isLoading]);
+  }, [config, isLoading, router]);
 
   // Si la carga aún está en progreso, muestra el spinner.
   if (isLoading) {
