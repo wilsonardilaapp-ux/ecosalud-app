@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -24,7 +23,7 @@ export default function WelcomePage() {
     if (!isLoading && config?.mainBusinessId) {
       router.replace(`/landing/${config.mainBusinessId}`);
     }
-  }, [router, config, isLoading]);
+  }, [config, isLoading]);
 
   // Si la carga aún está en progreso, muestra el spinner.
   if (isLoading) {
