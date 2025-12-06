@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -16,6 +15,22 @@ import { useParams } from 'next/navigation';
 import { PublicContactForm } from '@/components/landing-page/public-contact-form';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+
+const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
+    if (!headerConfig.banner || !headerConfig.banner.mediaUrl) {
+        return null;
+    }
+
+    return (
+        <div className="relative aspect-[16/7] w-full">
+            {headerConfig.banner.mediaType === 'image' ? (
+                <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
+            ) : (
+                <video src={headerConfig.banner.mediaUrl} autoPlay loop muted controls={false} className="w-full h-full object-cover" />
+            )}
+        </div>
+    );
+};
 
 const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
     if (!headerConfig.carouselItems || !headerConfig.carouselItems.some(item => item.mediaUrl)) {
@@ -268,6 +283,7 @@ export default function PublicLandingPage() {
       <main>
         <PreviewNavigation navConfig={navigation} />
         
+        <PreviewBanner headerConfig={header} />
         <PreviewCarousel headerConfig={header} />
 
         <div style={heroStyle} className="relative">

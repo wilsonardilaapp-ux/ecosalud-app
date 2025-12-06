@@ -243,6 +243,22 @@ const PreviewForm = ({ fields }: { fields: FormField[] }) => {
   );
 };
 
+const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
+    if (!headerConfig.banner || !headerConfig.banner.mediaUrl) {
+        return null;
+    }
+
+    return (
+        <div className="relative aspect-[16/7] w-full">
+            {headerConfig.banner.mediaType === 'image' ? (
+                <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
+            ) : (
+                <video src={headerConfig.banner.mediaUrl} autoPlay loop muted controls={false} className="w-full h-full object-cover" />
+            )}
+        </div>
+    );
+};
+
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
   const { hero, navigation, sections, testimonials, form, header } = data;
@@ -316,6 +332,7 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                   <div className="bg-white max-h-[80vh] overflow-y-auto">
                     <PreviewNavigation navConfig={navigation} />
                     
+                    <PreviewBanner headerConfig={header} />
                     <PreviewCarousel headerConfig={header} />
 
                     <div style={heroStyle}>
