@@ -11,22 +11,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { v2 as cloudinary } from 'cloudinary';
 
-// Check for required environment variables at the module level.
-const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
-const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
-
-const isCloudinaryConfigured = cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret;
-
-if (isCloudinaryConfigured) {
-  cloudinary.config({
-    cloud_name: cloudinaryCloudName,
-    api_key: cloudinaryApiKey,
-    api_secret: cloudinaryApiSecret,
-    secure: true,
-  });
-}
-
 const UploadMediaInputSchema = z.object({
   mediaDataUri: z
     .string()
@@ -52,13 +36,28 @@ const uploadMediaFlow = ai.defineFlow(
     outputSchema: UploadMediaOutputSchema,
   },
   async (input) => {
-    // Validate that Cloudinary is configured before attempting to upload.
+    // --- Start of Correction ---
+    // Moved Cloudinary config inside the flow to ensure env variables are loaded correctly in serverless environments.
+    const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
+    const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    const isCloudinaryConfigured = cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret;
+
     if (!isCloudinaryConfigured) {
-      console.error('Cloudinary configuration is missing. Please check environment variables.');
+      console.error('Cloudinary configuration is missing. Please check environment variables in your production environment (e.g., Vercel).');
       throw new Error(
         'La configuración del servicio de subida de archivos (Cloudinary) está incompleta en el servidor. Faltan las variables de entorno necesarias.'
       );
     }
+    
+    cloudinary.config({
+      cloud_name: cloudinaryCloudName,
+      api_key: cloudinaryApiKey,
+      api_secret: cloudinaryApiSecret,
+      secure: true,
+    });
+    // --- End of Correction ---
 
     try {
       const result = await cloudinary.uploader.upload(input.mediaDataUri, {
