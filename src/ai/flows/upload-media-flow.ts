@@ -11,13 +11,21 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary with environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+// Check for required environment variables at the module level.
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
+
+const isCloudinaryConfigured = cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret;
+
+if (isCloudinaryConfigured) {
+  cloudinary.config({
+    cloud_name: cloudinaryCloudName,
+    api_key: cloudinaryApiKey,
+    api_secret: cloudinaryApiSecret,
+    secure: true,
+  });
+}
 
 const UploadMediaInputSchema = z.object({
   mediaDataUri: z
@@ -44,6 +52,14 @@ const uploadMediaFlow = ai.defineFlow(
     outputSchema: UploadMediaOutputSchema,
   },
   async (input) => {
+    // Validate that Cloudinary is configured before attempting to upload.
+    if (!isCloudinaryConfigured) {
+      console.error('Cloudinary configuration is missing. Please check environment variables.');
+      throw new Error(
+        'La configuración del servicio de subida de archivos (Cloudinary) está incompleta en el servidor. Faltan las variables de entorno necesarias.'
+      );
+    }
+
     try {
       const result = await cloudinary.uploader.upload(input.mediaDataUri, {
         resource_type: 'auto', // Automatically detect if it's an image or video
