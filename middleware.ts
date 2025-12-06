@@ -8,10 +8,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Este matcher asegura que el middleware NO se ejecute en rutas de API,
-  // archivos estáticos, o archivos de optimización de imágenes.
-  // Esto previene errores como `(0, n.next) is not a function`.
+  // CORRECCIÓN CRÍTICA AQUÍ:
+  // Este matcher asegura que el middleware NO se ejecute en:
+  // 1. Rutas de API (/api/...)
+  // 2. Archivos estáticos (_next/static, _next/image, favicon, etc.)
+  // 3. Archivos con extensión (imágenes, svgs, etc.)
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'
+  ]
 };
