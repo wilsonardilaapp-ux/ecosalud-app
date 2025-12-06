@@ -196,7 +196,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                         type="file" 
                                         className="hidden" 
                                         onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], 0)} 
-                                        accept="image/*,video/*"
+                                        accept="image/*,video.mp4"
                                     />
                                 </label>
                             )}
@@ -254,3 +254,5 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
         </form>
     );
 }
+
+    
