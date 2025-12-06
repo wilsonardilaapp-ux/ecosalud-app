@@ -58,7 +58,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https' ,
         hostname: 'static6.depositphotos.com',
         port: '',
         pathname: '/**',
