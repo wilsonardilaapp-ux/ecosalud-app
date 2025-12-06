@@ -209,9 +209,9 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                 mediaType={data.banner.mediaType}
                 onUpload={handleBannerUpload}
                 onRemove={() => setData({ ...data, banner: { mediaUrl: null, mediaType: null } })}
-                aspectRatio="aspect-[16/7]"
-                dimensions="1920 x 720 px"
-                description="Imagen o video panorámico (16:7)"
+                aspectRatio="aspect-[16/5]"
+                dimensions="1920 x 500 px"
+                description="Imagen o video panorámico (16:5)"
             />
         </div>
 
