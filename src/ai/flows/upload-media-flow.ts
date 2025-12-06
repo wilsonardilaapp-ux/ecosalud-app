@@ -36,8 +36,6 @@ const uploadMediaFlow = ai.defineFlow(
     outputSchema: UploadMediaOutputSchema,
   },
   async (input) => {
-    // --- Start of Correction ---
-    // Moved Cloudinary config inside the flow to ensure env variables are loaded correctly in serverless environments.
     const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
     const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -57,7 +55,6 @@ const uploadMediaFlow = ai.defineFlow(
       api_secret: cloudinaryApiSecret,
       secure: true,
     });
-    // --- End of Correction ---
 
     try {
       const result = await cloudinary.uploader.upload(input.mediaDataUri, {
