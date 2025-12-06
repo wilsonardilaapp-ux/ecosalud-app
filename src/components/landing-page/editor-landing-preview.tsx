@@ -1,10 +1,9 @@
-
 'use client';
 
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
+import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField, LandingHeaderConfigData } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
 import { CSSProperties } from 'react';
 import { Star, Copy, ExternalLink } from 'lucide-react';
@@ -14,10 +13,50 @@ import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
 
-interface EditorLandingPreviewProps {
-  data: LandingPageData;
-}
+
+const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
+    if (!headerConfig.carouselItems || !headerConfig.carouselItems.some(item => item.mediaUrl)) {
+        return null;
+    }
+
+    return (
+        <Carousel
+            className="w-full"
+            opts={{ loop: true }}
+            plugins={[
+                Autoplay({
+                    delay: 5000,
+                    stopOnInteraction: true,
+                }),
+            ]}
+        >
+            <CarouselContent>
+                {headerConfig.carouselItems.map(item => item.mediaUrl && (
+                    <CarouselItem key={item.id}>
+                        <div className="relative aspect-[16/5] w-full">
+                            {item.mediaType === 'image' ? (
+                                <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
+                            ) : (
+                                <video src={item.mediaUrl} autoPlay loop muted controls={false} className="w-full h-full object-cover" />
+                            )}
+                            {item.slogan && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <p className="text-white text-2xl font-bold text-center drop-shadow-md p-4">{item.slogan}</p>
+                                </div>
+                            )}
+                        </div>
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
+        </Carousel>
+    );
+};
+
 
 const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
   if (!navConfig.enabled) {
@@ -206,7 +245,7 @@ const PreviewForm = ({ fields }: { fields: FormField[] }) => {
 
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
-  const { hero, navigation, sections, testimonials, form } = data;
+  const { hero, navigation, sections, testimonials, form, header } = data;
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -276,6 +315,8 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
                   {/* Live Preview Content */}
                   <div className="bg-white max-h-[80vh] overflow-y-auto">
                     <PreviewNavigation navConfig={navigation} />
+                    
+                    <PreviewCarousel headerConfig={header} />
 
                     <div style={heroStyle}>
                       <div className="text-center py-10 px-4">

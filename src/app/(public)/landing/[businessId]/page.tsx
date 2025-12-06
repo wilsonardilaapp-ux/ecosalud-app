@@ -10,10 +10,52 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2, Frown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField } from '@/models/landing-page';
+import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField, LandingHeaderConfigData } from '@/models/landing-page';
 import { CSSProperties } from 'react';
 import { useParams } from 'next/navigation';
 import { PublicContactForm } from '@/components/landing-page/public-contact-form';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
+
+const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
+    if (!headerConfig.carouselItems || !headerConfig.carouselItems.some(item => item.mediaUrl)) {
+        return null;
+    }
+
+    return (
+        <Carousel
+            className="w-full"
+            opts={{ loop: true }}
+            plugins={[
+                Autoplay({
+                    delay: 5000,
+                    stopOnInteraction: true,
+                }),
+            ]}
+        >
+            <CarouselContent>
+                {headerConfig.carouselItems.map(item => item.mediaUrl && (
+                    <CarouselItem key={item.id}>
+                        <div className="relative aspect-[16/5] w-full">
+                            {item.mediaType === 'image' ? (
+                                <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
+                            ) : (
+                                <video src={item.mediaUrl} autoPlay loop muted controls={false} className="w-full h-full object-cover" />
+                            )}
+                            {item.slogan && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <p className="text-white text-2xl md:text-4xl font-bold text-center drop-shadow-md p-4">{item.slogan}</p>
+                                </div>
+                            )}
+                        </div>
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white text-foreground" />
+        </Carousel>
+    );
+};
 
 
 const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
@@ -209,7 +251,7 @@ export default function PublicLandingPage() {
     );
   }
 
-  const { hero, navigation, sections, testimonials, form } = data;
+  const { hero, navigation, sections, testimonials, form, header } = data;
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -225,6 +267,8 @@ export default function PublicLandingPage() {
     <div className="bg-background">
       <main>
         <PreviewNavigation navConfig={navigation} />
+        
+        <PreviewCarousel headerConfig={header} />
 
         <div style={heroStyle} className="relative">
             {hero.imageUrl && (
