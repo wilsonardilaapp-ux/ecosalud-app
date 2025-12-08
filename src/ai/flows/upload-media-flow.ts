@@ -8,7 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 
 const UploadMediaInputSchema = z.object({

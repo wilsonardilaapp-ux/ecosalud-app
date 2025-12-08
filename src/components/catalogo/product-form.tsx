@@ -206,42 +206,42 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                 {/* Columna Derecha: Categoría y Descripción */}
                 <div className="space-y-4">
                     <div>
+                        <Label htmlFor="name">Nombre del Producto</Label>
+                        <Input id="name" {...register("name")} placeholder="Ej: Café Orgánico de Altura" />
+                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="price">Precio</Label>
+                            <Input id="price" type="number" step="0.01" {...register("price")} />
+                            {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+                        </div>
+                        <div>
+                            <Label htmlFor="stock">Stock</Label>
+                            <Input id="stock" type="number" {...register("stock")} />
+                            {errors.stock && <p className="text-sm text-destructive">{errors.stock.message}</p>}
+                        </div>
+                    </div>
+                     <div>
                         <Label htmlFor="category">Categoría</Label>
                         <Input id="category" {...register("category")} placeholder="Ej: Bebidas Calientes" />
                         {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
-                    </div>
-                    <div>
-                        <Label>Descripción (Contenido Adicional)</Label>
-                        <Controller
-                            name="description"
-                            control={control}
-                            render={({ field }) => (
-                                <RichTextEditor value={field.value} onChange={field.onChange} />
-                            )}
-                        />
-                        {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
                     </div>
                 </div>
             </div>
 
             {/* Fila Inferior: Nombre, Precio, Stock */}
             <div className="space-y-4">
-                 <div>
-                    <Label htmlFor="name">Nombre del Producto</Label>
-                    <Input id="name" {...register("name")} placeholder="Ej: Café Orgánico de Altura" />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label htmlFor="price">Precio</Label>
-                        <Input id="price" type="number" step="0.01" {...register("price")} />
-                        {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
-                    </div>
-                    <div>
-                        <Label htmlFor="stock">Stock</Label>
-                        <Input id="stock" type="number" {...register("stock")} />
-                        {errors.stock && <p className="text-sm text-destructive">{errors.stock.message}</p>}
-                    </div>
+                <div>
+                    <Label>Descripción (Contenido Adicional)</Label>
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor value={field.value} onChange={field.onChange} />
+                        )}
+                    />
+                    {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
                 </div>
             </div>
 
