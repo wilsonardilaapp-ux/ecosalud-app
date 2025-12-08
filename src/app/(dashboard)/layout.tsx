@@ -48,10 +48,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: business, isLoading: isBusinessLoading } = useDoc<Business>(businessDocRef);
 
   useEffect(() => {
-    if (isUserLoading) {
-      return; 
-    }
-    if (!user) {
+    if (!isUserLoading && !user) {
       router.push("/login");
     }
   }, [user, isUserLoading, router]);
