@@ -26,7 +26,7 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isSignedIn() && request.auth.uid == "Yn9E649gwFN68itq7djUNpUIvrr1";
+      return request.auth.token.email == "allseosoporte@gmail.com";
     }
 
     function isBusinessOwner(businessId) {
