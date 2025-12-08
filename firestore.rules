@@ -62,8 +62,8 @@ service cloud.firestore {
     * @description Defines the security rules for global configuration settings.
     */
     match /globalConfig/system {
-      allow get: if true;
-      allow list: if false;
+      // CAMBIO REALIZADO: Se permite 'read' (get y list) para que la app pueda leer la config inicial sin errores.
+      allow read: if true;
       allow create, update, delete: if isSuperAdmin();
     }
     
