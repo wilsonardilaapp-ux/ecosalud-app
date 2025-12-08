@@ -48,7 +48,9 @@ service cloud.firestore {
     * @description Defines the security rules for system service configurations.
     */
     match /systemServices/{serviceId} {
-      allow read, write: if isSuperAdmin();
+      // CORRECCIÓN: Se permite 'list' para usuarios autenticados.
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
 
     /**
