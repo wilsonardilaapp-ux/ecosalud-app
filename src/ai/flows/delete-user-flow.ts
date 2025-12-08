@@ -10,8 +10,19 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { initializeAdminApp } from '@/firebase/admin';
+
+// Moved from src/firebase/admin.ts to prevent client-side import issues
+function initializeAdminApp(): App {
+  const apps = getApps();
+  if (apps.length > 0) {
+    return apps[0];
+  }
+  // This will use Application Default Credentials in a Google Cloud environment.
+  return initializeApp();
+}
+
 
 const DeleteUserInputSchema = z.object({
   uid: z.string().describe('The UID of the user to delete.'),
