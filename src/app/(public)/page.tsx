@@ -244,6 +244,7 @@ export default function PublicLandingPage() {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-muted-foreground">Cargando la página principal...</p>
       </div>
     );
   }
@@ -252,9 +253,9 @@ export default function PublicLandingPage() {
     return (
         <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
             <Frown className="h-16 w-16 text-destructive mb-4" />
-            <h1 className="text-2xl font-bold text-destructive">Error de Permisos</h1>
+            <h1 className="text-2xl font-bold text-destructive">Error al Cargar</h1>
             <p className="text-muted-foreground mt-2">
-            No se pudo cargar la página. Es posible que el propietario no haya configurado esta página o que haya un problema con los permisos.
+            No se pudo cargar la página. Es posible que haya un problema con los permisos de la base de datos.
             </p>
         </div>
     );
@@ -264,9 +265,9 @@ export default function PublicLandingPage() {
      return (
         <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
             <Frown className="h-16 w-16 text-muted-foreground mb-4" />
-            <h1 className="text-2xl font-bold">Página no Encontrada</h1>
-            <p className="text-muted-foreground mt-2">
-            La página que estás buscando no existe o aún no ha sido publicada.
+            <h1 className="text-2xl font-bold">Página en Configuración</h1>
+            <p className="text-muted-foreground mt-2 max-w-md">
+                Esta página de inicio aún no ha sido configurada. El administrador debe asignar un "ID de Negocio Principal" en el panel de configuración del superadministrador.
             </p>
         </div>
     );

@@ -259,6 +259,9 @@ const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData
     );
 };
 
+interface EditorLandingPreviewProps {
+  data: LandingPageData;
+}
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
   const { hero, navigation, sections, testimonials, form, header } = data;
@@ -275,7 +278,7 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  const publicUrl = user ? `${window.location.origin}/landing/${user.uid}` : '';
+  const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
 
   const copyToClipboard = () => {
     if (!publicUrl) return;
