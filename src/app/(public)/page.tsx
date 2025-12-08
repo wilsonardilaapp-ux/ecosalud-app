@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Image from 'next/image';
@@ -221,125 +222,144 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
     );
 };
 
+const LandingPageContent = ({ businessId }: { businessId: string }) => {
+    const firestore = useFirestore();
+    const landingPageDocRef = useMemoFirebase(() => {
+        if (!firestore || !businessId) return null;
+        return doc(firestore, 'businesses', businessId, 'landingPages', 'main');
+    }, [firestore, businessId]);
+
+    const { data, isLoading, error } = useDoc<LandingPageData>(landingPageDocRef);
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
+                <Frown className="h-16 w-16 text-destructive mb-4" />
+                <h1 className="text-2xl font-bold text-destructive">Error al Cargar</h1>
+                <p className="text-muted-foreground mt-2">No se pudo cargar la página. Es posible que el negocio no tenga una landing page configurada.</p>
+            </div>
+        );
+    }
+
+    if (!data) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
+                <Frown className="h-16 w-16 text-muted-foreground mb-4" />
+                <h1 className="text-2xl font-bold">Página en Construcción</h1>
+                <p className="text-muted-foreground mt-2 max-w-md">El propietario de este sitio aún está configurando su página de inicio. ¡Vuelve pronto!</p>
+            </div>
+        );
+    }
+
+    const { hero, navigation, sections, testimonials, form, header } = data;
+
+    const heroStyle: CSSProperties = {
+        backgroundColor: hero.backgroundColor,
+        color: hero.textColor,
+    };
+    
+    const buttonStyle: CSSProperties = {
+        backgroundColor: hero.buttonColor,
+        color: hero.backgroundColor,
+    };
+
+    return (
+        <div className="bg-background">
+            <main>
+                <PreviewNavigation navConfig={navigation} />
+                
+                <PreviewBanner headerConfig={header} />
+                <PreviewCarousel headerConfig={header} />
+
+                <div style={heroStyle} className="relative">
+                    {hero.imageUrl && (
+                        <div className="absolute inset-0 z-0">
+                            <Image
+                                src={hero.imageUrl}
+                                alt={hero.title}
+                                fill
+                                className="object-cover"
+                                priority
+                            />
+                            <div className="absolute inset-0 bg-black/30"></div>
+                        </div>
+                    )}
+                    <div className="relative z-10 container mx-auto text-center py-20 px-4">
+                        <h1 className="text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
+                        <p className="text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
+                        
+                        <div 
+                            className="mt-6 max-w-none"
+                            style={{color: hero.textColor}}
+                            dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
+                        />
+
+                        {hero.ctaButtonText && hero.ctaButtonUrl && (
+                            <Button asChild size="lg" className="mt-8" style={buttonStyle}>
+                                <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {sections.map(section => (
+                    <PreviewContentSection key={section.id} section={section} />
+                ))}
+
+                <PreviewTestimonials testimonials={testimonials} />
+                
+                {form.fields.length > 0 && <PublicContactForm formConfig={form} businessId={businessId} />}
+            </main>
+
+            <footer className="w-full border-t bg-muted">
+                <div className="container flex items-center justify-center h-16 px-4 md:px-6">
+                    <p className="text-sm text-muted-foreground">
+                    © {new Date().getFullYear()} {navigation.businessName}. Todos los derechos reservados.
+                    </p>
+                </div>
+            </footer>
+        </div>
+    );
+};
+
 export default function PublicLandingPage() {
-  const firestore = useFirestore();
+    const firestore = useFirestore();
 
-  const configDocRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return doc(firestore, 'globalConfig', 'system');
-  }, [firestore]);
+    const configDocRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, 'globalConfig', 'system');
+    }, [firestore]);
 
-  const { data: config, isLoading: isConfigLoading } = useDoc<GlobalConfig>(configDocRef);
-  
-  const businessId = config?.mainBusinessId;
-
-  const landingPageDocRef = useMemoFirebase(() => {
-    if (!firestore || !businessId) return null;
-    return doc(firestore, 'businesses', businessId, 'landingPages', 'main');
-  }, [firestore, businessId]);
-
-  const { data, isLoading, error } = useDoc<LandingPageData>(landingPageDocRef);
-
-  if (isLoading || isConfigLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-muted-foreground">Cargando la página principal...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-        <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
-            <Frown className="h-16 w-16 text-destructive mb-4" />
-            <h1 className="text-2xl font-bold text-destructive">Error al Cargar</h1>
-            <p className="text-muted-foreground mt-2">
-            No se pudo cargar la página. Es posible que haya un problema con los permisos de la base de datos.
-            </p>
-        </div>
-    );
-  }
-
-  if (!data || !businessId) {
-     return (
-        <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
-            <Frown className="h-16 w-16 text-muted-foreground mb-4" />
-            <h1 className="text-2xl font-bold">Página en Configuración</h1>
-            <p className="text-muted-foreground mt-2 max-w-md">
-                Esta página de inicio aún no ha sido configurada. El administrador debe asignar un "ID de Negocio Principal" en el panel de configuración del superadministrador.
-            </p>
-        </div>
-    );
-  }
-
-  const { hero, navigation, sections, testimonials, form, header } = data;
-
-  const heroStyle: CSSProperties = {
-    backgroundColor: hero.backgroundColor,
-    color: hero.textColor,
-  };
-  
-  const buttonStyle: CSSProperties = {
-    backgroundColor: hero.buttonColor,
-    color: hero.backgroundColor,
-  };
-
-  return (
-    <div className="bg-background">
-      <main>
-        <PreviewNavigation navConfig={navigation} />
-        
-        <PreviewBanner headerConfig={header} />
-        <PreviewCarousel headerConfig={header} />
-
-        <div style={heroStyle} className="relative">
-            {hero.imageUrl && (
-              <div className="absolute inset-0 z-0">
-                  <Image
-                      src={hero.imageUrl}
-                      alt={hero.title}
-                      fill
-                      className="object-cover"
-                      priority
-                  />
-                  <div className="absolute inset-0 bg-black/30"></div>
-              </div>
-            )}
-            <div className="relative z-10 container mx-auto text-center py-20 px-4">
-              <h1 className="text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
-              <p className="text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
-              
-              <div 
-                  className="mt-6 max-w-none"
-                  style={{color: hero.textColor}}
-                  dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
-              />
-
-              {hero.ctaButtonText && hero.ctaButtonUrl && (
-                  <Button asChild size="lg" className="mt-8" style={buttonStyle}>
-                      <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
-                  </Button>
-              )}
-          </div>
-        </div>
-
-        {sections.map(section => (
-          <PreviewContentSection key={section.id} section={section} />
-        ))}
-
-        <PreviewTestimonials testimonials={testimonials} />
-        
-        {form.fields.length > 0 && <PublicContactForm formConfig={form} businessId={businessId} />}
-      </main>
-
-      <footer className="w-full border-t bg-muted">
-        <div className="container flex items-center justify-center h-16 px-4 md:px-6">
-            <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} {navigation.businessName}. Todos los derechos reservados.
-            </p>
-        </div>
-      </footer>
-    </div>
-  );
+    const { data: config, isLoading: isConfigLoading } = useDoc<GlobalConfig>(configDocRef);
+    
+    if (isConfigLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="ml-4 text-muted-foreground">Cargando configuración...</p>
+            </div>
+        );
+    }
+    
+    if (!config?.mainBusinessId) {
+        return (
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
+                <Frown className="h-16 w-16 text-muted-foreground mb-4" />
+                <h1 className="text-2xl font-bold">Página en Configuración</h1>
+                <p className="text-muted-foreground mt-2 max-w-md">
+                    Esta página de inicio aún no ha sido configurada. El administrador debe asignar un "ID de Negocio Principal" en el panel de configuración del superadministrador.
+                </p>
+            </div>
+        );
+    }
+    
+    return <LandingPageContent businessId={config.mainBusinessId} />;
 }
