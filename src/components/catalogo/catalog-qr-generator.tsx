@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
@@ -15,8 +16,9 @@ export default function CatalogQRGenerator() {
   const [catalogUrl, setCatalogUrl] = useState('');
 
   useEffect(() => {
-    if (user?.uid) {
-      setCatalogUrl(`https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`);
+    if (typeof window !== 'undefined' && user?.uid) {
+      const baseUrl = window.location.origin;
+      setCatalogUrl(`${baseUrl}/catalog/${user.uid}`);
     }
   }, [user?.uid]);
 

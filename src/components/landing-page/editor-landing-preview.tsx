@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField, LandingHeaderConfigData } from '@/models/landing-page';
 import { cn } from '@/lib/utils';
-import { CSSProperties } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { Star, Copy, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Input } from '../ui/input';
@@ -249,7 +250,7 @@ const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData
     }
 
     return (
-        <div className="relative aspect-[16/5] w-full">
+        <div className="relative aspect-[16/7] w-full">
             {headerConfig.banner.mediaType === 'image' ? (
                 <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
             ) : (
@@ -267,6 +268,14 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
   const { hero, navigation, sections, testimonials, form, header } = data;
   const { toast } = useToast();
   const { user } = useUser();
+  const [publicUrl, setPublicUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.uid) {
+      const baseUrl = window.location.origin;
+      setPublicUrl(`${baseUrl}/landing/${user.uid}`);
+    }
+  }, [user]);
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -278,8 +287,6 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  const publicUrl = typeof window !== 'undefined' && user ? `https://studio.firebase.google.com/studio-9992002164/landing/${user.uid}` : '';
-
   const copyToClipboard = () => {
     if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl);

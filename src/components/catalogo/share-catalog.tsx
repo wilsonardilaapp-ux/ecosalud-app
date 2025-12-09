@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -18,15 +19,17 @@ import { TikTokIcon, WhatsAppIcon, XIcon } from '@/components/icons';
 
 
 export default function ShareCatalog() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [catalogUrl, setCatalogUrl] = useState('');
 
   useEffect(() => {
-    if (user?.uid) {
-      setCatalogUrl(`https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`);
+    // Solo generar la URL cuando el usuario esté disponible y el código se ejecute en el cliente
+    if (typeof window !== 'undefined' && user?.uid) {
+      const baseUrl = window.location.origin;
+      setCatalogUrl(`${baseUrl}/catalog/${user.uid}`);
     }
-  }, [user?.uid]);
+  }, [user, isUserLoading]);
 
   const copyToClipboard = () => {
     if (!catalogUrl) return;
@@ -53,7 +56,7 @@ export default function ShareCatalog() {
     { name: 'X', icon: <XIcon />, className: 'bg-black text-white hover:bg-gray-800', url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(catalogUrl)}&text=${encodeURIComponent('¡Mira mi catálogo de productos!')}` },
   ];
 
-  if (!user) {
+  if (isUserLoading) {
     return null; // Don't render if user is not available
   }
 
