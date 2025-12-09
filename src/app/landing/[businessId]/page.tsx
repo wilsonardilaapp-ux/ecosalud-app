@@ -40,7 +40,7 @@ const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigDa
             <CarouselContent>
                 {headerConfig.carouselItems.map(item => item.mediaUrl && (
                     <CarouselItem key={item.id}>
-                        <div className="relative aspect-[16/5] w-full">
+                        <div className="relative aspect-video w-full">
                             {item.mediaType === 'image' ? (
                                 <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
                             ) : (
