@@ -236,9 +236,9 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
                                 mediaType={item.mediaType}
                                 onUpload={(file) => handleCarouselUpload(item.id, file)}
                                 onRemove={() => removeCarouselItemMedia(item.id)}
-                                aspectRatio="aspect-video"
-                                dimensions="1920 x 1080 px"
-                                description="Formato 16:9"
+                                aspectRatio="aspect-[16/5]"
+                                dimensions="1920 x 600 px"
+                                description="Formato 16:5"
                             />
                             <div>
                                 <Label htmlFor={`slogan-${item.id}`}>Texto sobreimpreso</Label>
