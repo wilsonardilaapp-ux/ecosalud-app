@@ -46,7 +46,7 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
     return (
         <div className="w-full">
             {config.banner.mediaUrl && (
-                <div className="relative aspect-[16/7] w-full">
+                <div className="relative aspect-[16/5] w-full">
                     {config.banner.mediaType === 'image' ? (
                         <Image src={config.banner.mediaUrl} alt="Banner" fill className="object-cover"/>
                     ) : (

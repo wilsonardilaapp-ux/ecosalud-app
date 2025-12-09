@@ -22,7 +22,7 @@ const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData
     }
 
     return (
-        <div className="relative aspect-[16/7] w-full">
+        <div className="relative aspect-[16/5] w-full">
             {headerConfig.banner.mediaType === 'image' ? (
                 <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
             ) : (
@@ -188,13 +188,7 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
                             <CardContent className="p-8 flex-grow">
                                  <div className="flex items-center mb-4">
                                     {[...Array(5)].map((_, i) => (
-                                        <Star
-                                        key={i}
-                                        className={cn(
-                                            "h-6 w-6",
-                                            i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                                        )}
-                                        />
+                                        <Star key={i} className={cn("h-6 w-6", i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
                                     ))}
                                 </div>
                                 <div 

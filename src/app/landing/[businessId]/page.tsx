@@ -1,3 +1,4 @@
+
 // src/app/landing/[businessId]/page.tsx
 'use client';
 
@@ -22,7 +23,7 @@ import { useParams } from 'next/navigation';
 const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
     if (!headerConfig.banner || !headerConfig.banner.mediaUrl) return null;
     return (
-        <div className="relative aspect-[16/7] w-full">
+        <div className="relative aspect-[16/5] w-full">
             {headerConfig.banner.mediaType === 'image' ? (
                 <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
             ) : (
