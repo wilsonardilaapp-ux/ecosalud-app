@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -24,6 +25,9 @@ interface QRFormProps {
   accountLabel: string;
 }
 
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 export function QRForm({ methodName, data, setData, accountLabel }: QRFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -36,6 +40,18 @@ export function QRForm({ methodName, data, setData, accountLabel }: QRFormProps)
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            variant: 'destructive',
+            title: "Archivo muy pesado",
+            description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear the input
+        }
+        return;
+    }
 
     setIsUploading(true);
 

@@ -32,6 +32,9 @@ import type { Business } from "@/models/business";
 import { uploadMedia } from "@/ai/flows/upload-media-flow";
 import { useToast } from "@/hooks/use-toast";
 
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -70,6 +73,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file || !businessDocRef) return;
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            variant: 'destructive',
+            title: "Archivo muy pesado",
+            description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear the input
+        }
+        return;
+      }
       
       toast({ title: "Subiendo imagen...", description: "Por favor, espera un momento." });
 

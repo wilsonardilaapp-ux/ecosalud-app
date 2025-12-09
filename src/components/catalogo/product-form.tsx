@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,6 +14,9 @@ import { UploadCloud, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
 import { useToast } from '@/hooks/use-toast';
+
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const productSchema = z.object({
     name: z.string().min(3, "El nombre es requerido."),
@@ -47,6 +51,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     const [mediaItems, setMediaItems] = useState<Array<MediaItem | null>>([]);
     const [isUploading, setIsUploading] = useState<number | null>(null);
     const { toast } = useToast();
+    const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
         if (product) {
@@ -83,6 +88,19 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
     };
 
     const handleMediaUpload = async (file: File, index: number) => {
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            toast({
+                variant: 'destructive',
+                title: "Archivo muy pesado",
+                description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+            });
+            const fileInput = fileInputRefs.current[index];
+            if (fileInput) {
+                fileInput.value = ""; // Clear the specific input
+            }
+            return;
+        }
+
         setIsUploading(index);
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -156,6 +174,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                             <UploadCloud className="h-5 w-5 text-muted-foreground" />
                                             <Input 
                                                 type="file" 
+                                                ref={el => fileInputRefs.current[mediaIndex] = el}
                                                 className="hidden" 
                                                 onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], mediaIndex)} 
                                                 accept="image/*,video/*" 
@@ -193,6 +212,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                     <span className="text-xs text-center text-muted-foreground mt-1">Formato 16:9 (Carrusel)</span>
                                     <Input 
                                         type="file" 
+                                        ref={el => fileInputRefs.current[0] = el}
                                         className="hidden" 
                                         onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], 0)} 
                                         accept="image/*,video.mp4"

@@ -1,8 +1,10 @@
+
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import 'quill/dist/quill.snow.css';
 import { uploadMedia } from '@/ai/flows/upload-media-flow';
+import { useToast } from '@/hooks/use-toast';
 
 interface RichTextEditorProps {
   value: string
@@ -10,11 +12,15 @@ interface RichTextEditorProps {
   placeholder?: string
 }
 
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const [isMounted, setIsMounted] = useState(false)
   const quillRef = useRef<any>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const onChangeRef = useRef(onChange);
+  const { toast } = useToast();
 
   // Mantener onChangeRef actualizado con la última función onChange
   useEffect(() => {
@@ -65,11 +71,20 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         input.onchange = async () => {
             if (input.files) {
                 const file = input.files[0];
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    toast({
+                        variant: 'destructive',
+                        title: "Archivo muy pesado",
+                        description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+                    });
+                    input.value = ""; // Clear the input
+                    return;
+                }
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
+                const range = quillRef.current.getSelection(true);
                 reader.onloadend = async () => {
                     const mediaDataUri = reader.result as string;
-                    const range = quillRef.current.getSelection(true);
                     try {
                         quillRef.current.insertEmbed(range.index, 'image', `data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`);
                         quillRef.current.setSelection(range.index + 1);

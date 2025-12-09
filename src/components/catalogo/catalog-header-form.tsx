@@ -16,6 +16,8 @@ import { useFirestore, useUser, setDocumentNonBlocking, useDoc, useMemoFirebase 
 import { doc } from 'firebase/firestore';
 import type { Business } from '@/models/business';
 
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 interface CatalogHeaderFormProps {
   data: LandingHeaderConfigData;
@@ -102,6 +104,18 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            variant: 'destructive',
+            title: "Archivo muy pesado",
+            description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear the input
+        }
+        return;
+      }
 
       setIsUploading(true);
       await onUpload(file);
@@ -248,7 +262,19 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                                     ref={replaceInputRef}
                                     onChange={(e) => {
                                         if (e.target.files?.[0]) {
-                                            handleCarouselUpload(item.id, e.target.files[0])
+                                            const file = e.target.files[0];
+                                            if (file.size > MAX_FILE_SIZE_BYTES) {
+                                                toast({
+                                                    variant: 'destructive',
+                                                    title: "Archivo muy pesado",
+                                                    description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+                                                });
+                                                if (replaceInputRef.current) {
+                                                    replaceInputRef.current.value = "";
+                                                }
+                                                return;
+                                            }
+                                            handleCarouselUpload(item.id, file)
                                         }
                                     }}
                                     className="hidden"
