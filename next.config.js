@@ -6,12 +6,6 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',
@@ -62,5 +56,5 @@ const nextConfig = {
   },
 };
 
-// Invalidate cache
+// Invalidate cache to fix build issues.
 module.exports = nextConfig;
