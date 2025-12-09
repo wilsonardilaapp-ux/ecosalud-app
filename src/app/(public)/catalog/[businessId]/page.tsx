@@ -319,7 +319,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
 }
 
 const ActionButtons = () => {
-    const pageRef = useRef<HTMLDivElement>(null);
+    const pageRef = useRef<HTMLDivElement | null>(null);
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -477,5 +477,3 @@ export default function CatalogPage() {
         </div>
     );
 }
-
-    
