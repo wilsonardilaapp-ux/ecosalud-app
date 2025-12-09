@@ -22,7 +22,7 @@ export default function ShareCatalog() {
 
   const getCatalogUrl = () => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/catalog/${user?.uid}`;
+      return `https://studio.firebase.google.com/studio-9992002164/catalog/${user?.uid}`;
     }
     return '';
   };

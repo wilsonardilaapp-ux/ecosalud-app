@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef } from 'react';
@@ -16,7 +15,7 @@ export default function CatalogQRGenerator() {
 
   const getCatalogUrl = () => {
     if (typeof window !== 'undefined' && user) {
-      return `${window.location.origin}/catalog/${user.uid}`;
+      return `https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`;
     }
     return '';
   };

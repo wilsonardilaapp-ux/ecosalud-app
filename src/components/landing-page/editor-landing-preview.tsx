@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -279,7 +278,7 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  const publicUrl = typeof window !== 'undefined' && user ? `${window.location.origin}/landing/${user.uid}` : '';
+  const publicUrl = typeof window !== 'undefined' && user ? `https://studio.firebase.google.com/studio-9992002164/landing/${user.uid}` : '';
 
   const copyToClipboard = () => {
     if (!publicUrl) return;
