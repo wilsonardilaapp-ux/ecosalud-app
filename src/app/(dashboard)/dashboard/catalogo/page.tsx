@@ -53,6 +53,7 @@ const initialHeaderConfig: LandingHeaderConfigData = {
       facebook: '',
       whatsapp: '',
       twitter: '',
+      youtube: '',
     },
     carouselItems: [
       { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
@@ -316,4 +317,5 @@ export default function CatalogoPage() {
     );
 }
 
+    
     
