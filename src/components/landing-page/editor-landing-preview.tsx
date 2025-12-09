@@ -267,6 +267,7 @@ interface EditorLandingPreviewProps {
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
   const { hero, navigation, sections, testimonials, form, header } = data;
   const { toast } = useToast();
+  const { user } = useUser();
 
   const heroStyle: CSSProperties = {
     backgroundColor: hero.backgroundColor,
@@ -278,7 +279,7 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     color: hero.backgroundColor, // A simple contrast logic
   };
   
-  const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
+  const publicUrl = typeof window !== 'undefined' && user ? `${window.location.origin}/landing/${user.uid}` : '';
 
   const copyToClipboard = () => {
     if (!publicUrl) return;
