@@ -13,7 +13,7 @@ export default function Header() {
           </span>
         </Link>
         <nav>
-          <Button asChild variant="outline">
+          <Button asChild>
             <Link href="/login">Iniciar Sesión</Link>
           </Button>
         </nav>
