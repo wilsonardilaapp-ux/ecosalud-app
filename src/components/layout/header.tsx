@@ -17,7 +17,7 @@ export default function Header() {
                 <Link href="/">Inicio</Link>
             </Button>
             <Button variant="ghost" asChild>
-                <Link href="/#">Catálogo</Link>
+                <Link href="/">Catálogo</Link>
             </Button>
           <Button asChild>
             <Link href="/login">Iniciar Sesión</Link>
