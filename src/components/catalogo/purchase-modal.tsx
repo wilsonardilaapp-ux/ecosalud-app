@@ -59,7 +59,7 @@ export function PurchaseModal({ isOpen, onOpenChange, product, businessId, busin
         .map(([key, config]) => ({
             key,
             ...config,
-            enabled: paymentSettings?.[key as keyof PaymentSettings]?.enabled ?? false
+            enabled: (paymentSettings?.[key as keyof PaymentSettings] as any)?.enabled ?? false
         }))
         .filter(method => method.enabled);
 
