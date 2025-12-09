@@ -248,7 +248,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
                                     onUpload={(file) => handleCarouselUpload(item.id, file)}
                                     onRemove={() => removeCarouselItemMedia(item.id)}
                                     aspectRatio="aspect-video"
-                                    dimensions="1920 x 1080 px"
+                                    dimensions="~1440x720 px"
                                     description="Formato 16:9 (Carrusel)"
                                 />
                                 <div>
