@@ -56,5 +56,5 @@ const nextConfig = {
   },
 };
 
-// Invalidate cache to fix internal Next.js build errors.
+// Force cache invalidation to fix internal Next.js build errors.
 module.exports = nextConfig;

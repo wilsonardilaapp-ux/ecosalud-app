@@ -122,3 +122,7 @@ export type CarouselItem = {
     mediaType: 'image' | 'video' | null;
     slogan: string;
 };
+
+export interface GlobalConfig {
+  mainBusinessId?: string;
+}
