@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -265,7 +266,6 @@ interface EditorLandingPreviewProps {
 
 export default function EditorLandingPreview({ data }: EditorLandingPreviewProps) {
   const { hero, navigation, sections, testimonials, form, header } = data;
-  const { user } = useUser();
   const { toast } = useToast();
 
   const heroStyle: CSSProperties = {

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Image from 'next/image';
@@ -224,12 +224,30 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
 
 const LandingPageContent = ({ businessId }: { businessId: string }) => {
     const firestore = useFirestore();
-    const landingPageDocRef = useMemoFirebase(() => {
-        if (!firestore || !businessId) return null;
-        return doc(firestore, 'businesses', businessId, 'landingPages', 'main');
-    }, [firestore, businessId]);
+    const [pageData, setPageData] = useState<LandingPageData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const { data, isLoading, error } = useDoc<LandingPageData>(landingPageDocRef);
+    useEffect(() => {
+        if (!firestore || !businessId) return;
+
+        const landingPageDocRef = doc(firestore, 'businesses', businessId, 'landingPages', 'main');
+        
+        const unsubscribe = onSnapshot(landingPageDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setPageData(docSnap.data() as LandingPageData);
+            } else {
+                setError("No se encontró la configuración de la página de inicio para este negocio.");
+            }
+            setIsLoading(false);
+        }, (err) => {
+            console.error("Error fetching landing page data:", err);
+            setError("Error al cargar los datos de la página.");
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [firestore, businessId]);
 
     if (isLoading) {
         return (
@@ -244,12 +262,12 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
             <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
                 <Frown className="h-16 w-16 text-destructive mb-4" />
                 <h1 className="text-2xl font-bold text-destructive">Error al Cargar</h1>
-                <p className="text-muted-foreground mt-2">No se pudo cargar la página. Es posible que el negocio no tenga una landing page configurada.</p>
+                <p className="text-muted-foreground mt-2">{error}</p>
             </div>
         );
     }
 
-    if (!data) {
+    if (!pageData) {
         return (
             <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
                 <Frown className="h-16 w-16 text-muted-foreground mb-4" />
@@ -259,7 +277,7 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
         );
     }
 
-    const { hero, navigation, sections, testimonials, form, header } = data;
+    const { hero, navigation, sections, testimonials, form, header } = pageData;
 
     const heroStyle: CSSProperties = {
         backgroundColor: hero.backgroundColor,
