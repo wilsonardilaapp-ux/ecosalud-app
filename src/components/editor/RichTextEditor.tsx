@@ -69,8 +69,8 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
                 reader.readAsDataURL(file);
                 reader.onloadend = async () => {
                     const mediaDataUri = reader.result as string;
+                    const range = quillRef.current.getSelection(true);
                     try {
-                        const range = quillRef.current.getSelection(true);
                         quillRef.current.insertEmbed(range.index, 'image', `data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`);
                         quillRef.current.setSelection(range.index + 1);
 
@@ -81,7 +81,9 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
                         quillRef.current.setSelection(range.index + 1);
                     } catch (error) {
                         console.error('Image upload failed', error);
-                        quillRef.current.deleteText(range.index, 1);
+                        if (range) {
+                            quillRef.current.deleteText(range.index, 1);
+                        }
                     }
                 }
             }
