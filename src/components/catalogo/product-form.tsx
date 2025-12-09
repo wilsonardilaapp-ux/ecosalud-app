@@ -174,7 +174,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                             <UploadCloud className="h-5 w-5 text-muted-foreground" />
                                             <Input 
                                                 type="file" 
-                                                ref={el => fileInputRefs.current[mediaIndex] = el}
+                                                ref={(el) => { if (el) fileInputRefs.current[mediaIndex] = el; }}
                                                 className="hidden" 
                                                 onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], mediaIndex)} 
                                                 accept="image/*,video/*" 
@@ -212,7 +212,7 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
                                     <span className="text-xs text-center text-muted-foreground mt-1">Formato 16:9 (Carrusel)</span>
                                     <Input 
                                         type="file" 
-                                        ref={el => fileInputRefs.current[0] = el}
+                                        ref={(el) => { if (el) fileInputRefs.current[0] = el; }}
                                         className="hidden" 
                                         onChange={(e) => e.target.files && handleMediaUpload(e.target.files[0], 0)} 
                                         accept="image/*,video.mp4"
