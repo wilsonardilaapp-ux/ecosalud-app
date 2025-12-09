@@ -3,7 +3,7 @@
 
 import { useMemo, useEffect, useState } from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore'; // Import onSnapshot
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -236,6 +236,7 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
         const unsubscribe = onSnapshot(landingPageDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 setPageData(docSnap.data() as LandingPageData);
+                setError(null);
             } else {
                 setError("No se encontró la configuración de la página de inicio para este negocio.");
             }
@@ -350,7 +351,6 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
 
 export default function PublicLandingPage() {
     const firestore = useFirestore();
-
     const configDocRef = useMemoFirebase(() => {
         if (!firestore) return null;
         return doc(firestore, 'globalConfig', 'system');
@@ -381,3 +381,5 @@ export default function PublicLandingPage() {
     
     return <LandingPageContent businessId={config.mainBusinessId} />;
 }
+
+    
