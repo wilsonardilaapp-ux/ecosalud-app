@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -19,17 +20,17 @@ import { TikTokIcon, WhatsAppIcon, XIcon } from '@/components/icons';
 export default function ShareCatalog() {
   const { user } = useUser();
   const { toast } = useToast();
+  const [catalogUrl, setCatalogUrl] = useState('');
 
-  const getCatalogUrl = () => {
-    if (typeof window !== 'undefined') {
-      return `https://studio.firebase.google.com/studio-9992002164/catalog/${user?.uid}`;
+  useEffect(() => {
+    if (user?.uid) {
+      setCatalogUrl(`https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`);
     }
-    return '';
-  };
-  
-  const catalogUrl = getCatalogUrl();
+  }, [user?.uid]);
 
   const copyToClipboard = () => {
+    if (!catalogUrl) return;
+
     navigator.clipboard.writeText(catalogUrl).then(() => {
       toast({
         title: 'Enlace Copiado',
@@ -65,7 +66,7 @@ export default function ShareCatalog() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" onClick={copyToClipboard}>
+        <Button variant="outline" onClick={copyToClipboard} disabled={!catalogUrl}>
           <Copy className="mr-2 h-4 w-4" />
           Copiar Enlace
         </Button>
@@ -74,8 +75,9 @@ export default function ShareCatalog() {
             key={social.name}
             className={social.className}
             asChild
+            disabled={!catalogUrl}
           >
-            <a href={social.url} target="_blank" rel="noopener noreferrer">
+            <a href={catalogUrl ? social.url : '#'} target="_blank" rel="noopener noreferrer">
               {React.cloneElement(social.icon, { className: "h-4 w-4" })}
               <span className="ml-2">{social.name}</span>
             </a>

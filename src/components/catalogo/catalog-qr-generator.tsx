@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -12,15 +12,13 @@ export default function CatalogQRGenerator() {
   const { user } = useUser();
   const { toast } = useToast();
   const qrRef = useRef<HTMLDivElement>(null);
+  const [catalogUrl, setCatalogUrl] = useState('');
 
-  const getCatalogUrl = () => {
-    if (typeof window !== 'undefined' && user) {
-      return `https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`;
+  useEffect(() => {
+    if (user?.uid) {
+      setCatalogUrl(`https://studio.firebase.google.com/studio-9992002164/catalog/${user.uid}`);
     }
-    return '';
-  };
-  
-  const catalogUrl = getCatalogUrl();
+  }, [user?.uid]);
 
   const downloadQR = () => {
     if (!qrRef.current) return;
@@ -48,7 +46,9 @@ export default function CatalogQRGenerator() {
   };
 
   const shareQR = async () => {
-    if (navigator.share && catalogUrl) {
+    if (!catalogUrl) return;
+
+    if (navigator.share) {
       try {
         await navigator.share({
           title: 'Mi Catálogo de Productos',
@@ -95,11 +95,11 @@ export default function CatalogQRGenerator() {
         </div>
         <p className="text-sm text-muted-foreground">Escanea para ver el catálogo</p>
         <div className="flex gap-4">
-          <Button onClick={downloadQR}>
+          <Button onClick={downloadQR} disabled={!catalogUrl}>
             <Download className="mr-2 h-4 w-4" />
             Descargar QR
           </Button>
-          <Button variant="outline" onClick={shareQR}>
+          <Button variant="outline" onClick={shareQR} disabled={!catalogUrl}>
             <Share2 className="mr-2 h-4 w-4" />
             Compartir QR
           </Button>
