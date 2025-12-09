@@ -12,7 +12,13 @@ export default function Header() {
             EcoSalud
           </span>
         </Link>
-        <nav>
+        <nav className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+                <Link href="/">Inicio</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+                <Link href="/#">Catálogo</Link>
+            </Button>
           <Button asChild>
             <Link href="/login">Iniciar Sesión</Link>
           </Button>
