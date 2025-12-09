@@ -287,7 +287,8 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
     return (
         <div className="bg-background">
             <main>
-                <PreviewNavigation navConfig={navigation} />
+                {/* The layout now handles the navigation bar, so we remove it from here to avoid duplication */}
+                {/* <PreviewNavigation navConfig={navigation} /> */}
                 
                 <PreviewBanner headerConfig={header} />
                 <PreviewCarousel headerConfig={header} />
