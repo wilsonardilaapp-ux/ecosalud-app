@@ -69,7 +69,7 @@ const initialLandingPageData: LandingPageData = {
       mediaType: null,
     },
     businessInfo: {
-      name: 'Tu Negocio',
+      name: 'Vidaplena',
       address: 'Calle Falsa 123',
       phone: '+57 300 123 4567',
       email: 'info@tunegocio.com',
