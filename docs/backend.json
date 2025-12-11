@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the EcoSalud platform.",
+      "description": "Represents a user of the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -53,7 +53,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SystemService",
       "type": "object",
-      "description": "Represents a system service within the EcoSalud platform.",
+      "description": "Represents a system service within the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -89,7 +89,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Module",
       "type": "object",
-      "description": "Represents a functional module within the EcoSalud platform.",
+      "description": "Represents a functional module within the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -129,7 +129,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GlobalConfig",
       "type": "object",
-      "description": "Represents the global configuration settings for the EcoSalud platform.",
+      "description": "Represents the global configuration settings for the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -178,7 +178,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Business",
       "type": "object",
-      "description": "Represents a business using the EcoSalud platform.",
+      "description": "Represents a business using the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -208,7 +208,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "LandingPage",
       "type": "object",
-      "description": "Represents a landing page created by a business on the EcoSalud platform.",
+      "description": "Represents a landing page created by a business on the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -243,7 +243,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents a product listed in the EcoSalud platform's catalog.",
+      "description": "Represents a product listed in the Vidaprena platform's catalog.",
       "properties": {
         "id": {
           "type": "string",
@@ -388,7 +388,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactForm",
       "type": "object",
-      "description": "Represents a contact form created by a business on the EcoSalud platform.",
+      "description": "Represents a contact form created by a business on the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -419,7 +419,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactSubmission",
       "type": "object",
-      "description": "Represents a submission received through a contact form on the EcoSalud platform.",
+      "description": "Represents a submission received through a contact form on the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -466,7 +466,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Integration",
       "type": "object",
-      "description": "Represents an integration with a third-party service in the EcoSalud platform.",
+      "description": "Represents an integration with a third-party service in the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -495,7 +495,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "PaymentSetting",
       "type": "object",
-      "description": "Represents the payment settings for a user on the EcoSalud platform.",
+      "description": "Represents the payment settings for a user on the Vidaprena platform.",
       "properties": {
         "id": {
           "type": "string",

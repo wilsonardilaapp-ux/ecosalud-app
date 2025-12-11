@@ -140,7 +140,7 @@ const PublicProductCard = ({ product, onOpenModal }: { product: Product, onOpenM
     return (
         <Card className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg h-full">
             <CardHeader className="p-0">
-                <div className="relative aspect-video w-full">
+                <div className="relative aspect-square w-full">
                     {isMediaVideo ? (
                         <video 
                             src={mediaUrl} 
@@ -430,7 +430,7 @@ export default function CatalogPage() {
                 <CatalogHeader config={headerConfig} />
             ) : (
                 <div className="bg-card shadow-md p-4 text-center">
-                     <h1 className="text-2xl font-bold font-headline">Catálogo de EcoSalud</h1>
+                     <h1 className="text-2xl font-bold font-headline">Catálogo de Vidaprena</h1>
                 </div>
             )}
             
@@ -470,7 +470,7 @@ export default function CatalogPage() {
             <footer className="w-full border-t bg-background mt-12">
               <div className="container flex items-center justify-center h-16 px-4 md:px-6">
                 <p className="text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} {headerConfig?.businessInfo.name || 'EcoSalud'}. Todos los derechos reservados.
+                  © {new Date().getFullYear()} {headerConfig?.businessInfo.name || 'Vidaprena'}. Todos los derechos reservados.
                 </p>
               </div>
             </footer>

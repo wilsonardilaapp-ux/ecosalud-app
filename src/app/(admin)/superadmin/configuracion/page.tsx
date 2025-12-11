@@ -72,7 +72,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Configuración Global</CardTitle>
-          <CardDescription>Ajusta la configuración general de la plataforma EcoSalud.</CardDescription>
+          <CardDescription>Ajusta la configuración general de la plataforma Vidaprena.</CardDescription>
         </CardHeader>
       </Card>
       
@@ -143,7 +143,7 @@ export default function SettingsPage() {
                 name="supportEmail"
                 control={control}
                 render={({ field }) => (
-                    <Input id="supportEmail" placeholder="soporte@ecosalud.com" {...field} />
+                    <Input id="supportEmail" placeholder="soporte@vidaprena.com" {...field} />
                 )}
               />
               {errors.supportEmail && <p className="text-sm text-destructive">{errors.supportEmail.message}</p>}

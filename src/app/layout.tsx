@@ -1,10 +1,11 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'EcoSalud Platform',
+  title: 'Vidaprena Platform',
   description: 'Plataforma para la gestión de productos de salud y bienestar.',
 };
 

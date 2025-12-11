@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
             <CardHeader>
                 <CardTitle>Métricas y Analíticas</CardTitle>
                 <CardDescription>
-                Visualiza los indicadores clave de rendimiento (KPIs) de la plataforma EcoSalud.
+                Visualiza los indicadores clave de rendimiento (KPIs) de la plataforma Vidaprena.
                 </CardDescription>
             </CardHeader>
         </Card>

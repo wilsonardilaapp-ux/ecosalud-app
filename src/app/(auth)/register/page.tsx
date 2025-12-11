@@ -86,7 +86,7 @@ export default function RegisterPage() {
         id: newUser.uid,
         name: `${values.name}'s Business`,
         logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
-        description: 'Bienvenido a mi negocio en EcoSalud.',
+        description: 'Bienvenido a mi negocio en Vidaprena.',
       };
       await setDoc(businessDocRef, businessData);
       
