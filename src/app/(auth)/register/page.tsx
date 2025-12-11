@@ -84,7 +84,7 @@ export default function RegisterPage() {
       const businessDocRef = doc(firestore, 'businesses', newUser.uid);
       const businessData: Business = {
         id: newUser.uid,
-        name: `${values.name}'s Business`,
+        name: 'Vidaplena',
         logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
         description: 'Bienvenido a mi negocio en Vidaplena.',
       };
@@ -133,7 +133,7 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="grid gap-4">
             <FormField
               control={form.control}
@@ -192,5 +192,3 @@ export default function RegisterPage() {
     </Card>
   );
 }
-
-    
