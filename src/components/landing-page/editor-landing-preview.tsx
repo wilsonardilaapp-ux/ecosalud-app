@@ -271,8 +271,8 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
   const [publicUrl, setPublicUrl] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && user?.uid) {
-      const baseUrl = window.location.origin;
+    if (user?.uid) {
+      const baseUrl = 'https://studio.firebase.google.com/studio-9992002164';
       setPublicUrl(`${baseUrl}/landing/${user.uid}`);
     }
   }, [user]);

@@ -24,12 +24,11 @@ export default function ShareCatalog() {
   const [catalogUrl, setCatalogUrl] = useState('');
 
   useEffect(() => {
-    // Solo generar la URL cuando el usuario esté disponible y el código se ejecute en el cliente
-    if (typeof window !== 'undefined' && user?.uid) {
-      const baseUrl = window.location.origin;
+    if (user?.uid) {
+      const baseUrl = 'https://studio.firebase.google.com/studio-9992002164';
       setCatalogUrl(`${baseUrl}/catalog/${user.uid}`);
     }
-  }, [user, isUserLoading]);
+  }, [user?.uid]);
 
   const copyToClipboard = () => {
     if (!catalogUrl) return;

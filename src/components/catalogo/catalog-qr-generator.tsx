@@ -16,8 +16,8 @@ export default function CatalogQRGenerator() {
   const [catalogUrl, setCatalogUrl] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && user?.uid) {
-      const baseUrl = window.location.origin;
+    if (user?.uid) {
+      const baseUrl = 'https://studio.firebase.google.com/studio-9992002164';
       setCatalogUrl(`${baseUrl}/catalog/${user.uid}`);
     }
   }, [user?.uid]);
