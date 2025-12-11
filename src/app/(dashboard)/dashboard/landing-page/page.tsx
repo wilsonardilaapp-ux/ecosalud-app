@@ -111,6 +111,16 @@ export default function LandingPageBuilder() {
       // Create a mutable copy of the saved data
       const dataCopy = JSON.parse(JSON.stringify(savedData));
 
+      // --- Temporary Migration to fix old names ---
+      if (dataCopy.navigation.businessName === 'Mi Negocio') {
+        dataCopy.navigation.businessName = 'Vidaplena';
+      }
+      if (dataCopy.header.businessInfo.name === 'Mi Negocio') {
+        dataCopy.header.businessInfo.name = 'Vidaplena';
+      }
+      // --- End Migration ---
+
+
       // Ensure the form and fields exist
       if (!dataCopy.form) {
         dataCopy.form = { fields: [], destinationEmail: '' };
