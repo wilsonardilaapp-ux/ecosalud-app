@@ -72,7 +72,7 @@ const FallbackHeader = () => (
         <Link href="/" className="flex items-center gap-2">
           <Logo className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold font-headline text-foreground">
-            Vidaprena
+            Vidaplena
           </span>
         </Link>
       </div>
@@ -111,3 +111,5 @@ export default function Header() {
 
   return <FallbackHeader />;
 }
+
+    

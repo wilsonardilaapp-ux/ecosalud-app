@@ -29,8 +29,8 @@ const initialLandingPageData: LandingPageData = {
   navigation: {
     enabled: true,
     logoUrl: '',
-    businessName: 'Mi Negocio',
-    logoAlt: 'Logo de Mi Negocio',
+    businessName: 'Vidaplena',
+    logoAlt: 'Logo de Vidaplena',
     logoWidth: 120,
     logoAlignment: 'left',
     links: [
@@ -50,7 +50,7 @@ const initialLandingPageData: LandingPageData = {
   sections: [],
   testimonials: [],
   seo: {
-    title: 'Mi Negocio | Soluciones Innovadoras',
+    title: 'Vidaplena | Soluciones Innovadoras',
     description: 'Ofrecemos soluciones innovadoras para impulsar tu negocio al siguiente nivel.',
     keywords: ['innovación', 'tecnología', 'negocio'],
   },
@@ -201,3 +201,5 @@ export default function LandingPageBuilder() {
     </div>
   );
 }
+
+    

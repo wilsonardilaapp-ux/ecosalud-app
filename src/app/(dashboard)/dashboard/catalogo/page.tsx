@@ -42,7 +42,7 @@ const initialHeaderConfig: LandingHeaderConfigData = {
       mediaType: null,
     },
     businessInfo: {
-      name: 'Mi Negocio',
+      name: 'Vidaplena',
       address: 'Dirección de ejemplo',
       phone: '3001234567',
       email: 'info@tunegocio.com',
@@ -316,8 +316,5 @@ export default function CatalogoPage() {
         </div>
     );
 }
-
-    
-    
 
     

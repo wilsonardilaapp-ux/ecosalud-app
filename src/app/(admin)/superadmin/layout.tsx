@@ -72,7 +72,7 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
         <SidebarHeader>
           <Link href="/superadmin" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
-            <span className="text-lg font-semibold font-headline">Vidaprena</span>
+            <span className="text-lg font-semibold font-headline">Vidaplena</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>
@@ -124,3 +124,5 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
     </SidebarProvider>
   );
 }
+
+    

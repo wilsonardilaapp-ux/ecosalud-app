@@ -72,7 +72,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Configuración Global</CardTitle>
-          <CardDescription>Ajusta la configuración general de la plataforma Vidaprena.</CardDescription>
+          <CardDescription>Ajusta la configuración general de la plataforma Vidaplena.</CardDescription>
         </CardHeader>
       </Card>
       
@@ -143,7 +143,7 @@ export default function SettingsPage() {
                 name="supportEmail"
                 control={control}
                 render={({ field }) => (
-                    <Input id="supportEmail" placeholder="soporte@vidaprena.com" {...field} />
+                    <Input id="supportEmail" placeholder="soporte@vidaplena.com" {...field} />
                 )}
               />
               {errors.supportEmail && <p className="text-sm text-destructive">{errors.supportEmail.message}</p>}
@@ -177,3 +177,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

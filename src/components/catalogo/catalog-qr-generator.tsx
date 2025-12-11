@@ -110,3 +110,5 @@ export default function CatalogQRGenerator() {
     </Card>
   );
 }
+
+    

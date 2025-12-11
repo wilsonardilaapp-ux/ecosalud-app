@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
             <CardHeader>
                 <CardTitle>Métricas y Analíticas</CardTitle>
                 <CardDescription>
-                Visualiza los indicadores clave de rendimiento (KPIs) de la plataforma Vidaprena.
+                Visualiza los indicadores clave de rendimiento (KPIs) de la plataforma Vidaplena.
                 </CardDescription>
             </CardHeader>
         </Card>
@@ -199,3 +199,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+    

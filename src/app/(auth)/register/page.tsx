@@ -86,7 +86,7 @@ export default function RegisterPage() {
         id: newUser.uid,
         name: `${values.name}'s Business`,
         logoURL: 'https://seeklogo.com/images/E/eco-friendly-logo-7087A22106-seeklogo.com.png',
-        description: 'Bienvenido a mi negocio en Vidaprena.',
+        description: 'Bienvenido a mi negocio en Vidaplena.',
       };
       await setDoc(businessDocRef, businessData);
       
@@ -192,3 +192,5 @@ export default function RegisterPage() {
     </Card>
   );
 }
+
+    

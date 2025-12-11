@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the Vidaprena platform.",
+      "description": "Represents a user of the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -53,7 +53,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SystemService",
       "type": "object",
-      "description": "Represents a system service within the Vidaprena platform.",
+      "description": "Represents a system service within the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -89,7 +89,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Module",
       "type": "object",
-      "description": "Represents a functional module within the Vidaprena platform.",
+      "description": "Represents a functional module within the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -129,7 +129,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GlobalConfig",
       "type": "object",
-      "description": "Represents the global configuration settings for the Vidaprena platform.",
+      "description": "Represents the global configuration settings for the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -178,7 +178,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Business",
       "type": "object",
-      "description": "Represents a business using the Vidaprena platform.",
+      "description": "Represents a business using the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -208,7 +208,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "LandingPage",
       "type": "object",
-      "description": "Represents a landing page created by a business on the Vidaprena platform.",
+      "description": "Represents a landing page created by a business on the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -243,7 +243,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents a product listed in the Vidaprena platform's catalog.",
+      "description": "Represents a product listed in the Vidaplena platform's catalog.",
       "properties": {
         "id": {
           "type": "string",
@@ -388,7 +388,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactForm",
       "type": "object",
-      "description": "Represents a contact form created by a business on the Vidaprena platform.",
+      "description": "Represents a contact form created by a business on the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -419,7 +419,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactSubmission",
       "type": "object",
-      "description": "Represents a submission received through a contact form on the Vidaprena platform.",
+      "description": "Represents a submission received through a contact form on the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -466,7 +466,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Integration",
       "type": "object",
-      "description": "Represents an integration with a third-party service in the Vidaprena platform.",
+      "description": "Represents an integration with a third-party service in the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -495,7 +495,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "PaymentSetting",
       "type": "object",
-      "description": "Represents the payment settings for a user on the Vidaprena platform.",
+      "description": "Represents the payment settings for a user on the Vidaplena platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -745,3 +745,5 @@
     "reasoning": "The Firestore structure is designed to ensure Authorization Independence and support the application's QAPs (Queries are not Filters). Authorization Independence is achieved by avoiding `get()` calls in security rules through denormalization.  Specifically, the `LandingPage`, `Product`, `ContactForm`, and `ContactSubmission` subcollections under `/businesses/{businessId}` include the `businessId` field, which duplicates the parent document's ID, but allows security rules to validate access without requiring a `get()` call to the parent `business` document.\n\nStructural Segregation is applied by separating user-specific data (`/users/{userId}`) from business-related data (`/businesses/{businessId}/...`).  Each collection has a homogeneous security posture. Path-based ownership (`/users/{userId}`) is used for private user data like payment settings.\n\nThe membership model is implicitly supported through the businessId on resources linked to each business.\n\nGlobal roles are managed using content over existence, within the User document under role (e.g., `/users/{uid}` has `role: 'super_admin'`).\n\nQAPs (Rules are not Filters) are supported through structural segregation. Listing operations are secured based on the path and, where applicable, the denormalized `businessId` field in subcollections, allowing secure querying without filtering on potentially insecure data.\n\nExplicit state modeling is used through the `status` field in entities like `User` and `SystemService`."
   }
 }
+
+    

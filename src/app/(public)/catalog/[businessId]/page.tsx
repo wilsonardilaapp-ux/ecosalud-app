@@ -430,7 +430,7 @@ export default function CatalogPage() {
                 <CatalogHeader config={headerConfig} />
             ) : (
                 <div className="bg-card shadow-md p-4 text-center">
-                     <h1 className="text-2xl font-bold font-headline">Catálogo de Vidaprena</h1>
+                     <h1 className="text-2xl font-bold font-headline">Catálogo de Vidaplena</h1>
                 </div>
             )}
             
@@ -470,10 +470,12 @@ export default function CatalogPage() {
             <footer className="w-full border-t bg-background mt-12">
               <div className="container flex items-center justify-center h-16 px-4 md:px-6">
                 <p className="text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} {headerConfig?.businessInfo.name || 'Vidaprena'}. Todos los derechos reservados.
+                  © {new Date().getFullYear()} {headerConfig?.businessInfo.name || 'Vidaplena'}. Todos los derechos reservados.
                 </p>
               </div>
             </footer>
         </div>
     );
 }
+
+    

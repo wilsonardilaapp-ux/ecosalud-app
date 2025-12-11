@@ -1,26 +1,27 @@
 
+// src/app/landing/[businessId]/page.tsx
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, onSnapshot } from 'firebase/firestore'; // Import onSnapshot
+import { useEffect, useState } from 'react';
+import { useFirestore } from '@/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2, Frown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, FormField, LandingHeaderConfigData, GlobalConfig } from '@/models/landing-page';
+import type { LandingPageData, NavigationSection, ContentSection, TestimonialSection, LandingHeaderConfigData } from '@/models/landing-page';
 import { CSSProperties } from 'react';
 import { PublicContactForm } from '@/components/landing-page/public-contact-form';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { useParams } from 'next/navigation';
+
+// --- Componentes Auxiliares (Reutilizados para mantener consistencia visual) ---
 
 const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
-    if (!headerConfig.banner || !headerConfig.banner.mediaUrl) {
-        return null;
-    }
-
+    if (!headerConfig.banner || !headerConfig.banner.mediaUrl) return null;
     return (
         <div className="relative aspect-[16/5] w-full">
             {headerConfig.banner.mediaType === 'image' ? (
@@ -33,21 +34,9 @@ const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData
 };
 
 const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
-    if (!headerConfig.carouselItems || !headerConfig.carouselItems.some(item => item.mediaUrl)) {
-        return null;
-    }
-
+    if (!headerConfig.carouselItems || !headerConfig.carouselItems.some(item => item.mediaUrl)) return null;
     return (
-        <Carousel
-            className="w-full"
-            opts={{ loop: true }}
-            plugins={[
-                Autoplay({
-                    delay: 5000,
-                    stopOnInteraction: true,
-                }),
-            ]}
-        >
+        <Carousel className="w-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000, stopOnInteraction: true })]}>
             <CarouselContent>
                 {headerConfig.carouselItems.map(item => item.mediaUrl && (
                     <CarouselItem key={item.id}>
@@ -72,28 +61,11 @@ const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigDa
     );
 };
 
-
 const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
-  if (!navConfig.enabled) {
-    return null;
-  }
-
-  const navStyle: CSSProperties = {
-    backgroundColor: navConfig.backgroundColor,
-    color: navConfig.textColor,
-    boxShadow: navConfig.useShadow ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' : 'none',
-  };
-
-  const linkStyle: CSSProperties = {
-    fontSize: `${navConfig.fontSize}px`,
-    color: navConfig.textColor
-  };
-  
-  const hoverStyle = `
-    .nav-link:hover {
-      color: ${navConfig.hoverColor} !important;
-    }
-  `;
+  if (!navConfig.enabled) return null;
+  const navStyle: CSSProperties = { backgroundColor: navConfig.backgroundColor, color: navConfig.textColor, boxShadow: navConfig.useShadow ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' : 'none' };
+  const linkStyle: CSSProperties = { fontSize: `${navConfig.fontSize}px`, color: navConfig.textColor };
+  const hoverStyle = `.nav-link:hover { color: ${navConfig.hoverColor} !important; }`;
 
   return (
     <>
@@ -125,22 +97,13 @@ const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
 };
 
 const PreviewContentSection = ({ section }: { section: ContentSection }) => {
-  const sectionStyle: CSSProperties = {
-    backgroundColor: section.backgroundColor,
-    color: section.textColor,
-  };
-  
+  const sectionStyle: CSSProperties = { backgroundColor: section.backgroundColor, color: section.textColor };
   return (
     <section style={sectionStyle} className="py-16 px-4">
       <div className="container mx-auto text-center">
         <h2 className="text-4xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
         <p className="text-xl mt-4 mb-8" style={{ color: section.textColor }}>{section.subtitle}</p>
-        <div
-            className="max-w-none mx-auto"
-            style={{ color: section.textColor }}
-            dangerouslySetInnerHTML={{ __html: section.content }}
-        />
-        
+        <div className="max-w-none mx-auto" style={{ color: section.textColor }} dangerouslySetInnerHTML={{ __html: section.content }} />
         {section.subsections && section.subsections.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 text-left">
             {section.subsections.map(sub => (
@@ -154,16 +117,8 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
                     )
                   )}
                 </div>
-                <CardHeader>
-                  <CardTitle style={{ color: section.textColor }}>{sub.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className="text-base"
-                    style={{ color: section.textColor, opacity: 0.9 }}
-                    dangerouslySetInnerHTML={{ __html: sub.description }}
-                  />
-                </CardContent>
+                <CardHeader><CardTitle style={{ color: section.textColor }}>{sub.title}</CardTitle></CardHeader>
+                <CardContent><div className="text-base" style={{ color: section.textColor, opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: sub.description }} /></CardContent>
               </Card>
             ))}
           </div>
@@ -174,10 +129,7 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
 };
 
 const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSection[] }) => {
-    if (testimonials.length === 0) {
-        return null;
-    }
-    
+    if (testimonials.length === 0) return null;
     return (
         <section className="bg-muted py-16 px-4">
             <div className="container mx-auto">
@@ -191,10 +143,7 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
                                         <Star key={i} className={cn("h-6 w-6", i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300")} />
                                     ))}
                                 </div>
-                                <div 
-                                    className="text-muted-foreground prose max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: testimonial.text }}
-                                />
+                                <div className="text-muted-foreground prose max-w-none" dangerouslySetInnerHTML={{ __html: testimonial.text }} />
                             </CardContent>
                              <div className="bg-muted/50 p-6 mt-auto">
                                 <div className="flex items-center">
@@ -216,7 +165,13 @@ const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSectio
     );
 };
 
-const LandingPageContent = ({ businessId }: { businessId: string }) => {
+// --- Componente Principal de la Ruta Dinámica ---
+
+export default function DynamicLandingPage() {
+    const params = useParams();
+    // Forzamos el tipo string para evitar errores, ya que en esta ruta siempre habrá un businessId
+    const businessId = params.businessId as string;
+    
     const firestore = useFirestore();
     const [pageData, setPageData] = useState<LandingPageData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -225,6 +180,7 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
     useEffect(() => {
         if (!firestore || !businessId) return;
 
+        // Escuchar cambios en tiempo real usando el ID de la URL
         const landingPageDocRef = doc(firestore, 'businesses', businessId, 'landingPages', 'main');
         
         const unsubscribe = onSnapshot(landingPageDocRef, (docSnap) => {
@@ -232,12 +188,12 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
                 setPageData(docSnap.data() as LandingPageData);
                 setError(null);
             } else {
-                setError("No se encontró la configuración de la página de inicio para este negocio.");
+                setError("No se encontró la configuración para este negocio.");
             }
             setIsLoading(false);
         }, (err) => {
             console.error("Error fetching landing page data:", err);
-            setError("Error al cargar los datos de la página.");
+            setError("Error al cargar los datos.");
             setIsLoading(false);
         });
 
@@ -252,70 +208,39 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
         );
     }
     
-    if (error) {
+    if (error || !pageData) {
         return (
             <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
                 <Frown className="h-16 w-16 text-destructive mb-4" />
-                <h1 className="text-2xl font-bold text-destructive">Error al Cargar</h1>
-                <p className="text-muted-foreground mt-2">{error}</p>
-            </div>
-        );
-    }
-
-    if (!pageData) {
-        return (
-            <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
-                <Frown className="h-16 w-16 text-muted-foreground mb-4" />
-                <h1 className="text-2xl font-bold">Página en Construcción</h1>
-                <p className="text-muted-foreground mt-2 max-w-md">El propietario de este sitio aún está configurando su página de inicio. ¡Vuelve pronto!</p>
+                <h1 className="text-2xl font-bold">{error || "Página no encontrada"}</h1>
+                <p className="text-muted-foreground mt-2">Verifica que el ID del negocio sea correcto.</p>
             </div>
         );
     }
 
     const { hero, navigation, sections, testimonials, form, header } = pageData;
 
-    const heroStyle: CSSProperties = {
-        backgroundColor: hero.backgroundColor,
-        color: hero.textColor,
-    };
-    
-    const buttonStyle: CSSProperties = {
-        backgroundColor: hero.buttonColor,
-        color: hero.backgroundColor,
-    };
+    const heroStyle: CSSProperties = { backgroundColor: hero.backgroundColor, color: hero.textColor };
+    const buttonStyle: CSSProperties = { backgroundColor: hero.buttonColor, color: hero.backgroundColor };
 
     return (
         <div className="bg-background">
             <main>
-                {/* The layout now handles the navigation bar, so we remove it from here to avoid duplication */}
-                {/* <PreviewNavigation navConfig={navigation} /> */}
-                
+                <PreviewNavigation navConfig={navigation} />
                 <PreviewBanner headerConfig={header} />
                 <PreviewCarousel headerConfig={header} />
 
                 <div style={heroStyle} className="relative">
                     {hero.imageUrl && (
                         <div className="absolute inset-0 z-0">
-                            <Image
-                                src={hero.imageUrl}
-                                alt={hero.title}
-                                fill
-                                className="object-cover"
-                                priority
-                            />
+                            <Image src={hero.imageUrl} alt={hero.title} fill className="object-cover" priority />
                             <div className="absolute inset-0 bg-black/30"></div>
                         </div>
                     )}
                     <div className="relative z-10 container mx-auto text-center py-20 px-4">
                         <h1 className="text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
                         <p className="text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
-                        
-                        <div 
-                            className="mt-6 max-w-none"
-                            style={{color: hero.textColor}}
-                            dangerouslySetInnerHTML={{ __html: hero.additionalContent }}
-                        />
-
+                        <div className="mt-6 max-w-none" style={{color: hero.textColor}} dangerouslySetInnerHTML={{ __html: hero.additionalContent }} />
                         {hero.ctaButtonText && hero.ctaButtonUrl && (
                             <Button asChild size="lg" className="mt-8" style={buttonStyle}>
                                 <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
@@ -335,46 +260,11 @@ const LandingPageContent = ({ businessId }: { businessId: string }) => {
 
             <footer className="w-full border-t bg-muted">
                 <div className="container flex items-center justify-center h-16 px-4 md:px-6">
-                    <p className="text-sm text-muted-foreground">
-                    © {new Date().getFullYear()} {navigation.businessName}. Todos los derechos reservados.
-                    </p>
+                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {navigation.businessName}. Todos los derechos reservados.</p>
                 </div>
             </footer>
         </div>
     );
-};
-
-export default function PublicLandingPage() {
-    const firestore = useFirestore();
-    const configDocRef = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return doc(firestore, 'globalConfig', 'system');
-    }, [firestore]);
-
-    const { data: config, isLoading: isConfigLoading } = useDoc<GlobalConfig>(configDocRef);
-    
-    if (isConfigLoading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="ml-4 text-muted-foreground">Cargando configuración...</p>
-            </div>
-        );
-    }
-    
-    if (!config?.mainBusinessId) {
-        return (
-            <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center px-4">
-                <Frown className="h-16 w-16 text-muted-foreground mb-4" />
-                <h1 className="text-2xl font-bold">Página en Configuración</h1>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                    Esta página de inicio aún no ha sido configurada. El administrador debe asignar un "ID de Negocio Principal" en el panel de configuración del superadministrador.
-                </p>
-            </div>
-        );
-    }
-    
-    return <LandingPageContent businessId={config.mainBusinessId} />;
 }
 
     

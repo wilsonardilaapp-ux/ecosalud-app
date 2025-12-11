@@ -111,7 +111,7 @@ export default function DashboardPage() {
                 <CardHeader>
                     <CardTitle>Bienvenido a tu Panel, {user?.displayName ?? user?.email}</CardTitle>
                     <CardDescription>
-                        Desde aquí puedes gestionar tu negocio en Vidaprena.
+                        Desde aquí puedes gestionar tu negocio en Vidaplena.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -221,3 +221,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+    

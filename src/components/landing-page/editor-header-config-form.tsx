@@ -253,3 +253,5 @@ export default function EditorHeaderConfigForm({ data, setData }: EditorHeaderCo
     </Card>
   );
 }
+
+    

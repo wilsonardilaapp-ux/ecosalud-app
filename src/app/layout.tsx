@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'Vidaprena Platform',
+  title: 'Vidaplena Platform',
   description: 'Plataforma para la gestión de productos de salud y bienestar.',
 };
 
@@ -30,3 +30,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
