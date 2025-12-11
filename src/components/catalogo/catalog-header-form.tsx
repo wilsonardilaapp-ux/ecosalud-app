@@ -29,6 +29,7 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
   const [initialData] = useState<LandingHeaderConfigData>(JSON.parse(JSON.stringify(data)));
   const { user } = useUser();
   const firestore = useFirestore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const businessDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -75,6 +76,38 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
         }
     }
     toast({ title: "Guardando Cambios...", description: "Tu configuración está siendo guardada." });
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file || !businessDocRef) return;
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            variant: 'destructive',
+            title: "Archivo muy pesado",
+            description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear the input
+        }
+        return;
+      }
+      
+      toast({ title: "Subiendo imagen...", description: "Por favor, espera un momento." });
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = async () => {
+          const mediaDataUri = reader.result as string;
+          try {
+              const result = await uploadMedia({ mediaDataUri });
+              setDocumentNonBlocking(businessDocRef, { logoURL: result.secure_url }, { merge: true });
+              toast({ title: "¡Avatar actualizado!", description: "Tu nuevo logo se ha guardado." });
+          } catch (error: any) {
+              toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+          }
+      };
   };
   
   const MediaUploader = ({
@@ -299,17 +332,26 @@ export default function CatalogHeaderForm({ data, setData }: CatalogHeaderFormPr
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1">
                      <Label>Logo del Negocio</Label>
-                      <div className="relative aspect-square w-full max-w-[200px] mx-auto border-2 border-dashed rounded-full flex items-center justify-center p-1">
+                      <div 
+                        className="relative aspect-square w-full max-w-[200px] mx-auto border-2 border-dashed rounded-full flex items-center justify-center p-1 cursor-pointer hover:border-primary"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
                         {business?.logoURL ? (
                           <Image src={business.logoURL} alt="Logo del negocio" layout="fill" className="object-cover rounded-full" />
                         ) : (
                           <div className="text-center text-muted-foreground">
                             <ImageIcon className="h-10 w-10 mx-auto" />
-                            <p className="text-sm mt-2">Sin logo</p>
+                            <p className="text-sm mt-2">Subir logo</p>
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-center text-muted-foreground mt-2">Cambia el logo desde el menú de perfil en la barra lateral.</p>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/*"
+                      />
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-min">
                      <div>
