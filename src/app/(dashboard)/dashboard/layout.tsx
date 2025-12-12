@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isUserLoading || !user || isBusinessLoading) {
     return (
-      <div>
+      <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <p>Cargando y verificando acceso...</p>
         </div>
