@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -54,10 +55,10 @@ const CatalogHeader = ({ config }: { config: LandingHeaderConfigData | null }) =
                     )}
                 </div>
             )}
-            <div className="bg-card shadow-md p-4">
+            <div className="bg-card shadow-md p-6">
                 <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="text-center md:text-left">
-                        <h1 className="text-2xl font-bold font-headline">{config.businessInfo.name}</h1>
+                        <h1 className="text-3xl font-bold font-headline">{config.businessInfo.name}</h1>
                         <p className="text-sm text-muted-foreground">{config.businessInfo.address}</p>
                         {config.businessInfo.email && (
                             <a href={`mailto:${config.businessInfo.email}`} className="text-sm text-muted-foreground hover:text-primary flex items-center justify-center md:justify-start gap-1 mt-1">
