@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef } from "react";
@@ -426,7 +427,7 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                             value={[data.navigation.logoWidth]}
                                             onValueChange={(value) => handleInputChange('navigation', 'logoWidth', value[0])}
                                             min={20}
-                                            max={300}
+                                            max={500}
                                             step={5}
                                         />
                                     </div>
