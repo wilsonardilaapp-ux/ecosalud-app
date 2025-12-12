@@ -219,7 +219,7 @@ const Sidebar = React.forwardRef<
       >
         <div
           className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
+            "hidden duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[side=right]:rotate-180",
             variant === "floating" || variant === "inset"
@@ -318,10 +318,10 @@ const SidebarInset = React.forwardRef<
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
-        // CORRECCIÓN CRÍTICA: Usamos márgenes específicos en lugar de m-2
-        "md:peer-data-[variant=inset]:my-2", // Margen arriba y abajo
-        "md:peer-data-[variant=inset]:mr-2", // Margen derecho
-        "md:peer-data-[variant=inset]:ml-0", // Margen izquierdo forzado a 0
+        // CORRECCIÓN CRÍTICA:
+        "md:peer-data-[variant=inset]:my-2", 
+        "md:peer-data-[variant=inset]:mr-2", 
+        "md:peer-data-[variant=inset]:ml-0", 
         "md:peer-data-[variant=inset]:rounded-xl",
         "md:peer-data-[variant=inset]:shadow",
         className
