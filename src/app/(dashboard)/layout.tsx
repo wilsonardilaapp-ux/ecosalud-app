@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from "react";
@@ -114,11 +113,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="inset">
         <SidebarHeader>
           <Link href="/dashboard" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
-            <span className="text-lg font-semibold font-headline">Vidaprena</span>
+            <span className="text-lg font-semibold font-headline">Vidaplena</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>

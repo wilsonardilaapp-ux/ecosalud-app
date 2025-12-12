@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from "react";
@@ -68,7 +67,7 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="inset">
         <SidebarHeader>
           <Link href="/superadmin" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
@@ -124,5 +123,3 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
     </SidebarProvider>
   );
 }
-
-    
