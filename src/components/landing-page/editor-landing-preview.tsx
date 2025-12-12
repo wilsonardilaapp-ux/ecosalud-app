@@ -393,5 +393,3 @@ export default function EditorLandingPreview({ data }: EditorLandingPreviewProps
     </div>
   );
 }
-
-    
