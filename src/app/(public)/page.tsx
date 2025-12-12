@@ -376,5 +376,3 @@ export default function PublicLandingPage() {
     
     return <LandingPageContent businessId={config.mainBusinessId} />;
 }
-
-    
