@@ -166,35 +166,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* --- CONTENIDO PRINCIPAL --- */}
       <div className="flex flex-1 flex-col md:ml-56 transition-all duration-300">
         
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 shadow-sm lg:px-6">
-            <div className="md:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
-                    <div className="flex h-14 shrink-0 items-center border-b px-4">
-                        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-primary">
-                            <Logo className="w-7 h-7" />
-                            <span className="text-lg font-semibold font-headline">Vidaplena</span>
-                        </Link>
-                    </div>
-                    <div className="flex-1 overflow-y-auto py-4">
-                        <ClientNav />
-                    </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          
-          <div className="flex flex-1 items-center justify-end gap-4">
-          </div>
-        </header>
-
         {/* --- ÁREA DE PÁGINAS --- */}
         <main className="flex-1 bg-gray-50/50">
-          <div className="mx-auto w-full max-w-7xl px-4 md:px-6 pt-6 pb-8 space-y-6"> 
+          <div className="mx-auto w-full max-w-7xl pt-6 pb-8 px-4 md:px-6 space-y-6"> 
             {children}
           </div>
         </main>
