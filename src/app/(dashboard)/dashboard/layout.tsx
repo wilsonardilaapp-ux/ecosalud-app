@@ -14,15 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons";
 import { ClientNav } from "@/components/layout/client-nav";
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
@@ -112,18 +103,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar variant="inset">
-        <SidebarHeader>
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Logo className="w-8 h-8 text-primary" />
-            <span className="text-lg font-semibold font-headline">Vidaplena</span>
-          </Link>
-        </SidebarHeader>
-        <SidebarContent>
+    <div className="flex min-h-screen w-full bg-muted/40">
+      {/* Sidebar */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r bg-background md:flex sticky top-0 h-screen overflow-y-auto z-30">
+        <div className="flex h-16 shrink-0 items-center border-b px-6 bg-background">
+            <Link href="/dashboard" className="flex items-center gap-2">
+                <Logo className="w-8 h-8 text-primary" />
+                <span className="text-lg font-semibold font-headline">Vidaplena</span>
+            </Link>
+        </div>
+        <div className="flex-1 overflow-y-auto py-4">
           <ClientNav />
-        </SidebarContent>
-        <SidebarFooter>
+        </div>
+        <div className="mt-auto p-4 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="justify-start w-full p-2 h-auto">
@@ -163,18 +155,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             className="hidden"
             accept="image/*"
           />
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-40 flex items-center h-16 px-4 bg-background/80 backdrop-blur-sm border-b md:px-6">
-          <div className="md:hidden">
-            <SidebarTrigger />
-          </div>
-          <div className="ml-auto">
-          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
+            {/* Mobile nav trigger could go here */}
+             <div className="md:hidden">
+                {/* Placeholder for mobile nav trigger */}
+             </div>
+            <div className="flex-1"></div>
+            <div>
+                {/* Potentially other header actions */}
+            </div>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+        <main className="flex-1 w-full p-6 md:p-8">
+          <div className="mx-auto w-full max-w-7xl space-y-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
