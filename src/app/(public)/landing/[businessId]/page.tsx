@@ -23,7 +23,7 @@ import { useParams } from 'next/navigation';
 const PreviewBanner = ({ headerConfig }: { headerConfig: LandingHeaderConfigData }) => {
     if (!headerConfig.banner || !headerConfig.banner.mediaUrl) return null;
     return (
-        <div className="relative aspect-[16/5] w-full">
+        <div className="relative aspect-video md:aspect-[16/5] w-full">
             {headerConfig.banner.mediaType === 'image' ? (
                 <Image src={headerConfig.banner.mediaUrl} alt="Banner" fill className="object-cover" />
             ) : (
@@ -40,7 +40,7 @@ const PreviewCarousel = ({ headerConfig }: { headerConfig: LandingHeaderConfigDa
             <CarouselContent>
                 {headerConfig.carouselItems.map(item => item.mediaUrl && (
                     <CarouselItem key={item.id}>
-                        <div className="relative aspect-[16/5] w-full">
+                        <div className="relative aspect-video md:aspect-[16/5] w-full">
                             {item.mediaType === 'image' ? (
                                 <Image src={item.mediaUrl} alt={item.slogan || 'Carousel image'} fill className="object-cover" />
                             ) : (
@@ -99,10 +99,10 @@ const PreviewNavigation = ({ navConfig }: { navConfig: NavigationSection }) => {
 const PreviewContentSection = ({ section }: { section: ContentSection }) => {
   const sectionStyle: CSSProperties = { backgroundColor: section.backgroundColor, color: section.textColor };
   return (
-    <section style={sectionStyle} className="py-16 px-4">
+    <section style={sectionStyle} className="py-12 md:py-16 px-4">
       <div className="container mx-auto text-center">
-        <h2 className="text-4xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
-        <p className="text-xl mt-4 mb-8" style={{ color: section.textColor }}>{section.subtitle}</p>
+        <h2 className="text-3xl md:text-4xl font-bold" style={{ color: section.textColor }}>{section.title}</h2>
+        <p className="text-lg md:text-xl mt-4 mb-8" style={{ color: section.textColor }}>{section.subtitle}</p>
         <div className="max-w-none mx-auto" style={{ color: section.textColor }} dangerouslySetInnerHTML={{ __html: section.content }} />
         {section.subsections && section.subsections.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 text-left">
@@ -131,9 +131,9 @@ const PreviewContentSection = ({ section }: { section: ContentSection }) => {
 const PreviewTestimonials = ({ testimonials }: { testimonials: TestimonialSection[] }) => {
     if (testimonials.length === 0) return null;
     return (
-        <section className="bg-muted py-16 px-4">
+        <section className="bg-muted py-12 md:py-16 px-4">
             <div className="container mx-auto">
-                <h2 className="text-4xl font-bold text-center mb-12">Lo que dicen nuestros clientes</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Lo que dicen nuestros clientes</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {testimonials.map(testimonial => (
                         <Card key={testimonial.id} className="bg-background flex flex-col shadow-lg">
@@ -237,9 +237,9 @@ export default function DynamicLandingPage() {
                             <div className="absolute inset-0 bg-black/30"></div>
                         </div>
                     )}
-                    <div className="relative z-10 container mx-auto text-center py-20 px-4">
-                        <h1 className="text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
-                        <p className="text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
+                    <div className="relative z-10 container mx-auto text-center py-16 md:py-20 px-4">
+                        <h1 className="text-4xl md:text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
+                        <p className="text-lg md:text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
                         <div className="mt-6 max-w-none" style={{color: hero.textColor}} dangerouslySetInnerHTML={{ __html: hero.additionalContent }} />
                         {hero.ctaButtonText && hero.ctaButtonUrl && (
                             <Button asChild size="lg" className="mt-8" style={buttonStyle}>
