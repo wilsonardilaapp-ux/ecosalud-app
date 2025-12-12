@@ -24,14 +24,14 @@ const navItems = [
 
 export function ClientNav() {
   const pathname = usePathname();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile } = useSidebar(); 
 
   const handleLinkClick = () => {
-    setOpenMobile(false);
+    if (setOpenMobile) setOpenMobile(false);
   };
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="px-2">
       {navItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
@@ -39,10 +39,11 @@ export function ClientNav() {
             isActive={pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard")}
             tooltip={item.label}
             onClick={handleLinkClick}
+            className="h-10 w-full justify-start pl-3 mb-1"
           >
-            <Link href={item.href}>
-              <item.icon />
-              <span>{item.label}</span>
+            <Link href={item.href} className="flex items-center gap-3">
+              <item.icon className="h-4 w-4" />
+              <span className="text-sm font-medium">{item.label}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

@@ -107,14 +107,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen w-full flex bg-gray-50">
       {/* --- BARRA LATERAL (Escritorio) --- */}
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r bg-white md:flex">
-        <div className="flex h-16 shrink-0 items-center border-b px-6">
+      <aside className="fixed inset-y-0 left-0 z-50 hidden w-56 flex-col border-r bg-white md:flex">
+        <div className="flex h-16 shrink-0 items-center border-b px-4">
             <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
                 <Logo className="w-8 h-8" />
                 <span className="text-lg font-semibold font-headline">Vidaplena</span>
             </Link>
         </div>
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-2">
           <ClientNav />
         </nav>
         <div className="mt-auto p-4 border-t">
@@ -126,18 +126,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {business?.logoURL && <AvatarImage src={business.logoURL} alt={business.name} />}
                     <AvatarFallback>{business?.name?.[0].toUpperCase() ?? user.email?.[0].toUpperCase() ?? 'U'}</AvatarFallback>
                   </Avatar>
-                  <div className="text-left">
-                    <p className="text-sm font-medium">{business?.name ?? user.displayName ?? user.email}</p>
+                  <div className="text-left overflow-hidden">
+                    <p className="text-sm font-medium truncate">{business?.name ?? user.displayName ?? user.email}</p>
                     <p className="text-xs text-muted-foreground">Cliente</p>
                   </div>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
+            <DropdownMenuContent className="w-48 mb-2" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{business?.name ?? user.displayName ?? user.email}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-sm font-medium leading-none truncate">{business?.name ?? user.displayName ?? user.email}</p>
+                  <p className="text-xs leading-none text-muted-foreground truncate">
                     {user.email}
                   </p>
                 </div>
@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* --- CONTENIDO PRINCIPAL --- */}
-      <div className="flex flex-1 flex-col md:ml-64">
+      <div className="flex flex-1 flex-col md:ml-56">
         {/* --- HEADER SUPERIOR --- */}
         <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm md:justify-end">
             <div className="md:hidden">
@@ -171,7 +171,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0">
+                <SheetContent side="left" className="p-0 w-64">
                     <div className="flex h-16 shrink-0 items-center border-b px-6">
                         <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
                             <Logo className="w-8 h-8" />
@@ -186,7 +186,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           
           <div className="flex items-center gap-4">
-             {/* UserNav podría ir aquí si existiera, o cualquier otro elemento del header */}
+             {/* UserNav placeholder */}
           </div>
         </header>
 
