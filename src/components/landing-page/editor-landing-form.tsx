@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef } from "react";
@@ -151,6 +150,15 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
             updateTestimonial(id, 'avatarUrl', uploadResult.secure_url);
         } else if (uploadResult) {
             toast({ variant: 'destructive', title: 'Error de formato', description: 'Solo se pueden subir imágenes como avatares.' });
+        }
+    };
+    
+    const handleLogoUpload = async (file: File) => {
+        const uploadResult = await handleFileUpload(file);
+        if (uploadResult && uploadResult.mediaType === 'image') {
+            handleInputChange('navigation', 'logoUrl', uploadResult.secure_url);
+        } else if (uploadResult) {
+            toast({ variant: 'destructive', title: 'Error de formato', description: 'El logo debe ser una imagen.' });
         }
     };
 
@@ -310,14 +318,14 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="hero" className="w-full">
-                <TabsList className="h-auto p-1 mb-4 bg-muted rounded-lg grid grid-cols-4 sm:grid-cols-7">
-                    <TabsTrigger value="hero">Principal</TabsTrigger>
-                    <TabsTrigger value="navigation">Navegación</TabsTrigger>
-                    <TabsTrigger value="carousel">Carrusel</TabsTrigger>
-                    <TabsTrigger value="sections">Secciones</TabsTrigger>
-                    <TabsTrigger value="testimonials">Testimonios</TabsTrigger>
-                    <TabsTrigger value="seo">SEO</TabsTrigger>
-                    <TabsTrigger value="form">Formulario</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-7 h-auto p-1 mb-4 bg-muted rounded-lg">
+                    <TabsTrigger value="hero" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Principal</TabsTrigger>
+                    <TabsTrigger value="navigation" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Navegación</TabsTrigger>
+                    <TabsTrigger value="carousel" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Carrusel</TabsTrigger>
+                    <TabsTrigger value="sections" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Secciones</TabsTrigger>
+                    <TabsTrigger value="testimonials" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Testimonios</TabsTrigger>
+                    <TabsTrigger value="seo" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">SEO</TabsTrigger>
+                    <TabsTrigger value="form" className="h-full py-2 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all duration-150 rounded-none text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50">Formulario</TabsTrigger>
                 </TabsList>
                 
                 {/* HERO TAB */}
@@ -393,6 +401,17 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
                                 
                                 <div className="space-y-4 p-4 border rounded-lg">
                                     <h3 className="font-medium">Sección de Logo</h3>
+                                     <div>
+                                        <Label>Subir Logo</Label>
+                                        <MediaUploader
+                                            mediaUrl={data.navigation.logoUrl || null}
+                                            mediaType={data.navigation.logoUrl ? 'image' : null}
+                                            onUpload={handleLogoUpload}
+                                            onRemove={() => handleInputChange('navigation', 'logoUrl', '')}
+                                            aspectRatio="aspect-video"
+                                            description="Logo (preferiblemente PNG transparente)"
+                                        />
+                                    </div>
                                     <div>
                                         <Label htmlFor="nav-logo-url">URL del Logo</Label>
                                         <Input id="nav-logo-url" placeholder="https://ejemplo.com/logo.png" value={data.navigation.logoUrl} onChange={(e) => handleInputChange('navigation', 'logoUrl', e.target.value)} />
@@ -799,4 +818,3 @@ export default function EditorLandingForm({ data, setData }: EditorLandingFormPr
     </Card>
   );
 }
-
