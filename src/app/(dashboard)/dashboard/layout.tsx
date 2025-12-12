@@ -195,8 +195,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* --- ÁREA DE PÁGINAS --- */}
-        <main className="flex-1 p-4 md:p-6 bg-gray-50/50">
-          <div className="mx-auto w-full max-w-7xl space-y-6"> 
+        <main className="flex-1 pt-6 px-4 md:px-6 bg-gray-50/50">
+          <div className="mx-auto w-full max-w-7xl"> 
             {children}
           </div>
         </main>
