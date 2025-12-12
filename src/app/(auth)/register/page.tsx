@@ -133,7 +133,7 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="grid gap-4">
             <FormField
               control={form.control}
