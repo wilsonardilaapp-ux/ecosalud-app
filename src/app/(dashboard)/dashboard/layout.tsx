@@ -21,7 +21,7 @@ import { doc } from "firebase/firestore";
 import type { Business } from "@/models/business";
 import { uploadMedia } from "@/ai/flows/upload-media-flow";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const MAX_FILE_SIZE_MB = 1;
@@ -114,9 +114,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <span className="text-lg font-semibold font-headline">Vidaplena</span>
             </Link>
         </div>
-        <div className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4">
           <ClientNav />
-        </div>
+        </nav>
         <div className="mt-auto p-4 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -163,12 +163,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* --- CONTENIDO PRINCIPAL --- */}
       <div className="flex flex-1 flex-col md:ml-64">
         {/* --- HEADER SUPERIOR --- */}
-        <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm">
+        <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm md:justify-end">
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
-                    <SidebarTrigger />
+                    <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0">
@@ -185,16 +185,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </Sheet>
             </div>
           
-          <div className="flex-1">
-            {/* Espacio para buscador o título dinámico si quisieras */}
-          </div>
-
           <div className="flex items-center gap-4">
-             {/* UserNav could go here */}
+             {/* UserNav podría ir aquí si existiera, o cualquier otro elemento del header */}
           </div>
         </header>
 
-        {/* --- ÁREA DE PÁGINAS (Aquí se renderizan tus páginas) --- */}
+        {/* --- ÁREA DE PÁGINAS --- */}
         <main className="flex-1 p-6 md:p-8">
           <div className="mx-auto w-full max-w-7xl space-y-6"> 
             {children}
