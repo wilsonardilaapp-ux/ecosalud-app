@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
         });
         if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Clear the input
+            fileInputRef.current.value = ""; 
         }
         return;
       }
@@ -108,26 +108,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen w-full flex bg-gray-50">
       {/* --- BARRA LATERAL (Escritorio) --- */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-56 flex-col border-r bg-white md:flex">
-        <div className="flex h-16 shrink-0 items-center border-b px-4">
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
-                <Logo className="w-8 h-8" />
-                <span className="text-lg font-semibold font-headline">Vidaplena</span>
+        
+        {/* CORRECCIÓN 1: Altura reducida a h-14 (56px) y padding ajustado */}
+        <div className="flex h-14 shrink-0 items-center border-b px-4">
+            <Link href="/dashboard" className="flex items-center gap-3 font-bold text-primary hover:opacity-80 transition-opacity">
+                <Logo className="w-7 h-7" />
+                <span className="text-base font-semibold font-headline tracking-tight text-gray-900">Vidaplena</span>
             </Link>
         </div>
-        <nav className="flex-1 overflow-y-auto py-2">
+
+        <nav className="flex-1 overflow-y-auto py-3">
           <ClientNav />
         </nav>
-        <div className="mt-auto p-4 border-t">
+        
+        <div className="mt-auto p-3 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="justify-start w-full p-2 h-auto">
+              <Button variant="ghost" className="justify-start w-full p-2 h-auto hover:bg-gray-100">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 border border-gray-200">
                     {business?.logoURL && <AvatarImage src={business.logoURL} alt={business.name} />}
-                    <AvatarFallback>{business?.name?.[0].toUpperCase() ?? user.email?.[0].toUpperCase() ?? 'U'}</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary">{business?.name?.[0].toUpperCase() ?? user.email?.[0].toUpperCase() ?? 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="text-left overflow-hidden">
-                    <p className="text-sm font-medium truncate">{business?.name ?? user.displayName ?? user.email}</p>
+                    <p className="text-sm font-medium truncate text-gray-900">{business?.name ?? user.displayName ?? user.email}</p>
                     <p className="text-xs text-muted-foreground">Cliente</p>
                   </div>
                 </div>
@@ -143,11 +147,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleAvatarClick}>
+              <DropdownMenuItem onClick={handleAvatarClick} className="cursor-pointer">
                 Cambiar avatar
               </DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/">Página de inicio</Link></DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer"><Link href="/">Página de inicio</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">Cerrar sesión</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <input
@@ -161,20 +165,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* --- CONTENIDO PRINCIPAL --- */}
-      <div className="flex flex-1 flex-col md:ml-56">
-        {/* --- HEADER SUPERIOR --- */}
-        <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm md:justify-end">
+      <div className="flex flex-1 flex-col md:ml-56 transition-all duration-300">
+        
+        {/* CORRECCIÓN 2: Header Superior alineado con el sidebar (h-14) */}
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 shadow-sm lg:px-6">
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Menu className="h-6 w-6" />
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-64">
-                    <div className="flex h-16 shrink-0 items-center border-b px-6">
-                        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
-                            <Logo className="w-8 h-8" />
+                    <div className="flex h-14 shrink-0 items-center border-b px-4">
+                        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-primary">
+                            <Logo className="w-7 h-7" />
                             <span className="text-lg font-semibold font-headline">Vidaplena</span>
                         </Link>
                     </div>
@@ -185,13 +190,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </Sheet>
             </div>
           
-          <div className="flex items-center gap-4">
-             {/* UserNav placeholder */}
+          <div className="flex flex-1 items-center justify-end gap-4">
           </div>
         </header>
 
         {/* --- ÁREA DE PÁGINAS --- */}
-        <main className="flex-1 p-6 md:p-8">
+        <main className="flex-1 p-4 md:p-6 bg-gray-50/50">
           <div className="mx-auto w-full max-w-7xl space-y-6"> 
             {children}
           </div>
