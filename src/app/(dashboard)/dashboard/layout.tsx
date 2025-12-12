@@ -103,11 +103,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
-      {/* Sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r bg-background md:flex sticky top-0 h-screen overflow-y-auto z-30">
-        <div className="flex h-16 shrink-0 items-center border-b px-6 bg-background">
-            <Link href="/dashboard" className="flex items-center gap-2">
+    <div className="min-h-screen bg-gray-50">
+      
+      {/* --- BARRA LATERAL (Escritorio) --- */}
+      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r bg-white md:flex">
+        <div className="flex h-16 shrink-0 items-center border-b px-6">
+            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-emerald-700">
                 <Logo className="w-8 h-8 text-primary" />
                 <span className="text-lg font-semibold font-headline">Vidaplena</span>
             </Link>
@@ -158,23 +159,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col min-w-0">
-        <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
-            {/* Mobile nav trigger could go here */}
-             <div className="md:hidden">
-                {/* Placeholder for mobile nav trigger */}
-             </div>
-            <div className="flex-1"></div>
-            <div>
-                {/* Potentially other header actions */}
-            </div>
+      {/* --- CONTENIDO PRINCIPAL --- */}
+      {/* ml-64 empuja el contenido para no quedar debajo del sidebar fijo */}
+      <div className="flex flex-1 flex-col md:ml-64 transition-all duration-300">
+        
+        {/* --- HEADER SUPERIOR --- */}
+        <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm">
+          <div className="md:hidden">
+             {/* Aquí iría el MobileNav o el botón de menú móvil si lo tienes */}
+          </div>
+          
+          <div className="flex-1">
+            {/* Espacio para buscador o título dinámico si quisieras */}
+          </div>
+
+          <div className="flex items-center gap-4">
+             {/* UserNav could go here */}
+          </div>
         </header>
-        <main className="flex-1 w-full p-6 md:p-8">
-          <div className="mx-auto w-full max-w-7xl space-y-6">
+
+        {/* --- ÁREA DE PÁGINAS (Aquí se renderizan tus páginas) --- */}
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+          <div className="mx-auto max-w-7xl space-y-6"> 
             {children}
           </div>
         </main>
+
       </div>
     </div>
   );
