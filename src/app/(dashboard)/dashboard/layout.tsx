@@ -21,6 +21,8 @@ import { doc } from "firebase/firestore";
 import type { Business } from "@/models/business";
 import { uploadMedia } from "@/ai/flows/upload-media-flow";
 import { useToast } from "@/hooks/use-toast";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const MAX_FILE_SIZE_MB = 1;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -94,7 +96,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isUserLoading || !user || isBusinessLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
           <p>Cargando y verificando acceso...</p>
         </div>
@@ -103,13 +105,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      
+    <div className="min-h-screen w-full flex bg-gray-50">
       {/* --- BARRA LATERAL (Escritorio) --- */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r bg-white md:flex">
         <div className="flex h-16 shrink-0 items-center border-b px-6">
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-emerald-700">
-                <Logo className="w-8 h-8 text-primary" />
+            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
+                <Logo className="w-8 h-8" />
                 <span className="text-lg font-semibold font-headline">Vidaplena</span>
             </Link>
         </div>
@@ -160,14 +161,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* --- CONTENIDO PRINCIPAL --- */}
-      {/* ml-64 empuja el contenido para no quedar debajo del sidebar fijo */}
-      <div className="flex flex-1 flex-col md:ml-64 transition-all duration-300">
-        
+      <div className="flex flex-1 flex-col md:ml-64">
         {/* --- HEADER SUPERIOR --- */}
         <header className="sticky top-0 z-40 h-16 flex items-center justify-between border-b bg-white/80 px-6 backdrop-blur-sm shadow-sm">
-          <div className="md:hidden">
-             {/* Aquí iría el MobileNav o el botón de menú móvil si lo tienes */}
-          </div>
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <SidebarTrigger />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0">
+                    <div className="flex h-16 shrink-0 items-center border-b px-6">
+                        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
+                            <Logo className="w-8 h-8" />
+                            <span className="text-lg font-semibold font-headline">Vidaplena</span>
+                        </Link>
+                    </div>
+                    <div className="flex-1 overflow-y-auto py-4">
+                        <ClientNav />
+                    </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           
           <div className="flex-1">
             {/* Espacio para buscador o título dinámico si quisieras */}
@@ -179,8 +195,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* --- ÁREA DE PÁGINAS (Aquí se renderizan tus páginas) --- */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-          <div className="mx-auto max-w-7xl space-y-6"> 
+        <main className="flex-1 p-6 md:p-8">
+          <div className="mx-auto w-full max-w-7xl space-y-6"> 
             {children}
           </div>
         </main>
