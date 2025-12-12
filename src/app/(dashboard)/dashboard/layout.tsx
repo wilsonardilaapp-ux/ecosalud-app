@@ -109,7 +109,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* --- BARRA LATERAL (Escritorio) --- */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-56 flex-col border-r bg-white md:flex">
         
-        {/* CORRECCIÓN 1: Altura reducida a h-14 (56px) y padding ajustado */}
         <div className="flex h-14 shrink-0 items-center border-b px-4">
             <Link href="/dashboard" className="flex items-center gap-3 font-bold text-primary hover:opacity-80 transition-opacity">
                 <Logo className="w-7 h-7" />
@@ -167,7 +166,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* --- CONTENIDO PRINCIPAL --- */}
       <div className="flex flex-1 flex-col md:ml-56 transition-all duration-300">
         
-        {/* CORRECCIÓN 2: Header Superior alineado con el sidebar (h-14) */}
         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 shadow-sm lg:px-6">
             <div className="md:hidden">
               <Sheet>
@@ -195,8 +193,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* --- ÁREA DE PÁGINAS --- */}
-        <main className="flex-1 pt-6 px-4 md:px-6 bg-gray-50/50">
-          <div className="mx-auto w-full max-w-7xl"> 
+        <main className="flex-1 bg-gray-50/50">
+          <div className="mx-auto w-full max-w-7xl px-4 md:px-6 pt-6 pb-8 space-y-6"> 
             {children}
           </div>
         </main>
