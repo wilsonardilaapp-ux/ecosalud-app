@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from "react";
@@ -104,7 +103,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isUserLoading || !user || isBusinessLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div>
         <div className="text-center">
           <p>Cargando y verificando acceso...</p>
         </div>
@@ -114,7 +113,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="inset">
         <SidebarHeader>
           <Link href="/dashboard" className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
@@ -179,5 +178,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </SidebarProvider>
   );
 }
-
-    
