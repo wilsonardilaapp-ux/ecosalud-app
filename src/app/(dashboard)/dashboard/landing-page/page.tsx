@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Save } from 'lucide-react';
 import type { LandingPageData } from '@/models/landing-page';
 import EditorLandingForm from '@/components/landing-page/editor-landing-form';
@@ -87,7 +87,63 @@ const initialLandingPageData: LandingPageData = {
       { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
       { id: uuidv4(), mediaUrl: null, mediaType: null, slogan: '' },
     ],
+  },
+  // --- AQUÍ ESTABA EL ERROR: Faltaba todo el objeto footer ---
+  footer: {
+    enabled: true, // <--- CRÍTICO PARA EVITAR EL ERROR DE TYPESCRIPT
+    contactInfo: {
+      address: 'Calle Falsa 123, Ciudad, País',
+      phone: '+57 300 123 4567',
+      email: 'info@tunegocio.com',
+      hours: 'Lunes a Viernes, 9am - 6pm',
+    },
+    quickLinks: [
+      { id: uuidv4(), text: 'Inicio', url: '#' },
+      { id: uuidv4(), text: 'Servicios', url: '#' },
+    ],
+    legalLinks: {
+      privacyPolicyUrl: '#',
+      termsAndConditionsUrl: '#',
+      cookiesPolicyUrl: '#',
+      legalNoticeUrl: '#',
+    },
+    socialLinks: {
+      facebookUrl: '',
+      instagramUrl: '',
+      tiktokUrl: '',
+      youtubeUrl: '',
+      linkedinUrl: '',
+      showIcons: true,
+    },
+    logo: {
+      url: null,
+      slogan: 'Tu slogan aquí',
+    },
+    certifications: [],
+    copyright: {
+      companyName: 'Vidaplena',
+      additionalText: 'Todos los derechos reservados.',
+    },
+    cta: {
+      text: '¡Empieza Ahora!',
+      url: '#',
+      enabled: false,
+    },
+    visuals: {
+      backgroundImageUrl: null,
+      opacity: 80,
+      backgroundColor: '#f8f9fa',
+      textColor: '#6c757d',
+      darkMode: false,
+      showBackToTop: true,
+    },
+    adminExtras: {
+      systemVersion: '1.0.0',
+      supportLink: '#',
+      documentationLink: '#',
+    },
   }
+  // ---------------------------------------------------------
 };
 
 export default function LandingPageBuilder() {
@@ -100,7 +156,6 @@ export default function LandingPageBuilder() {
 
   const landingPageDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // We use a single document 'main' for the landing page configuration
     return doc(firestore, 'businesses', user.uid, 'landingPages', 'main');
   }, [firestore, user]);
 
@@ -108,20 +163,15 @@ export default function LandingPageBuilder() {
 
   useEffect(() => {
     if (savedData) {
-      // Create a mutable copy of the saved data
       const dataCopy = JSON.parse(JSON.stringify(savedData));
 
-      // --- Temporary Migration to fix old names ---
       if (dataCopy.navigation.businessName === 'Mi Negocio') {
         dataCopy.navigation.businessName = 'Vidaplena';
       }
       if (dataCopy.header.businessInfo.name === 'Mi Negocio') {
         dataCopy.header.businessInfo.name = 'Vidaplena';
       }
-      // --- End Migration ---
 
-
-      // Ensure the form and fields exist
       if (!dataCopy.form) {
         dataCopy.form = { fields: [], destinationEmail: '' };
       }
@@ -129,12 +179,10 @@ export default function LandingPageBuilder() {
         dataCopy.form.fields = [];
       }
 
-      // Check if the WhatsApp field already exists by its label
       const whatsAppFieldExists = dataCopy.form.fields.some(
         (field: { label: string; }) => field.label.toLowerCase() === 'whatsapp'
       );
 
-      // If it doesn't exist, add it
       if (!whatsAppFieldExists) {
         const whatsAppFieldIndex = dataCopy.form.fields.findIndex(
             (field: { type: string; }) => field.type === 'textarea'
@@ -148,12 +196,17 @@ export default function LandingPageBuilder() {
         };
 
         if (whatsAppFieldIndex !== -1) {
-            // Insert before the message field
             dataCopy.form.fields.splice(whatsAppFieldIndex, 0, newField);
         } else {
-            // Or add at the end if message field is not found
             dataCopy.form.fields.push(newField);
         }
+      }
+
+      // Asegurar que footer también exista al cargar datos guardados
+      if (!dataCopy.footer) {
+         dataCopy.footer = initialLandingPageData.footer;
+      } else if (dataCopy.footer.enabled === undefined) {
+         dataCopy.footer.enabled = true;
       }
 
       setLandingPageData(dataCopy);
@@ -164,10 +217,8 @@ export default function LandingPageBuilder() {
     if (!landingPageDocRef) return;
     setIsSaving(true);
     
-    // Using the non-blocking update function
     setDocumentNonBlocking(landingPageDocRef, landingPageData, { merge: true });
 
-    // Simulate network latency for user feedback, but the write is already queued
     setTimeout(() => {
       setIsSaving(false);
       toast({

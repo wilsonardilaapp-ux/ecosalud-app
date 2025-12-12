@@ -8,6 +8,7 @@ export type LandingPageData = {
   seo: SEOSection;
   form: FormSection;
   header: LandingHeaderConfigData; // New section
+  footer: FooterSection;
 };
 
 export type HeroSection = {
@@ -126,3 +127,61 @@ export type CarouselItem = {
 export interface GlobalConfig {
   mainBusinessId?: string;
 }
+
+export type FooterLink = {
+  id: string;
+  text: string;
+  url: string;
+};
+
+export type FooterSection = {
+    enabled: boolean;
+    contactInfo: {
+        address: string;
+        phone: string;
+        email: string;
+        hours: string;
+    };
+    quickLinks: FooterLink[];
+    legalLinks: {
+        privacyPolicyUrl: string;
+        termsAndConditionsUrl: string;
+        cookiesPolicyUrl: string;
+        legalNoticeUrl: string;
+    };
+    socialLinks: {
+        facebookUrl: string;
+        instagramUrl: string;
+        tiktokUrl: string;
+        youtubeUrl: string;
+        linkedinUrl: string;
+        showIcons: boolean;
+    };
+    logo: {
+        url: string | null;
+        slogan: string;
+    };
+    certifications: { id: string, imageUrl: string, altText: string }[];
+    copyright: {
+        companyName: string;
+        additionalText: string;
+    };
+    cta: {
+        text: string;
+        url: string;
+        enabled: boolean;
+    };
+    visuals: {
+        backgroundImageUrl: string | null;
+        opacity: number;
+        backgroundColor: string;
+        textColor: string;
+        darkMode: boolean;
+        showBackToTop: boolean;
+    };
+    adminExtras: {
+        systemVersion: string;
+        supportLink: string;
+        documentationLink: string;
+    };
+};
