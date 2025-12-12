@@ -237,10 +237,10 @@ export default function DynamicLandingPage() {
                             <div className="absolute inset-0 bg-black/30"></div>
                         </div>
                     )}
-                    <div className="relative z-10 container mx-auto text-center py-16 md:py-20 px-4">
-                        <h1 className="text-4xl md:text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
-                        <p className="text-lg md:text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
-                        <div className="mt-6 max-w-none" style={{color: hero.textColor}} dangerouslySetInnerHTML={{ __html: hero.additionalContent }} />
+                    <div className="relative z-10 container mx-auto text-center py-12 md:py-20 px-4">
+                        <h1 className="text-3xl md:text-5xl font-bold" style={{ color: hero.textColor }}>{hero.title}</h1>
+                        <p className="text-md md:text-xl mt-4 max-w-3xl mx-auto" style={{ color: hero.textColor }}>{hero.subtitle}</p>
+                        <div className="mt-6 max-w-none text-sm md:text-base" style={{color: hero.textColor}} dangerouslySetInnerHTML={{ __html: hero.additionalContent }} />
                         {hero.ctaButtonText && hero.ctaButtonUrl && (
                             <Button asChild size="lg" className="mt-8" style={buttonStyle}>
                                 <a href={hero.ctaButtonUrl}>{hero.ctaButtonText}</a>
