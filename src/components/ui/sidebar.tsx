@@ -318,12 +318,10 @@ const SidebarInset = React.forwardRef<
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
-        // CORRECCIÓN CRÍTICA:
-        // 1. my-2 y mr-2: Mantiene el margen arriba, abajo y derecha.
-        // 2. ml-0: Fuerza margen izquierdo CERO para eliminar el hueco extra.
-        "md:peer-data-[variant=inset]:my-2", 
-        "md:peer-data-[variant=inset]:mr-2", 
-        "md:peer-data-[variant=inset]:ml-0", 
+        // CORRECCIÓN CRÍTICA: Usamos márgenes específicos en lugar de m-2
+        "md:peer-data-[variant=inset]:my-2", // Margen arriba y abajo
+        "md:peer-data-[variant=inset]:mr-2", // Margen derecho
+        "md:peer-data-[variant=inset]:ml-0", // Margen izquierdo forzado a 0
         "md:peer-data-[variant=inset]:rounded-xl",
         "md:peer-data-[variant=inset]:shadow",
         className
@@ -463,7 +461,6 @@ const SidebarGroupAction = React.forwardRef<
       data-sidebar="group-action"
       className={cn(
         "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-        // Increases the hit area of the button on mobile.
         "after:absolute after:-inset-2 after:md:hidden",
         "group-data-[collapsible=icon]:hidden",
         className
@@ -609,7 +606,6 @@ const SidebarMenuAction = React.forwardRef<
       data-sidebar="menu-action"
       className={cn(
         "absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0",
-        // Increases the hit area of the button on mobile.
         "after:absolute after:-inset-2 after:md:hidden",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",
