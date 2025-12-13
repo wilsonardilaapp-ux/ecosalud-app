@@ -240,9 +240,9 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                 <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
                     <div className="grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
                         {/* Galería de Imágenes (columna izquierda) */}
-                         <div className="p-4 md:p-6 sm:grid sm:grid-cols-[auto,1fr] gap-4">
+                         <div className="p-4 md:p-6 grid grid-cols-[auto,1fr] gap-4">
                             {/* Miniaturas */}
-                            <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto pb-2 sm:pb-0 sm:pr-2">
+                            <div className="flex flex-col gap-2 overflow-y-auto pr-2">
                                 {product.images.map((img, index) => {
                                     const isThumbVideo = isVideo(img);
                                     return (
@@ -250,7 +250,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                                             key={index} 
                                             onClick={() => setMainImage(img)} 
                                             className={cn(
-                                                "relative aspect-square w-16 sm:w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                                "relative aspect-square w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
                                                 mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
                                             )}
                                         >
