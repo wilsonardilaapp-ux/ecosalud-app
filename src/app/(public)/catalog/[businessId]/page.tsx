@@ -239,10 +239,19 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
                     <div className="grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
-                        {/* Galería de Imágenes (columna izquierda) */}
-                         <div className="p-4 md:p-6 grid grid-cols-[auto,1fr] gap-4">
+                        
+                        {/* Columna Izquierda: Galería de Imágenes */}
+                        <div className="p-4 md:p-6 flex flex-col gap-4">
+                            {/* Imagen Principal */}
+                            <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                                 {isVideo(mainImage) ? (
+                                    <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
+                                 ) : (
+                                    <Image src={mainImage} alt={product.name} fill className="object-cover"/>
+                                 )}
+                            </div>
                             {/* Miniaturas */}
-                            <div className="flex flex-col gap-2 overflow-y-auto pr-2">
+                            <div className="flex flex-row gap-2 overflow-x-auto p-1">
                                 {product.images.map((img, index) => {
                                     const isThumbVideo = isVideo(img);
                                     return (
@@ -250,7 +259,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                                             key={index} 
                                             onClick={() => setMainImage(img)} 
                                             className={cn(
-                                                "relative aspect-square w-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                                "relative aspect-square w-20 h-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
                                                 mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
                                             )}
                                         >
@@ -263,16 +272,9 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                                     );
                                 })}
                             </div>
-                            {/* Imagen Principal */}
-                            <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-                                 {isVideo(mainImage) ? (
-                                    <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
-                                 ) : (
-                                    <Image src={mainImage} alt={product.name} fill className="object-cover"/>
-                                 )}
-                            </div>
                         </div>
-                        {/* Detalles del Producto (columna derecha) */}
+
+                        {/* Columna Derecha: Detalles del Producto */}
                         <div className="p-6 flex flex-col">
                             <DialogHeader className="mb-4">
                                 <Badge className="w-fit mb-2">{product.category}</Badge>
