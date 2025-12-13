@@ -62,11 +62,11 @@ service cloud.firestore {
     /**
     * @description Defines the security rules for global configuration settings.
     * This allows public read access for the landing page and write access is restricted
-    * to super admins.
+    * to authenticated users.
     */
     match /globalConfig/system {
       allow read: if true;
-      allow write: if isSuperAdmin();
+      allow write: if isSignedIn();
     }
     
     /**
