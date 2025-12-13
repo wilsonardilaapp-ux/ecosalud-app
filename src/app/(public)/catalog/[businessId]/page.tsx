@@ -238,46 +238,43 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
-                    <div className="flex flex-col md:flex-row overflow-y-auto">
-                        
+                    <div className="grid md:grid-cols-2 flex-1 overflow-hidden">
                         {/* Columna Izquierda: Galería de Imágenes (Sticky) */}
-                        <div className="w-full md:w-1/2 p-4 md:p-6 self-start md:sticky top-6">
-                             <div className="flex flex-col gap-4">
-                                {/* Imagen Principal */}
-                                <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-                                     {isVideo(mainImage) ? (
-                                        <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
-                                     ) : (
-                                        <Image src={mainImage} alt={product.name} fill className="object-cover"/>
-                                     )}
-                                </div>
-                                {/* Miniaturas */}
-                                <div className="flex flex-row gap-2 overflow-x-auto p-1">
-                                    {product.images.map((img, index) => {
-                                        const isThumbVideo = isVideo(img);
-                                        return (
-                                            <button 
-                                                key={index} 
-                                                onClick={() => setMainImage(img)} 
-                                                className={cn(
-                                                    "relative aspect-square w-20 h-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
-                                                    mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
-                                                )}
-                                            >
-                                                {isThumbVideo ? (
-                                                    <video src={img} muted className="object-cover w-full h-full"/>
-                                                ) : (
-                                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                             </div>
+                        <div className="w-full md:sticky top-6 p-4 md:p-6 self-start grid grid-rows-[1fr,auto] gap-4">
+                            {/* Imagen Principal */}
+                            <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                                {isVideo(mainImage) ? (
+                                    <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
+                                ) : (
+                                    <Image src={mainImage} alt={product.name} fill className="object-cover" />
+                                )}
+                            </div>
+                            {/* Miniaturas */}
+                            <div className="flex flex-row gap-2 overflow-x-auto p-1 justify-center">
+                                {product.images.map((img, index) => {
+                                    const isThumbVideo = isVideo(img);
+                                    return (
+                                        <button
+                                            key={index}
+                                            onClick={() => setMainImage(img)}
+                                            className={cn(
+                                                "relative aspect-square w-14 h-14 md:w-20 md:h-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                                mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
+                                            )}
+                                        >
+                                            {isThumbVideo ? (
+                                                <video src={img} muted className="object-cover w-full h-full" />
+                                            ) : (
+                                                <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* Columna Derecha: Detalles del Producto (Scrollable) */}
-                        <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto">
+                        <div className="w-full p-6 flex flex-col overflow-y-auto">
                             <DialogHeader className="mb-4">
                                 <Badge className="w-fit mb-2">{product.category}</Badge>
                                 <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
