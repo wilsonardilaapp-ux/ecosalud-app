@@ -241,9 +241,9 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                     <div className="grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
                         
                         {/* Columna Izquierda: Galería de Imágenes */}
-                        <div className="p-4 md:p-6 flex flex-col gap-4">
+                        <div className="p-4 md:p-6 grid grid-rows-[1fr,auto] gap-4">
                             {/* Imagen Principal */}
-                            <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                            <div className="relative aspect-square w-full rounded-lg overflow-hidden">
                                  {isVideo(mainImage) ? (
                                     <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
                                  ) : (
