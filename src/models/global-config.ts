@@ -8,4 +8,5 @@ export type GlobalConfig = {
     defaultLimits: number;
     allowUserRegistration: boolean;
     mainBusinessId?: string; // ID del negocio a mostrar en la landing principal
+    faviconUrl?: string; // URL del favicon de la plataforma
 };

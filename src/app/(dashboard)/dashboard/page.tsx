@@ -13,8 +13,8 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
-import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { FileText, ShoppingCart, MessageSquare, CheckCircle, XCircle, ShoppingBag } from "lucide-react";
+import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
+import { FileText, ShoppingCart, MessageSquare, CheckCircle, XCircle, ShoppingBag, Loader2, UploadCloud, Image as ImageIcon } from "lucide-react";
 import { collection, doc } from "firebase/firestore";
 import type { Product } from "@/models/product";
 import type { ContactSubmission } from "@/models/contact-submission";
@@ -26,7 +26,127 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, Line, LineChart, Pie, PieChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
+import type { GlobalConfig } from "@/models/global-config";
+import { Button } from "@/components/ui/button";
+import Image from 'next/image';
+import { useToast } from "@/hooks/use-toast";
+import { uploadMedia } from "@/ai/flows/upload-media-flow";
+import { Label } from "@/components/ui/label";
+
+const MAX_FILE_SIZE_MB = 0.5; // 500KB
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const FaviconConfigurator = () => {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const configDocRef = useMemoFirebase(() => !firestore ? null : doc(firestore, 'globalConfig', 'system'), [firestore]);
+    const { data: config } = useDoc<GlobalConfig>(configDocRef);
+
+    const [faviconFile, setFaviconFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(config?.faviconUrl || null);
+    const [isUploading, setIsUploading] = useState(false);
+    
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            toast({
+                variant: 'destructive',
+                title: "Archivo muy grande",
+                description: `El archivo es demasiado grande. El máximo es ${MAX_FILE_SIZE_MB}MB.`,
+            });
+            return;
+        }
+
+        setFaviconFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    const handleSaveFavicon = async () => {
+        if (!faviconFile || !configDocRef) return;
+        
+        setIsUploading(true);
+        toast({ title: "Subiendo favicon...", description: "Por favor, espera." });
+
+        const reader = new FileReader();
+        reader.readAsDataURL(faviconFile);
+        reader.onloadend = async () => {
+            const mediaDataUri = reader.result as string;
+            try {
+                const result = await uploadMedia({ mediaDataUri });
+                setDocumentNonBlocking(configDocRef, { faviconUrl: result.secure_url }, { merge: true });
+                toast({ title: "¡Favicon guardado!", description: "El nuevo favicon ha sido guardado correctamente." });
+            } catch (error: any) {
+                toast({ variant: 'destructive', title: "Error al subir", description: error.message });
+            } finally {
+                setIsUploading(false);
+                setFaviconFile(null);
+            }
+        };
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Configuración del Favicon</CardTitle>
+                <CardDescription>
+                    Sube una imagen para usarla como favicon en la pestaña del navegador.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-3 gap-6 items-center">
+                <div 
+                    className="md:col-span-1 aspect-square w-full max-w-[200px] mx-auto border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center p-4 cursor-pointer hover:border-primary"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    {isUploading ? (
+                        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+                    ) : previewUrl ? (
+                        <Image src={previewUrl} alt="Vista previa del favicon" width={64} height={64} className="object-contain" />
+                    ) : (
+                        <>
+                            <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                            <p className="mt-2 text-sm font-medium">Subir imagen</p>
+                        </>
+                    )}
+                     <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".png,.jpg,.jpeg,.ico,.svg"
+                    />
+                </div>
+                <div className="md:col-span-2 space-y-4">
+                    <div>
+                        <Label>Vista Previa</Label>
+                        <div className="mt-2 flex items-center gap-2 rounded-md border p-3 bg-muted/50">
+                            {previewUrl ? (
+                                <Image src={previewUrl} alt="Favicon" width={24} height={24} />
+                            ) : (
+                                <div className="w-6 h-6 bg-gray-300 rounded-sm flex items-center justify-center">
+                                    <ImageIcon className="w-4 h-4 text-gray-500"/>
+                                </div>
+                            )}
+                            <p className="text-sm font-medium text-muted-foreground">Mi Sitio Web</p>
+                        </div>
+                    </div>
+                     <p className="text-xs text-muted-foreground">
+                        Recomendado: 32x32 px o 64x64 px en formato .png, .ico o .svg.
+                    </p>
+                    <Button onClick={handleSaveFavicon} disabled={!faviconFile || isUploading}>
+                        {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Guardar Favicon
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function DashboardPage() {
     const { user } = useUser();
@@ -218,8 +338,8 @@ export default function DashboardPage() {
                     </Tabs>
                 </CardContent>
             </Card>
+
+            <FaviconConfigurator />
         </div>
     );
 }
-
-    
