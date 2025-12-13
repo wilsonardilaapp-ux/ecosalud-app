@@ -240,9 +240,9 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                 <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
                     <div className="grid md:grid-cols-2 flex-1 overflow-hidden">
                         {/* Columna Izquierda: Galería de Imágenes (Sticky) */}
-                        <div className="w-full md:sticky top-6 p-4 md:p-6 self-start grid grid-rows-[1fr,auto] gap-4">
+                        <div className="w-full md:sticky top-6 self-start grid gap-4 px-4 sm:px-6 md:px-8 pt-6">
                             {/* Imagen Principal */}
-                            <div className="relative aspect-square w-full rounded-lg overflow-hidden flex-1">
+                            <div className="relative aspect-square w-full rounded-lg overflow-hidden">
                                 {isVideo(mainImage) ? (
                                     <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
                                 ) : (
@@ -274,7 +274,7 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
                         </div>
 
                         {/* Columna Derecha: Detalles del Producto (Scrollable) */}
-                        <div className="w-full p-6 flex flex-col overflow-y-auto">
+                        <div className="w-full p-6 flex flex-col overflow-y-auto pt-4 md:pt-6">
                             <DialogHeader className="mb-4">
                                 <Badge className="w-fit mb-2">{product.category}</Badge>
                                 <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
