@@ -238,49 +238,51 @@ const ProductViewModal = ({ product, isOpen, onOpenChange, businessPhone, busine
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
+                    <div className="flex flex-col md:flex-row overflow-y-auto">
                         
-                        {/* Columna Izquierda: Galería de Imágenes */}
-                        <div className="p-4 md:p-6 grid grid-rows-[1fr,auto] gap-4">
-                            {/* Imagen Principal */}
-                            <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-                                 {isVideo(mainImage) ? (
-                                    <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
-                                 ) : (
-                                    <Image src={mainImage} alt={product.name} fill className="object-cover"/>
-                                 )}
-                            </div>
-                            {/* Miniaturas */}
-                            <div className="flex flex-row gap-2 overflow-x-auto p-1">
-                                {product.images.map((img, index) => {
-                                    const isThumbVideo = isVideo(img);
-                                    return (
-                                        <button 
-                                            key={index} 
-                                            onClick={() => setMainImage(img)} 
-                                            className={cn(
-                                                "relative aspect-square w-20 h-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
-                                                mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
-                                            )}
-                                        >
-                                            {isThumbVideo ? (
-                                                <video src={img} muted className="object-cover w-full h-full"/>
-                                            ) : (
-                                                <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                        {/* Columna Izquierda: Galería de Imágenes (Sticky) */}
+                        <div className="w-full md:w-1/2 p-4 md:p-6 self-start md:sticky top-6">
+                             <div className="flex flex-col gap-4">
+                                {/* Imagen Principal */}
+                                <div className="relative aspect-square w-full rounded-lg overflow-hidden">
+                                     {isVideo(mainImage) ? (
+                                        <video src={mainImage} autoPlay loop muted controls className="object-cover w-full h-full" />
+                                     ) : (
+                                        <Image src={mainImage} alt={product.name} fill className="object-cover"/>
+                                     )}
+                                </div>
+                                {/* Miniaturas */}
+                                <div className="flex flex-row gap-2 overflow-x-auto p-1">
+                                    {product.images.map((img, index) => {
+                                        const isThumbVideo = isVideo(img);
+                                        return (
+                                            <button 
+                                                key={index} 
+                                                onClick={() => setMainImage(img)} 
+                                                className={cn(
+                                                    "relative aspect-square w-20 h-20 shrink-0 rounded-md overflow-hidden ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring transition-all",
+                                                    mainImage === img ? "ring-2 ring-primary opacity-100" : "opacity-70 hover:opacity-100"
+                                                )}
+                                            >
+                                                {isThumbVideo ? (
+                                                    <video src={img} muted className="object-cover w-full h-full"/>
+                                                ) : (
+                                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover"/>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                             </div>
                         </div>
 
-                        {/* Columna Derecha: Detalles del Producto */}
-                        <div className="p-6 flex flex-col">
+                        {/* Columna Derecha: Detalles del Producto (Scrollable) */}
+                        <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto">
                             <DialogHeader className="mb-4">
                                 <Badge className="w-fit mb-2">{product.category}</Badge>
                                 <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
                             </DialogHeader>
-                            <div className="flex-grow space-y-4 overflow-y-auto pr-2">
+                            <div className="space-y-4">
                                 <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
                                 <p><span className="font-semibold">Disponibles:</span> {product.stock} unidades</p>
                                 <div className="flex flex-col gap-2">
