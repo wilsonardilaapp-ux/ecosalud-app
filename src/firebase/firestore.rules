@@ -61,12 +61,12 @@ service cloud.firestore {
 
     /**
     * @description Defines the security rules for global configuration settings.
-    * This allows public read access for the landing page and write access for any signed-in user
-    * to set the initial main business ID upon registration.
+    * This allows public read access for the landing page and write access is restricted
+    * to super admins.
     */
     match /globalConfig/system {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
     
     /**
