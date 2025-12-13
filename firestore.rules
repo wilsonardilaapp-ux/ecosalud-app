@@ -66,7 +66,7 @@ service cloud.firestore {
     match /globalConfig/system {
       // CAMBIO REALIZADO: Se permite 'read' (get y list) para que la app pueda leer la config inicial sin errores.
       allow read: if true;
-      allow create, update, delete: if isSuperAdmin();
+      allow write: if isSignedIn();
     }
     
     /**
