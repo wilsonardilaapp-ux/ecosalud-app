@@ -32,7 +32,6 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
 
   useEffect(() => {
     if (!isMounted || !editorRef.current || quillRef.current) {
-      // Si no está montado, no hay ref del editor, o quill ya está inicializado, no hacer nada.
       return;
     }
 
@@ -41,7 +40,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
       
       // --- CORRECCIÓN: Configuración correcta del tamaño de fuente ---
       const sizeWhitelist = ['8px', '9px', '10px', '11px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'];
-      const Size = Quill.import('attributors/style/size');
+      const Size = Quill.import('attributors/style/size') as any;
       Size.whitelist = sizeWhitelist;
       Quill.register(Size, true);
       // --- FIN DE LA CORRECCIÓN ---
@@ -49,7 +48,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
       const toolbarOptions = [
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
         [{ 'font': [] }],
-        [{ 'size': sizeWhitelist }], // Añadido el selector de tamaño
+        [{ 'size': sizeWhitelist }],
         ['bold', 'italic', 'underline', 'strike'],
         [{ 'color': [] }, { 'background': [] }],
         [{ 'align': [false, 'center', 'right', 'justify'] }],
@@ -84,7 +83,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
                         title: "Archivo muy pesado",
                         description: `El archivo es muy pesado. Máximo ${MAX_FILE_SIZE_MB}MB.`,
                     });
-                    input.value = ""; // Clear the input
+                    input.value = "";
                     return;
                 }
                 const reader = new FileReader();
@@ -129,14 +128,13 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
 
     loadQuill();
 
-    // Función de limpieza
     return () => {
       if (quillRef.current) {
         quillRef.current = null;
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMounted]); // Este efecto se ejecuta solo UNA VEZ cuando isMounted se vuelve true.
+  }, [isMounted]);
 
   // Efecto para actualizar el contenido cuando la prop `value` cambia desde fuera
   useEffect(() => {
@@ -144,14 +142,12 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
       const selection = quillRef.current.getSelection()
       quillRef.current.root.innerHTML = value
       if (selection) {
-        // Intenta restaurar la selección
         quillRef.current.setSelection(selection.index, selection.length)
       }
     }
   }, [value])
 
   if (!isMounted) {
-    // Muestra un esqueleto de carga mientras el editor se monta en el cliente
     return <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
   }
 
