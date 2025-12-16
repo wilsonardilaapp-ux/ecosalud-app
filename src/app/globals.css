@@ -136,3 +136,9 @@
 .ql-align-right {
   text-align: right;
 }
+
+/* Estilos para el selector de tamaño de fuente de Quill */
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: attr(data-value);
+}
