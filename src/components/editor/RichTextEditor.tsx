@@ -40,9 +40,17 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     const loadQuill = async () => {
       const Quill = (await import('quill')).default;
       
+      // --- Implementación del tamaño de fuente ---
+      const sizeWhitelist = ['8px', '9px', '10px', '11px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'];
+      const Size = Quill.import('attributors/style/size');
+      Size.whitelist = sizeWhitelist;
+      Quill.register(Size, true);
+      // --- Fin de la implementación ---
+      
       const toolbarOptions = [
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
         [{ 'font': [] }],
+        [{ 'size': sizeWhitelist }], // Añadido el selector de tamaño
         ['bold', 'italic', 'underline', 'strike'],
         [{ 'color': [] }, { 'background': [] }],
         [{ 'align': [false, 'center', 'right', 'justify'] }],
