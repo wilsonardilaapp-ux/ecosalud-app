@@ -143,7 +143,6 @@
   content: attr(data-value) !important;
 }
 
-/* Estilos para mostrar valores en el dropdown de tamaño */
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="8px"]::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before { content: "8px"; }
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="9px"]::before,

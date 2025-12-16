@@ -39,18 +39,12 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
     const loadQuill = async () => {
       const Quill = (await import('quill')).default;
       
-      // --- Configuración correcta del tamaño de fuente ---
-      const Parchment = Quill.import('parchment');
+      // --- CORRECCIÓN: Configuración correcta del tamaño de fuente ---
       const sizeWhitelist = ['8px', '9px', '10px', '11px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'];
-
-      // Crear attributor de estilo para font-size
-      const SizeStyle = new Parchment.Attributor.Style('size', 'font-size', {
-        scope: Parchment.Scope.INLINE,
-        whitelist: sizeWhitelist
-      });
-
-      Quill.register(SizeStyle, true);
-      // --- Fin de la configuración ---
+      const Size = Quill.import('attributors/style/size');
+      Size.whitelist = sizeWhitelist;
+      Quill.register(Size, true);
+      // --- FIN DE LA CORRECCIÓN ---
       
       const toolbarOptions = [
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
