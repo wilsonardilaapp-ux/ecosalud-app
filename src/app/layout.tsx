@@ -6,6 +6,8 @@ import { FirebaseClientProvider } from '@/firebase';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { GlobalConfig } from './models/global-config';
+import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
 
 // Initialize Firebase Admin SDK for server-side fetching
 function initializeAdminApp(): App | null {
@@ -32,14 +34,13 @@ function initializeAdminApp(): App | null {
 async function getFaviconUrl(): Promise<string> {
     const defaultFavicon = '/favicon.ico';
     
-    const adminApp = initializeAdminApp();
     // If adminApp could not be initialized (e.g., missing credentials), return default.
-    if (!adminApp) {
-        console.warn("Firebase Admin SDK not initialized. Using default favicon.");
-        return defaultFavicon;
-    }
-
     try {
+      const adminApp = initializeAdminApp();
+      if (!adminApp) {
+          console.warn("Firebase Admin SDK not initialized. Using default favicon.");
+          return defaultFavicon;
+      }
         const db = getFirestore(adminApp);
         const configRef = db.collection('globalConfig').doc('system');
         const configSnap = await configRef.get();
@@ -85,8 +86,12 @@ export default async function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          {children}
-          <Toaster />
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <Toaster />
+            </div>
         </FirebaseClientProvider>
       </body>
     </html>
