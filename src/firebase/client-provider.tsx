@@ -23,27 +23,30 @@ const FaviconUpdater = () => {
       if (snapshot.exists()) {
         const config = snapshot.data() as GlobalConfig;
         const newFaviconUrl = config.faviconUrl;
-
+        
         if (newFaviconUrl) {
-          let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-          if (!link) {
-            link = document.createElement('link');
-            link.rel = 'icon';
-            document.getElementsByTagName('head')[0].appendChild(link);
-          }
-          if (link.href !== newFaviconUrl) {
-            link.href = newFaviconUrl;
-          }
+          // Eliminar todos los links de favicon existentes
+          const existingLinks = document.querySelectorAll("link[rel*='icon']");
+          existingLinks.forEach(link => link.remove());
+          
+          // Crear nuevo link con cache-busting
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.type = 'image/x-icon';
+          // Añadir timestamp para forzar actualización
+          link.href = `${newFaviconUrl}?t=${Date.now()}`;
+          
+          document.getElementsByTagName('head')[0].appendChild(link);
         }
       }
     }, (error) => {
-        console.error("Error listening to favicon changes:", error);
+      console.error("Error listening to favicon changes:", error);
     });
 
     return () => unsubscribe();
   }, [firestore]);
 
-  return null; // Este componente no renderiza nada
+  return null;
 };
 
 
